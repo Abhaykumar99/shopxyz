@@ -35,13 +35,17 @@ without a rewrite.
 
 ## 4. Customer website
 
-- Home, categories, product list, search, filters, product details
+- Home (auto-sliding banners on desktop), categories, product list, search, filters, product details, wholesale
 - Cart (change quantity, remove), checkout, address selection or creation, payment method, place order
 - Google sign-in; profile with a **required phone number before the first order**
 - Saved addresses, My Orders, order details, order status timeline
 - Delivery partner name/phone shown once assigned; delivery OTP shown to the customer
 
 Initial categories: Cosmetics, Confectionery, Gifts. Subcategories are supported.
+
+**Wholesale** (ADR-018): a Wholesale section with bulk price slabs and minimum order quantities, an enquiry
+list and a quote request form for shops, event planners, hotels and corporate gifting. The shop confirms the
+quote by phone or WhatsApp; there is no separate wholesale checkout.
 
 ## 5. Payments (no gateway)
 

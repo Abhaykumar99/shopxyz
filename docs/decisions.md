@@ -171,3 +171,24 @@ invoices, labels and emails.
   DM Serif Display has one weight, so faux bold is switched off (`font-synthesis-weight: none`).
 - Shapes: softer corners (12 / 20 / 28 px) and a soft rose card shadow (`--card-shadow`).
 - Every text pairing meets WCAG AA (see `docs/design-system.md`).
+
+## ADR-018: Wholesale as catalogue + enquiry, and a desktop hero carousel
+**Status:** Accepted, Phase 2 (owner request)
+
+**Wholesale** (`/wholesale`, "Wholesale" tab in the category bar on every screen size, footer link):
+- A public price list of bulk-ready products with **price slabs** (e.g. 5–19, 20–49, 50+), a minimum
+  order quantity and the retail price for comparison. No wholesale account or separate checkout.
+- Customers build an **enquiry list** (quantities never below the minimum) and send a **quote request**
+  (business name and type, contact, mobile, optional email/GSTIN, delivery city and pincode, needed-by
+  date, message). With no products listed, a message of at least 20 characters is required. Rate limited to
+  3 enquiries per 10 minutes per session. The confirmation shows a reference (`WQ-…`) and a WhatsApp follow-up.
+- Phase 2 keeps slabs and enquiries in `App\Support\Demo\DemoWholesale` (ADR-016). Later phases add wholesale
+  slabs to product variants, a `wholesale_enquiries` table and an admin screen to manage enquiries.
+
+**Home hero**:
+- From desktop width (`lg`, 1024 px) up, the hero is a four-slide carousel (welcome, festive hampers, beauty
+  offers, wholesale). It auto-advances every 6 s with a progress indicator and pauses on hover, keyboard focus,
+  hidden tabs and a visible pause button. It never auto-plays for people who prefer reduced motion. Slides are `inert`
+  when hidden and the carousel is `wire:ignore` so page updates don't reset it.
+- Below desktop width the existing single hero is unchanged; phones and tablets get a wholesale card further
+  down the page instead of a slide.

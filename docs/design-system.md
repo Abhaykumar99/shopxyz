@@ -58,7 +58,7 @@ Generic: `resources/views/components/ui/`
 
 | Component | Key props |
 |---|---|
-| `x-ui.button` | `variant` primary/secondary/ghost/danger, `size` sm/md/lg, `href`, `type`, `icon`, `icon-end`, `loading` (Livewire action name), `block` |
+| `x-ui.button` | `variant` primary/secondary/ghost/danger/inverse/inverse-outline (the last two for dark banners), `size` sm/md/lg, `href`, `type`, `icon`, `icon-end`, `loading` (Livewire action name), `block` |
 | `x-ui.icon-button` | `icon`, `label` (required), `href`, `variant`, `count` |
 | `x-ui.icon` | `name` (file in `resources/icons`), `size`, `label` (only for meaningful icons) |
 | `x-ui.link` | `href` |
@@ -102,6 +102,9 @@ Shop: `resources/views/components/shop/`
 | `x-shop.catalog-filters` / `x-shop.catalog-results` | Filters, sort, chips, grid, pagination and filter sheet for pages using the `FiltersCatalog` trait |
 | `x-shop.address-fields` | Address form fields bound to an `AddressForm` (`model`, `labels`, `states`) |
 | `x-shop.info-page` | Information page wrapper with side menu and placeholder notice |
+| `x-shop.hero-carousel` | Desktop banner carousel: `labels`, `interval`, slots `slide1`… (ADR-018) |
+| `x-shop.hero-showcase` | Three products arranged as a shop window inside a banner (`products`) |
+| `x-shop.wholesale-slabs` | A wholesale product's price slabs as a card (`item`) |
 
 Every component reads shop details from `$shop` (ADR-013), never from literals.
 
@@ -141,9 +144,9 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 
 ## Customer pages (Phase 2)
 
-Home, all categories, category, search, product, bag, sign-in, checkout, UPI payment, order placed, profile,
-orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
-`app/Livewire/{Shop,Cart,Checkout,Account}` on the `shop` or `account` layout (see `routes/web.php`).
+Home (desktop banner carousel), all categories, category, search, product, **wholesale**, bag, sign-in, checkout,
+UPI payment, order placed, profile, orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
+`app/Livewire/{Shop,Cart,Checkout,Account,Wholesale}` on the `shop` or `account` layout (see `routes/web.php`).
 Page-level patterns:
 - **Sticky action bar on phones:** product "Add to bag" and bag "Checkout" sit above the bottom navigation.
 - **Filters in the URL:** category and search filters and sort are kept in the query string.

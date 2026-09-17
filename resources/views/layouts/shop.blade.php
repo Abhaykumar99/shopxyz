@@ -1,7 +1,7 @@
 {{--
     Customer-facing layout: delivery strip, sticky header with search and bag,
     desktop category bar, phone bottom navigation and footer.
-    `active`: home | categories | cart | orders | account
+    `active`: home | categories | cart | orders | account | wholesale
 --}}
 @props([
     'title' => null,
@@ -65,18 +65,28 @@
             </div>
         </div>
 
-        <nav aria-label="Categories" class="hidden border-t border-line lg:block">
-            <ul class="mx-auto flex max-w-6xl gap-6 px-4">
+        <nav aria-label="Categories" class="border-t border-line">
+            <ul class="mx-auto flex max-w-6xl items-center gap-3.5 overflow-x-auto px-4 no-scrollbar sm:gap-5 lg:gap-6">
                 @foreach ($categories as $label => $href)
-                    <li>
-                        <a href="{{ $href }}" @class([
-                            'flex h-11 items-center border-b-2 font-medium transition-colors',
+                    <li class="shrink-0">
+                        <a href="{{ $href }}" @if (request()->url() === $href) aria-current="page" @endif @class([
+                            'flex h-11 items-center border-b-2 text-sm font-medium whitespace-nowrap transition-colors sm:text-base',
                             'border-brand text-brand' => request()->url() === $href,
                             'border-transparent text-ink-soft hover:text-brand' => request()->url() !== $href,
                         ])>{{ $label }}</a>
                     </li>
                 @endforeach
-                <li class="ms-auto">
+                <li class="shrink-0">
+                    <a href="{{ route('wholesale.index') }}" @if ($active === 'wholesale') aria-current="page" @endif @class([
+                        'my-1.5 flex h-8 items-center gap-1.5 rounded-full px-2.5 text-sm font-semibold whitespace-nowrap transition-colors sm:px-3',
+                        'bg-brand text-white' => $active === 'wholesale',
+                        'bg-brand-tint text-brand-dark hover:bg-brand hover:text-white' => $active !== 'wholesale',
+                    ])>
+                        <x-ui.icon name="store" :size="16" />
+                        Wholesale
+                    </a>
+                </li>
+                <li class="ms-auto hidden shrink-0 lg:block">
                     <a href="{{ route('shop.categories') }}" class="flex h-11 items-center font-medium text-ink-soft hover:text-brand">All categories</a>
                 </li>
             </ul>
@@ -118,6 +128,7 @@
                 @foreach ($categories as $label => $href)
                     <a href="{{ $href }}" class="text-ink-soft hover:text-brand">{{ $label }}</a>
                 @endforeach
+                <a href="{{ route('wholesale.index') }}" class="text-ink-soft hover:text-brand">Wholesale and bulk orders</a>
                 <a href="{{ route('account.orders') }}" class="text-ink-soft hover:text-brand">Track an order</a>
             </nav>
             <nav aria-label="Help and policies" class="flex flex-col gap-1.5">
