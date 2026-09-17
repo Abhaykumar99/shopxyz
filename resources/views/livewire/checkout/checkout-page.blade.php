@@ -36,9 +36,9 @@
                                 maxlength="14"
                                 hint="The delivery partner calls this number."
                                 required
-                                class="grow"
+                                class="grow [&_label]:sr-only"
                             />
-                            <x-ui.button variant="secondary" wire:click="savePhone" loading="savePhone" class="sm:mt-7">Save number</x-ui.button>
+                            <x-ui.button variant="secondary" wire:click="savePhone" loading="savePhone">Save number</x-ui.button>
                         </div>
                     @else
                         <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -61,7 +61,7 @@
                     </div>
 
                     @if ($addresses === [])
-                        <x-ui.empty-state icon="map-pin" title="Add a delivery address">
+                        <x-ui.empty-state icon="map-pin" title="Add a delivery address" :level="3">
                             We deliver within {{ $shop->deliveryArea ?? 'our area' }}.
                             <x-slot:action>
                                 <x-ui.button wire:click="newAddress" icon="plus">Add address</x-ui.button>

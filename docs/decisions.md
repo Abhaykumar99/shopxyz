@@ -141,3 +141,22 @@ invoices, labels and emails.
   `accent-tint`. A future rebrand then changes values in `resources/css/app.css` without renaming classes.
   The status tone `berry` is now `brand`.
 - Every text pairing still meets WCAG AA (table in `docs/design-system.md`).
+
+## ADR-016: Clickable prototype on a temporary demo layer (Phase 2)
+**Status:** Accepted, Phase 2. To be removed step by step in Phases 4–6.
+
+- The customer site is built as real Livewire pages, routes and form validation on top of
+  `App\Support\Demo\*`: a fixed sample catalogue (33 products), and a session-backed bag, customer
+  (profile, addresses) and order history (sample orders in every status plus orders placed in the preview).
+- An architecture test keeps demo classes out of domain code. Only Livewire components, the dev
+  controllers, the sign-in controller and `RequireDemoCustomer` may use them.
+- `RequireDemoCustomer` stands in for `auth` until Google sign-in (Phase 4). The local-only
+  `/dev/ui/as/{guest|customer}` switch lets reviewers preview both states. The sign-in page's Google button uses
+  it on developer machines.
+- Replacement plan: Phase 4 swaps customers and addresses for models and Socialite, Phase 5 swaps the catalogue and bag,
+  Phase 6 swaps orders and payments (including storing re-encoded payment screenshots). The page components keep their public
+  behaviour, so the Phase 2 tests carry over with new setup helpers.
+- `OrderStatus`, `PaymentStatus` and `PaymentMethod` enums were created now (ADR-006) because the screens need
+  their labels, colours and rules.
+- Phase 2 defaults for open client questions are recorded in `docs/client-questions.md` and live in `config/shop.php`.
+- Friendly wording for image upload errors lives in `lang/en/validation.php`, which is merged over Laravel's messages.

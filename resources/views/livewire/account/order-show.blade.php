@@ -100,9 +100,9 @@
                     <p class="text-sm text-ink-soft">Keep {{ Money::format($order->total()) }} ready in cash when the parcel arrives.</p>
                 @endif
                 @if ($order->invoiceNumber)
-                    <p class="flex items-center gap-2 text-sm text-ink-soft">
-                        <x-ui.icon name="receipt-indian-rupee" :size="18" />
-                        Invoice <span class="figures">{{ $order->invoiceNumber }}</span>. Download opens soon.
+                    <p class="flex items-start gap-2 text-sm text-ink-soft">
+                        <x-ui.icon name="receipt-indian-rupee" :size="18" class="mt-0.5" />
+                        <span>Invoice <span class="figures">{{ $order->invoiceNumber }}</span>. Download opens soon.</span>
                     </p>
                 @endif
             </x-ui.card>

@@ -7,7 +7,7 @@
 ])
 
 <x-layouts::shop :title="$title" class="grid gap-8 lg:grid-cols-[14rem_1fr]">
-    <nav aria-label="Help and policies" class="order-last lg:order-first">
+    <nav aria-label="More help" class="order-last lg:order-first">
         <ul class="flex flex-col divide-y divide-line rounded-card border border-line bg-surface lg:sticky lg:top-32">
             @foreach ($pages as $slug => $label)
                 <li>

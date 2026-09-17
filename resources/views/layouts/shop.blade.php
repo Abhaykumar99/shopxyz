@@ -30,17 +30,19 @@
 @endphp
 
 <x-layouts::app :title="$title" :description="$description" :noindex="$noindex" :og-type="$ogType" class="pb-safe-nav lg:pb-0">
-    @unless (app()->isProduction())
-        <p class="bg-accent-tint px-4 py-1.5 text-center text-sm text-accent-ink">
-            Preview with sample products and orders. Nothing here is real yet.
-        </p>
-    @endunless
+    <section aria-label="Shop notices">
+        @unless (app()->isProduction())
+            <p class="bg-accent-tint px-4 py-1.5 text-center text-sm text-accent-ink">
+                Preview with sample products and orders. Nothing here is real yet.
+            </p>
+        @endunless
 
-    @if ($shop->freeDeliveryAbovePaise > 0)
-        <p class="bg-brand px-4 py-1.5 text-center text-sm text-white">
-            Free delivery{{ $shop->deliveryArea ? ' in '.$shop->deliveryArea : '' }} on orders above {{ Money::format($shop->freeDeliveryAbovePaise) }}
-        </p>
-    @endif
+        @if ($shop->freeDeliveryAbovePaise > 0)
+            <p class="bg-brand px-4 py-1.5 text-center text-sm text-white">
+                Free delivery{{ $shop->deliveryArea ? ' in '.$shop->deliveryArea : '' }} on orders above {{ Money::format($shop->freeDeliveryAbovePaise) }}
+            </p>
+        @endif
+    </section>
 
     <header class="sticky top-0 z-30 border-b border-line bg-paper">
         <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-3">

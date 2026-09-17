@@ -45,6 +45,7 @@
                     </x-ui.alert>
                 @endif
 
+                <h2 class="sr-only">Items in your bag</h2>
                 <x-ui.card padding="none" class="divide-y divide-line px-4">
                     @foreach ($lines as $line)
                         <x-shop.cart-line

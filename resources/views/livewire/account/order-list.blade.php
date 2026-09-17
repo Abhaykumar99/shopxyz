@@ -44,7 +44,7 @@
                                     <a href="{{ route('account.order', $order->number) }}" class="after:absolute after:inset-0">{{ $order->number }}</a>
                                 </h2>
                                 <x-ui.status-pill :tone="$order->status->tone()">{{ $order->status->label() }}</x-ui.status-pill>
-                                @if ($order->needsPaymentProof())
+                                @if ($order->isActive() && in_array($order->paymentStatus->tone(), ['offer', 'danger'], true))
                                     <x-ui.status-pill :tone="$order->paymentStatus->tone()">{{ $order->paymentStatus->label() }}</x-ui.status-pill>
                                 @endif
                             </div>

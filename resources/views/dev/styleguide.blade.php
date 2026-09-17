@@ -148,7 +148,7 @@
         </div>
         <div class="grid gap-3 md:grid-cols-2">
             <x-ui.card>
-                <x-ui.empty-state icon="shopping-bag" title="Your bag is empty">
+                <x-ui.empty-state icon="shopping-bag" title="Your bag is empty" :level="3">
                     Browse sweets, make-up and gifts, and add what you like.
                     <x-slot:action>
                         <x-ui.button :href="url('/')">Start shopping</x-ui.button>

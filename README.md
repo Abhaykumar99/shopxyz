@@ -65,6 +65,11 @@ npm run build
 | `composer analyse` | Static analysis (Larastan) |
 | `composer check` | Everything CI runs: style + analysis + tests |
 
+### Customer site preview (Phase 2, sample data)
+Open `/` to browse. Everything runs on sample data kept in your browser session (ADR-016).
+Sign in as the sample customer with the Google button on `/login`, or directly with `/dev/ui/as/customer`
+(`/dev/ui/as/guest` signs out). Sample orders cover every status: `/account/orders`.
+
 ### Design system preview (local only)
 With the app running, open `/dev/ui` for every component, `/dev/ui/delivery` and `/dev/ui/sign-in` for the
 other layouts, and `/dev/ui/print/label?format=thermal_4x6|a5|a4` or `/dev/ui/print/invoice?format=a4|a5` for
@@ -91,4 +96,5 @@ docs/                    project documentation
 ## Status
 - **Phase 0 (foundation):** complete.
 - **Phase 1 (design system):** complete, see [docs/design-system.md](docs/design-system.md).
-- **Phase 2 (customer UI with dummy data):** starts after approval.
+- **Phase 2 (customer UI with dummy data):** complete, waiting for review before merging.
+- **Phase 3 (delivery panel UI with dummy data):** starts after approval.

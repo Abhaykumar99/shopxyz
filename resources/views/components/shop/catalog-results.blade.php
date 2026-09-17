@@ -68,6 +68,7 @@
             </ul>
         @endif
 
+        <h2 class="sr-only">Products</h2>
         <div wire:loading.class="opacity-60" wire:target="sort, brands, price, inStock, clearFilters, removeBrand, nextPage, previousPage" class="transition-opacity">
             @if ($products->isEmpty())
                 @isset($empty)

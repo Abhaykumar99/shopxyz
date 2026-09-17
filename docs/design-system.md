@@ -42,7 +42,7 @@ Tailwind's default palette is removed. To rebrand, only change the values in `@t
 
 **Status tones** (`<x-ui.status-pill tone>`): `info` = placed or confirmed, `offer` = waiting on someone
 (payment check, packing), `brand` = on the move (assigned, out for delivery), `success` = delivered or paid,
-`danger` = cancelled or failed. The Phase 6 status enums will expose the matching `tone()`.
+`danger` = cancelled or failed. `OrderStatus::tone()` and `PaymentStatus::tone()` return the matching value.
 
 **Type:** Bricolage Grotesque (`font-display`: headings, prices, order numbers) and Mukta (`font-sans`: body,
 with Devanagari for future Hindi). Scale: 13 / 14 / 16 / 18 / 22 / 28 / 36 px (`text-xs` … `text-3xl`). Body text is
@@ -69,13 +69,13 @@ Generic: `resources/views/components/ui/`
 | `x-ui.card` | `as`, `padding` none/sm/md/lg, `header` slot |
 | `x-ui.alert` | `tone` info/success/warning/danger, `title` |
 | `x-ui.toaster` | Included in the base layout. Trigger with `$this->dispatch('toast', message: '…', tone: 'success')` or `session()->flash('toast', …)` |
-| `x-ui.empty-state` | `icon`, `title`, `action` slot |
+| `x-ui.empty-state` | `icon`, `title`, `level` (heading level, default 2), `action` slot |
 | `x-ui.skeleton` | Size with classes |
 | `x-ui.modal` | `name`, `title`, `sheet` (bottom sheet on phones), `max-width`, `footer` slot. Open/close with `$dispatch('open-modal', 'name')` / `close-modal` |
 | `x-ui.dropdown` + `x-ui.dropdown-item` | `trigger` slot (must contain a button or link), `align`, `width`; item: `href`, `icon`, `tone` |
 | `x-ui.tabs` + `x-ui.tab` | Link tabs: `label`; tab: `href`, `active`, `icon` |
 | `x-ui.breadcrumb` | `items` = `[label => url]`, last item is the current page |
-| `x-ui.pagination` | `paginator` (any Laravel paginator) |
+| `x-ui.pagination` | `paginator` (any Laravel paginator), `livewire` (use `previousPage()`/`nextPage()`) |
 
 Shop: `resources/views/components/shop/`
 
@@ -87,7 +87,7 @@ Shop: `resources/views/components/shop/`
 | `x-shop.product-card` | `name`, `url`, `image`, `category`, `brand`, `variant`, `paise`, `mrp`, `in-stock`, `action` slot |
 | `x-shop.category-tile` | `name`, `url`, `slug`, `count` |
 | `x-shop.quantity-stepper` | `value`, `min`, `max`, `name`, `label`. Works with `wire:model` |
-| `x-shop.cart-line` | `name`, `url`, `image`, `category`, `variant`, `paise`, `quantity` |
+| `x-shop.cart-line` | `name`, `url`, `image`, `category`, `variant`, `paise`, `mrp`, `quantity`; in Livewire: `sku` (binds `quantities.{sku}`, calls `remove()`), `max`, `available`, `stock` |
 | `x-shop.address-card` | `label`, `name`, `phone`, `lines`, `pincode`, `is-default` |
 | `x-shop.payment-option` | `method` cod/upi, `name` |
 | `x-shop.upi-qr-panel` | `paise`, `vpa`, `payee`, `order-number`, `qr` (SVG from Phase 6), default slot for the proof form |
@@ -96,6 +96,12 @@ Shop: `resources/views/components/shop/`
 | `x-shop.delivery-order-card` | `order-number`, `url`, `customer`, `area`, `pincode`, `items`, `cod-paise`, `collected`, `status`, `tone` |
 | `x-shop.google-button` | `href`. Follows Google's sign-in branding |
 | `x-shop.logo` | `href`, `compact`. Admin logo or monogram plus `$shop->name` |
+| `x-shop.nav-item` | Phone bottom-navigation link: `href`, `icon`, `active`, `count` |
+| `x-shop.section-heading` | `title`, `href`, `link-text`, `id`; slot = short description |
+| `x-shop.product-grid` | `products`, `rail` (swipeable row on phones), `columns`. Calls the page's `addToCart()` |
+| `x-shop.catalog-filters` / `x-shop.catalog-results` | Filters, sort, chips, grid, pagination and filter sheet for pages using the `FiltersCatalog` trait |
+| `x-shop.address-fields` | Address form fields bound to an `AddressForm` (`model`, `labels`, `states`) |
+| `x-shop.info-page` | Information page wrapper with side menu and placeholder notice |
 
 Every component reads shop details from `$shop` (ADR-013), never from literals.
 
@@ -109,6 +115,7 @@ Every component reads shop details from `$shop` (ADR-013), never from literals.
 | `auth` | Centered sign-in card |
 | `delivery` | Delivery panel: back button, menu, pinned `action` slot for the one main action |
 | `print` | Invoice and label sheets at the selected `PrintFormat` with a screen toolbar (paper choice + Print) |
+| `error` | Minimal page for 404, 419, 429, 500 and 503. No Livewire or session data, so it always renders |
 
 ## Printing (ADR-014)
 
@@ -131,6 +138,18 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 - Phase 1 audit: axe-core 4.11 (WCAG 2.0/2.1/2.2 A+AA and best practice) found **0 violations** on the style guide,
   delivery, sign-in and print previews at 360 px, including with the dialog, sheet and dropdown open. Keyboard tab
   order was checked by hand. Automated checks don't cover everything: screen-reader testing on a real phone is part of Phase 10.
+
+## Customer pages (Phase 2)
+
+Home, all categories, category, search, product, bag, sign-in, checkout, UPI payment, order placed, profile,
+orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
+`app/Livewire/{Shop,Cart,Checkout,Account}` on the `shop` or `account` layout (see `routes/web.php`).
+Page-level patterns:
+- **Sticky action bar on phones:** product "Add to bag" and bag "Checkout" sit above the bottom navigation.
+- **Filters in the URL:** category and search filters and sort are kept in the query string.
+- **Numbered steps only for real sequences:** checkout steps, UPI payment steps, "What happens next".
+- **Axe audit, Phase 2:** 0 violations on all 18 page states at 360 px and 1280 px, including the filter sheet, address
+  sheet and cancel dialog. The checkout tab order was checked by hand.
 
 ## Adding to the system
 

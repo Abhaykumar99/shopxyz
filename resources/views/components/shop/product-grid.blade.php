@@ -12,7 +12,7 @@
 
 <ul {{ $attributes->class([
     'grid gap-3 sm:gap-4',
-    '-mx-4 auto-cols-[46%] grid-flow-col overflow-x-auto overscroll-x-contain px-4 pb-2 [scrollbar-width:none] snap-x snap-mandatory sm:auto-cols-[31%] lg:mx-0 lg:grid-flow-row lg:auto-cols-auto lg:overflow-visible lg:px-0 lg:pb-0 '.$columns => $rail,
+    '-mx-4 auto-cols-[46%] grid-flow-col overflow-x-auto overscroll-x-contain scroll-px-4 px-4 pb-2 [scrollbar-width:none] snap-x snap-mandatory sm:auto-cols-[31%] lg:mx-0 lg:grid-flow-row lg:auto-cols-auto lg:overflow-visible lg:scroll-px-0 lg:px-0 lg:pb-0 '.$columns => $rail,
     'grid-cols-2 sm:grid-cols-3 '.$columns => ! $rail,
 ]) }}>
     @foreach ($products as $product)
