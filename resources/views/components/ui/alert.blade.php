@@ -6,7 +6,7 @@
 @php
     [$classes, $icon] = match ($tone) {
         'success' => ['border-pistachio/30 bg-pistachio-tint text-pistachio', 'circle-check'],
-        'warning' => ['border-marigold/60 bg-marigold-tint text-marigold-ink', 'triangle-alert'],
+        'warning' => ['border-accent/60 bg-accent-tint text-accent-ink', 'triangle-alert'],
         'danger' => ['border-danger/30 bg-danger-tint text-danger', 'circle-alert'],
         default => ['border-info/30 bg-info-tint text-info', 'info'],
     };

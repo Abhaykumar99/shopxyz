@@ -14,7 +14,7 @@
             <x-ui.badge>{{ $label }}</x-ui.badge>
         @endif
         @if ($isDefault)
-            <x-ui.badge tone="berry">Default</x-ui.badge>
+            <x-ui.badge tone="brand">Default</x-ui.badge>
         @endif
     </div>
     <address class="text-ink-soft not-italic">

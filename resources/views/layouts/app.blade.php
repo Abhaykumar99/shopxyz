@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#fbf7fa">
+    <meta name="theme-color" content="#faf7f8">
     <title>{{ $title ? $title.' | '.$shop->name : $shop->name }}</title>
     <meta name="description" content="{{ $description ?? $shop->tagline }}">
     @if ($noindex)

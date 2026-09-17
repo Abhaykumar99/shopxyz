@@ -55,7 +55,7 @@ describe('order tracker', function () {
 
         $this->blade('<x-shop.order-tracker failed :steps="$steps" />', ['steps' => $steps])
             ->assertSee('bg-danger', false)
-            ->assertDontSee('bg-berry', false);
+            ->assertDontSee('bg-brand', false);
     });
 });
 

@@ -6,7 +6,7 @@
 <x-layouts::delivery :title="$order['number']" :back="route('dev.ui.index').'#screens'">
     <x-ui.card class="flex flex-col gap-3">
         <div class="flex items-center justify-between gap-2">
-            <x-ui.status-pill tone="berry">Out for delivery</x-ui.status-pill>
+            <x-ui.status-pill tone="brand">Out for delivery</x-ui.status-pill>
             <span class="figures text-sm text-ink-soft">Assigned 11:52 am</span>
         </div>
         <div>
@@ -27,9 +27,9 @@
         @endif
     </x-ui.card>
 
-    <x-ui.card class="flex items-center justify-between gap-3 bg-marigold-tint">
+    <x-ui.card class="flex items-center justify-between gap-3 bg-accent-tint">
         <span class="flex items-center gap-2 font-semibold">
-            <x-ui.icon name="banknote" :size="24" class="text-marigold-ink" />
+            <x-ui.icon name="banknote" :size="24" class="text-accent-ink" />
             Collect in cash
         </span>
         <x-shop.price :paise="$order['total']" size="lg" />

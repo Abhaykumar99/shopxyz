@@ -5,11 +5,11 @@
 
 /*
 |--------------------------------------------------------------------------
-| Design tokens: "the shop counter" (Phase 1 design system)
+| Design tokens: "the shop counter", velvet and gold palette
 |--------------------------------------------------------------------------
 | Only these colours exist; Tailwind's default palette is removed so every
 | screen stays on-brand. All text pairs meet WCAG AA (see docs/design-system.md).
-| To rebrand, change the values here only.
+| To rebrand, change the values here only: names describe the role, not the hue.
 */
 @theme {
     --color-*: initial;
@@ -18,34 +18,34 @@
     --color-white: #ffffff;
     --color-black: #000000;
 
-    /* Text */
-    --color-ink: #2b1631;
-    --color-ink-soft: #6b5870;
+    /* Text: plum-black and a softened plum grey */
+    --color-ink: #1f1424;
+    --color-ink-soft: #665a6b;
 
-    /* Surfaces */
-    --color-paper: #fbf7fa;
+    /* Surfaces: porcelain page, white cards, blush-grey fills */
+    --color-paper: #faf7f8;
     --color-surface: #ffffff;
-    --color-mist: #f3ecf2;
+    --color-mist: #f3edf0;
 
     /* Lines: `line` is decorative, `line-strong` is for form field borders (≥3:1) */
-    --color-line: #e6dae5;
-    --color-line-strong: #8c7a90;
+    --color-line: #e8dfe4;
+    --color-line-strong: #8a7b8f;
 
-    /* Brand: berry for actions, marigold only for offers (always with ink text) */
-    --color-berry: #a3214f;
-    --color-berry-dark: #7e1a3e;
-    --color-berry-tint: #f7e6ee;
-    --color-marigold: #f3a712;
-    --color-marigold-ink: #7a4b00;
-    --color-marigold-tint: #fdf0d2;
+    /* Brand: deep mulberry for actions; antique gold only for offers (always with ink text) */
+    --color-brand: #7b1e45;
+    --color-brand-dark: #5f1735;
+    --color-brand-tint: #f6e6ec;
+    --color-accent: #d6a64b;
+    --color-accent-ink: #7a5214;
+    --color-accent-tint: #f8edd6;
 
     /* Feedback and statuses */
-    --color-pistachio: #2f6b45;
-    --color-pistachio-tint: #e3f1e1;
-    --color-info: #1d5b8f;
-    --color-info-tint: #e4eef7;
-    --color-danger: #b42318;
-    --color-danger-tint: #fdecea;
+    --color-pistachio: #2f6b4e;
+    --color-pistachio-tint: #e2f0e7;
+    --color-info: #2a5b87;
+    --color-info-tint: #e5edf5;
+    --color-danger: #b3261e;
+    --color-danger-tint: #fbeae8;
 
     /* Type: fonts are injected by the Vite fonts plugin (@fonts) */
     --font-*: initial;
@@ -75,7 +75,7 @@
     --radius-sheet: 1.25rem;
 
     /* Only overlays get a shadow; everything else uses borders */
-    --shadow-overlay: 0 12px 32px -8px rgb(43 22 49 / 0.28);
+    --shadow-overlay: 0 12px 32px -8px rgb(31 20 36 / 0.26);
 
     --animate-sheet-up: sheet-up 0.22s ease-out;
     --animate-pop: pop 0.18s ease-out;
@@ -122,11 +122,11 @@
     }
 
     :focus-visible {
-        @apply outline-2 outline-offset-2 outline-berry;
+        @apply outline-2 outline-offset-2 outline-brand;
     }
 
     ::selection {
-        @apply bg-berry-tint text-ink;
+        @apply bg-brand-tint text-ink;
     }
 
     [x-cloak] {

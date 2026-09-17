@@ -19,7 +19,7 @@
 
 <x-ui.field :label="$label" :for="$id" :hint="$hint" :error="$message" :required="$required" :class="$attributes->get('class')">
     <div @class([
-        'flex min-h-11 items-stretch overflow-hidden rounded-field border bg-surface focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-berry',
+        'flex min-h-11 items-stretch overflow-hidden rounded-field border bg-surface focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand',
         'border-danger' => $message,
         'border-line-strong' => ! $message,
     ])>

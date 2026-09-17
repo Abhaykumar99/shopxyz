@@ -13,7 +13,7 @@
         type="checkbox"
         @if ($name) name="{{ $name }}" @endif
         @if ($hint) aria-describedby="{{ $id }}-hint" @endif
-        {{ $attributes->except('class')->class('mt-0.5 size-5 shrink-0 accent-berry') }}
+        {{ $attributes->except('class')->class('mt-0.5 size-5 shrink-0 accent-brand') }}
     >
     <div class="flex flex-col">
         <label for="{{ $id }}" class="text-base text-ink">{{ $label }}</label>

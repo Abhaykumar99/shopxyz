@@ -14,7 +14,7 @@
                 <x-ui.icon-button icon="arrow-left" label="Back" :href="$back" />
             @else
                 <span class="flex items-center gap-2 px-2">
-                    <x-ui.icon name="bike" class="text-berry" />
+                    <x-ui.icon name="bike" class="text-brand" />
                 </span>
             @endif
             <h1 class="figures min-w-0 grow truncate font-display text-lg font-bold">{{ $title }}</h1>

@@ -32,7 +32,7 @@
                 aria-hidden="true"
                 class="size-2.5 shrink-0 rounded-full"
                 :class="{
-                    'bg-marigold': toast.tone === 'warning',
+                    'bg-accent': toast.tone === 'warning',
                     'bg-danger-tint': toast.tone === 'danger',
                     'bg-pistachio-tint': toast.tone === 'success',
                     'bg-info-tint': toast.tone === 'info',

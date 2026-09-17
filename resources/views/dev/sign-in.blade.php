@@ -11,6 +11,6 @@
 
     <x-slot:footer>
         Prefer to order by phone? Call
-        <a href="tel:{{ preg_replace('/\s+/', '', (string) $shop->phone) }}" class="figures font-medium text-berry">{{ $shop->phone }}</a>
+        <a href="tel:{{ preg_replace('/\s+/', '', (string) $shop->phone) }}" class="figures font-medium text-brand">{{ $shop->phone }}</a>
     </x-slot:footer>
 </x-layouts::auth>

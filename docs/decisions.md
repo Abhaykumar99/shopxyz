@@ -131,3 +131,13 @@ invoices, labels and emails.
   office printers alike. A PDF download of the same markup is added in Phase 8.
 - On A4/A5 a label prints one per sheet, scaled up. A multi-label sheet option can be added later.
 - Formats are a backed enum (`App\Enums\PrintFormat`) that knows its page size and which documents allow it.
+
+## ADR-015: Velvet and gold palette, role-based colour names
+**Status:** Accepted, Phase 2 (owner asked for a premium, modern palette)
+
+- Actions use deep mulberry `#7B1E45` (was berry `#A3214F`). Offers use antique gold `#D6A64B` (was marigold
+  `#F3A712`). Text is plum-black `#1F1424` on a porcelain page `#FAF7F8`. Status colours were retuned to match.
+- Colour tokens are named by **role**, not hue: `brand`, `brand-dark`, `brand-tint`, `accent`, `accent-ink`,
+  `accent-tint`. A future rebrand then changes values in `resources/css/app.css` without renaming classes.
+  The status tone `berry` is now `brand`.
+- Every text pairing still meets WCAG AA (table in `docs/design-system.md`).

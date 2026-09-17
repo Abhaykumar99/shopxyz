@@ -1,16 +1,16 @@
 @php
     $swatches = [
-        ['ink', '#2B1631', 'Text', 'bg-ink'],
-        ['ink-soft', '#6B5870', 'Secondary text', 'bg-ink-soft'],
-        ['paper', '#FBF7FA', 'Page background', 'bg-paper'],
-        ['mist', '#F3ECF2', 'Quiet fills', 'bg-mist'],
-        ['line-strong', '#8C7A90', 'Field borders', 'bg-line-strong'],
-        ['berry', '#A3214F', 'Actions and links', 'bg-berry'],
-        ['berry-tint', '#F7E6EE', 'Selected, price tag', 'bg-berry-tint'],
-        ['marigold', '#F3A712', 'Offers only', 'bg-marigold'],
-        ['pistachio', '#2F6B45', 'Paid, delivered', 'bg-pistachio'],
-        ['info', '#1D5B8F', 'New, confirmed', 'bg-info'],
-        ['danger', '#B42318', 'Errors, cancelled', 'bg-danger'],
+        ['ink', '#1F1424', 'Text', 'bg-ink'],
+        ['ink-soft', '#665A6B', 'Secondary text', 'bg-ink-soft'],
+        ['paper', '#FAF7F8', 'Page background', 'bg-paper'],
+        ['mist', '#F3EDF0', 'Quiet fills', 'bg-mist'],
+        ['line-strong', '#8A7B8F', 'Field borders', 'bg-line-strong'],
+        ['brand', '#7B1E45', 'Actions, links, focus', 'bg-brand'],
+        ['brand-tint', '#F6E6EC', 'Selected, price tag', 'bg-brand-tint'],
+        ['accent', '#D6A64B', 'Offers and waiting only', 'bg-accent'],
+        ['pistachio', '#2F6B4E', 'Paid, delivered', 'bg-pistachio'],
+        ['info', '#2A5B87', 'New, confirmed', 'bg-info'],
+        ['danger', '#B3261E', 'Errors, cancelled', 'bg-danger'],
     ];
     $sections = [
         'colours' => 'Colours',
@@ -41,7 +41,7 @@
         </p>
         <nav aria-label="Sections" class="flex flex-wrap gap-2">
             @foreach ($sections as $anchor => $label)
-                <a href="#{{ $anchor }}" class="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-berry hover:text-berry">{{ $label }}</a>
+                <a href="#{{ $anchor }}" class="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-brand hover:text-brand">{{ $label }}</a>
             @endforeach
         </nav>
     </div>
@@ -114,20 +114,20 @@
         </fieldset>
     </x-dev.section>
 
-    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, marigold for waiting, berry for on the move, green for done, red for stopped.">
+    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, gold for waiting, mulberry for on the move, green for done, red for stopped.">
         <div class="flex flex-wrap gap-2">
             <x-ui.status-pill tone="info">Placed</x-ui.status-pill>
             <x-ui.status-pill tone="offer">Payment check</x-ui.status-pill>
             <x-ui.status-pill tone="info">Confirmed</x-ui.status-pill>
             <x-ui.status-pill tone="offer">Packing</x-ui.status-pill>
-            <x-ui.status-pill tone="berry">Out for delivery</x-ui.status-pill>
+            <x-ui.status-pill tone="brand">Out for delivery</x-ui.status-pill>
             <x-ui.status-pill tone="success">Delivered</x-ui.status-pill>
             <x-ui.status-pill tone="danger">Cancelled</x-ui.status-pill>
             <x-ui.status-pill>Draft</x-ui.status-pill>
         </div>
         <div class="flex flex-wrap gap-2">
             <x-ui.badge>Home</x-ui.badge>
-            <x-ui.badge tone="berry">Default</x-ui.badge>
+            <x-ui.badge tone="brand">Default</x-ui.badge>
             <x-ui.badge tone="offer">Festive offer</x-ui.badge>
             <x-ui.badge tone="success" icon="check">Paid by UPI</x-ui.badge>
             <x-ui.badge tone="info" icon="clock">Arrives today</x-ui.badge>
@@ -212,7 +212,7 @@
         <x-ui.pagination :paginator="$paginator" />
     </x-dev.section>
 
-    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Marigold tags only ever mean a discount.">
+    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Gold tags only ever mean a discount.">
         <div class="flex flex-wrap items-center gap-4">
             <x-shop.price-tag :paise="34900" :mrp="49900" />
             <x-shop.price-tag :paise="52000" />
@@ -294,7 +294,7 @@
             <x-ui.card class="flex flex-col gap-4">
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="figures text-lg font-bold">{{ $order['number'] }}</h3>
-                    <x-ui.status-pill tone="berry">Out for delivery</x-ui.status-pill>
+                    <x-ui.status-pill tone="brand">Out for delivery</x-ui.status-pill>
                 </div>
                 <x-shop.order-tracker :steps="$steps" />
             </x-ui.card>

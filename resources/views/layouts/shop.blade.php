@@ -35,7 +35,7 @@
 
             <form action="{{ url('/search') }}" method="get" role="search" class="hidden grow lg:mx-8 lg:block">
                 <label for="header-search" class="sr-only">Search products</label>
-                <div class="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-surface ps-4 pe-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-berry">
+                <div class="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-surface ps-4 pe-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand">
                     <x-ui.icon name="search" class="text-ink-soft" />
                     <input id="header-search" type="search" name="q" value="{{ $search }}" placeholder="Search lipsticks, chocolates, gift hampers" class="min-w-0 grow bg-transparent focus:outline-none">
                     <x-ui.button type="submit" size="sm" class="rounded-full">Search</x-ui.button>
@@ -53,7 +53,7 @@
             <ul class="mx-auto flex max-w-6xl gap-6 px-4">
                 @foreach ($categories as $label => $href)
                     <li>
-                        <a href="{{ $href }}" class="flex h-11 items-center font-medium text-ink-soft hover:text-berry">{{ $label }}</a>
+                        <a href="{{ $href }}" class="flex h-11 items-center font-medium text-ink-soft hover:text-brand">{{ $label }}</a>
                     </li>
                 @endforeach
             </ul>
@@ -81,10 +81,10 @@
                     <p>{{ $shop->hours }}</p>
                 @endif
                 @if ($shop->phone)
-                    <a href="tel:{{ preg_replace('/\s+/', '', $shop->phone) }}" class="figures hover:text-berry">{{ $shop->phone }}</a>
+                    <a href="tel:{{ preg_replace('/\s+/', '', $shop->phone) }}" class="figures hover:text-brand">{{ $shop->phone }}</a>
                 @endif
                 @if ($shop->whatsappLink())
-                    <a href="{{ $shop->whatsappLink() }}" class="inline-flex items-center gap-1.5 hover:text-berry" rel="noopener" target="_blank">
+                    <a href="{{ $shop->whatsappLink() }}" class="inline-flex items-center gap-1.5 hover:text-brand" rel="noopener" target="_blank">
                         <x-ui.icon name="message-circle" :size="18" />
                         Chat on WhatsApp
                     </a>
@@ -93,9 +93,9 @@
             <nav aria-label="Footer" class="flex flex-col gap-1.5">
                 <h2 class="font-sans text-base font-semibold text-ink">Shop</h2>
                 @foreach ($categories as $label => $href)
-                    <a href="{{ $href }}" class="text-ink-soft hover:text-berry">{{ $label }}</a>
+                    <a href="{{ $href }}" class="text-ink-soft hover:text-brand">{{ $label }}</a>
                 @endforeach
-                <a href="{{ url('/account/orders') }}" class="text-ink-soft hover:text-berry">Track an order</a>
+                <a href="{{ url('/account/orders') }}" class="text-ink-soft hover:text-brand">Track an order</a>
             </nav>
         </div>
         <p class="border-t border-line py-4 text-center text-sm text-ink-soft">© {{ now()->year }} {{ $shop->name }}</p>
@@ -110,17 +110,17 @@
                         @if ($active === $key) aria-current="page" @endif
                         @class([
                             'relative flex h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium',
-                            'text-berry' => $active === $key,
+                            'text-brand' => $active === $key,
                             'text-ink-soft' => $active !== $key,
                         ])
                     >
                         @if ($active === $key)
-                            <span aria-hidden="true" class="absolute top-0 h-0.5 w-8 rounded-full bg-berry"></span>
+                            <span aria-hidden="true" class="absolute top-0 h-0.5 w-8 rounded-full bg-brand"></span>
                         @endif
                         <span class="relative">
                             <x-ui.icon :name="$icon" :size="22" />
                             @if ($key === 'cart' && $cartCount)
-                                <span class="figures absolute -top-1.5 -right-2.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-berry px-1 text-[0.6875rem] font-semibold text-white">{{ $cartCount }}</span>
+                                <span class="figures absolute -top-1.5 -right-2.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[0.6875rem] font-semibold text-white">{{ $cartCount }}</span>
                             @endif
                         </span>
                         {{ $label }}

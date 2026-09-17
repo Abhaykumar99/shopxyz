@@ -42,9 +42,9 @@
     </div>
 
     <ol class="flex flex-col gap-2 text-base">
-        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-berry-tint text-sm font-bold text-berry-dark">1</span>Open any UPI app and scan the QR code.</li>
-        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-berry-tint text-sm font-bold text-berry-dark">2</span>Pay the exact amount shown above.</li>
-        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-berry-tint text-sm font-bold text-berry-dark">3</span>Upload the payment screenshot and enter the 12-digit UTR number below.</li>
+        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-sm font-bold text-brand-dark">1</span>Open any UPI app and scan the QR code.</li>
+        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-sm font-bold text-brand-dark">2</span>Pay the exact amount shown above.</li>
+        <li class="flex gap-3"><span class="figures flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-tint text-sm font-bold text-brand-dark">3</span>Upload the payment screenshot and enter the 12-digit UTR number below.</li>
     </ol>
 
     {{ $slot }}

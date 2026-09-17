@@ -12,7 +12,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>Phone preview</title>
 </head>
-<body style="margin: 0; background: #2b1631;">
+<body style="margin: 0; background: #1f1424;">
     <iframe
         src="{{ url($src) }}"
         title="Phone preview"

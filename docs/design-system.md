@@ -10,8 +10,12 @@ labels and sweet-box colours**. One signature shape is used: the **price tag** (
 punched hole). It appears on prices, discounts, the current step of the order tracker and the logo monogram.
 Everything else stays quiet: borders instead of shadows, and no decorative motion.
 
+**Palette: velvet and gold** (Phase 2, ADR-015). Deep mulberry (think lipstick and gift-box velvet) for every action,
+antique gold (sweet-box foil, gift wrap) for offers, on a cool porcelain page with plum-black text. It reads premium
+without the usual cream-and-terracotta or black-and-neon looks.
+
 Rules we hold to:
-- Marigold means **discount** and nothing else.
+- Gold (`accent`) means **discount or waiting** and nothing else.
 - Status colours always mean the same thing everywhere (see below).
 - Sentence case everywhere. No all-caps labels, no gradients, and motion only to confirm an action.
 - Mobile first: design at 360 px, then widen.
@@ -22,22 +26,22 @@ Tailwind's default palette is removed. To rebrand, only change the values in `@t
 
 | Token | Hex | Use | Contrast |
 |---|---|---|---|
-| `ink` | `#2B1631` | Text | 15.7:1 on paper |
-| `ink-soft` | `#6B5870` | Secondary text, placeholders | 6.1:1 on paper |
-| `paper` | `#FBF7FA` | Page background | — |
+| `ink` | `#1F1424` | Text | 16.7:1 on paper |
+| `ink-soft` | `#665A6B` | Secondary text, placeholders | 6.1:1 on paper, 5.4:1 on tints |
+| `paper` | `#FAF7F8` | Page background (porcelain) | — |
 | `surface` | `#FFFFFF` | Cards, fields | — |
-| `mist` | `#F3ECF2` | Quiet fills, hover | ink 14.3:1 |
-| `line` | `#E6DAE5` | Decorative dividers | — |
-| `line-strong` | `#8C7A90` | Form field borders | 4.0:1 on white (≥3:1 required) |
-| `berry` / `berry-dark` | `#A3214F` / `#7E1A3E` | Actions, links, focus ring | white on berry 7.3:1 |
-| `berry-tint` | `#F7E6EE` | Selected state, price tag | berry 6.1:1 |
-| `marigold` / `marigold-ink` / `marigold-tint` | `#F3A712` / `#7A4B00` / `#FDF0D2` | Offers and "waiting" states only | ink on marigold 8.2:1 |
-| `pistachio` / `pistachio-tint` | `#2F6B45` / `#E3F1E1` | Paid, delivered, success | 5.4:1 |
-| `info` / `info-tint` | `#1D5B8F` / `#E4EEF7` | New, confirmed | 6.1:1 |
-| `danger` / `danger-tint` | `#B42318` / `#FDECEA` | Errors, cancelled, failed | 5.8:1 |
+| `mist` | `#F3EDF0` | Quiet fills, hover | ink 15.4:1 |
+| `line` | `#E8DFE4` | Decorative dividers | — |
+| `line-strong` | `#8A7B8F` | Form field borders | 4.0:1 on white (≥3:1 required) |
+| `brand` / `brand-dark` | `#7B1E45` / `#5F1735` | Actions, links, focus ring (mulberry) | white on brand 9.9:1 |
+| `brand-tint` | `#F6E6EC` | Selected state, price tag | brand 8.3:1 |
+| `accent` / `accent-ink` / `accent-tint` | `#D6A64B` / `#7A5214` / `#F8EDD6` | Offers and "waiting" states only (antique gold) | ink on accent 8.0:1, accent-ink on tint 5.9:1 |
+| `pistachio` / `pistachio-tint` | `#2F6B4E` / `#E2F0E7` | Paid, delivered, success | 5.4:1 |
+| `info` / `info-tint` | `#2A5B87` / `#E5EDF5` | New, confirmed | 6.0:1 |
+| `danger` / `danger-tint` | `#B3261E` / `#FBEAE8` | Errors, cancelled, failed | 5.6:1 |
 
 **Status tones** (`<x-ui.status-pill tone>`): `info` = placed or confirmed, `offer` = waiting on someone
-(payment check, packing), `berry` = on the move (assigned, out for delivery), `success` = delivered or paid,
+(payment check, packing), `brand` = on the move (assigned, out for delivery), `success` = delivered or paid,
 `danger` = cancelled or failed. The Phase 6 status enums will expose the matching `tone()`.
 
 **Type:** Bricolage Grotesque (`font-display`: headings, prices, order numbers) and Mukta (`font-sans`: body,
@@ -78,7 +82,7 @@ Shop: `resources/views/components/shop/`
 | Component | Key props |
 |---|---|
 | `x-shop.price` | `paise`, `mrp`, `size` |
-| `x-shop.price-tag` | `paise`, `mrp`, `offer` (marigold "% off" tag), `size` |
+| `x-shop.price-tag` | `paise`, `mrp`, `offer` (accent "% off" tag), `size` |
 | `x-shop.product-image` | `src`, `alt`, `category` (placeholder colour and icon) |
 | `x-shop.product-card` | `name`, `url`, `image`, `category`, `brand`, `variant`, `paise`, `mrp`, `in-stock`, `action` slot |
 | `x-shop.category-tile` | `name`, `url`, `slug`, `count` |
@@ -118,7 +122,7 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 ## Accessibility baseline
 
 - WCAG 2.2 AA colour contrast for all text pairs (table above). Field borders are at least 3:1.
-- Visible focus ring (`outline-berry`) on everything, a skip link, and scroll padding so focused items stay clear of
+- Visible focus ring (`outline-brand`) on everything, a skip link, and scroll padding so focused items stay clear of
   the sticky header and bottom bar.
 - Every field has a visible label. Hints and errors are linked with `aria-describedby`, and errors set `aria-invalid`.
 - Touch targets are 44 px (buttons, icon buttons, steppers, bottom navigation).
