@@ -10,7 +10,7 @@
     'inStock' => true,
 ])
 
-<article {{ $attributes->class('group relative flex flex-col overflow-hidden rounded-card border border-line bg-surface') }}>
+<article {{ $attributes->class('group relative flex flex-col overflow-hidden rounded-card border border-line bg-surface shadow-[var(--card-shadow)] transition-shadow') }}>
     <div class="relative">
         <x-shop.product-image :src="$image" :alt="$name" :category="$category" class="aspect-square w-full" />
         <x-shop.price-tag offer :paise="$paise" :mrp="$mrp" size="sm" class="absolute top-2.5 left-0" />

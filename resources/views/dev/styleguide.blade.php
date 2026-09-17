@@ -1,13 +1,13 @@
 @php
     $swatches = [
-        ['ink', '#1F1424', 'Text', 'bg-ink'],
-        ['ink-soft', '#665A6B', 'Secondary text', 'bg-ink-soft'],
-        ['paper', '#FAF7F8', 'Page background', 'bg-paper'],
-        ['mist', '#F3EDF0', 'Quiet fills', 'bg-mist'],
-        ['line-strong', '#8A7B8F', 'Field borders', 'bg-line-strong'],
-        ['brand', '#7B1E45', 'Actions, links, focus', 'bg-brand'],
-        ['brand-tint', '#F6E6EC', 'Selected, price tag', 'bg-brand-tint'],
-        ['accent', '#D6A64B', 'Offers and waiting only', 'bg-accent'],
+        ['ink', '#2A1A20', 'Text', 'bg-ink'],
+        ['ink-soft', '#6E5B62', 'Secondary text', 'bg-ink-soft'],
+        ['paper', '#FFFAFA', 'Page background', 'bg-paper'],
+        ['mist', '#F8EEF0', 'Quiet fills', 'bg-mist'],
+        ['line-strong', '#8F7A82', 'Field borders', 'bg-line-strong'],
+        ['brand', '#9B2C55', 'Actions, links, focus', 'bg-brand'],
+        ['brand-tint', '#FBE9EF', 'Selected, price tag', 'bg-brand-tint'],
+        ['accent', '#E8B4A0', 'Offers and waiting only', 'bg-accent'],
         ['pistachio', '#2F6B4E', 'Paid, delivered', 'bg-pistachio'],
         ['info', '#2A5B87', 'New, confirmed', 'bg-info'],
         ['danger', '#B3261E', 'Errors, cancelled', 'bg-danger'],
@@ -61,7 +61,7 @@
         </div>
     </x-dev.section>
 
-    <x-dev.section id="type" title="Type" description="Bricolage Grotesque for headings and prices, Mukta for reading. Mukta also covers Hindi: नमस्ते, आपका ऑर्डर रास्ते में है।">
+    <x-dev.section id="type" title="Type" description="DM Serif Display for headings and prices, Figtree for reading, and Mukta for Hindi: नमस्ते, आपका ऑर्डर रास्ते में है।">
         <x-ui.card class="flex flex-col gap-3">
             <p class="font-display text-3xl font-bold">Gifts for every occasion</p>
             <p class="font-display text-2xl font-bold">Fresh kaju katli, packed today</p>
@@ -114,7 +114,7 @@
         </fieldset>
     </x-dev.section>
 
-    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, gold for waiting, mulberry for on the move, green for done, red for stopped.">
+    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, rose gold for waiting, rose-wine for on the move, green for done, red for stopped.">
         <div class="flex flex-wrap gap-2">
             <x-ui.status-pill tone="info">Placed</x-ui.status-pill>
             <x-ui.status-pill tone="offer">Payment check</x-ui.status-pill>
@@ -212,7 +212,7 @@
         <x-ui.pagination :paginator="$paginator" />
     </x-dev.section>
 
-    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Gold tags only ever mean a discount.">
+    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Rose gold tags only ever mean a discount.">
         <div class="flex flex-wrap items-center gap-4">
             <x-shop.price-tag :paise="34900" :mrp="49900" />
             <x-shop.price-tag :paise="52000" />

@@ -5,7 +5,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| Design tokens: "the shop counter", velvet and gold palette
+| Design tokens: "the shop counter", Rose Atelier theme (ADR-017)
 |--------------------------------------------------------------------------
 | Only these colours exist; Tailwind's default palette is removed so every
 | screen stays on-brand. All text pairs meet WCAG AA (see docs/design-system.md).
@@ -18,26 +18,26 @@
     --color-white: #ffffff;
     --color-black: #000000;
 
-    /* Text: plum-black and a softened plum grey */
-    --color-ink: #1f1424;
-    --color-ink-soft: #665a6b;
+    /* Text: deep rose-brown and a soft mauve grey */
+    --color-ink: #2a1a20;
+    --color-ink-soft: #6e5b62;
 
-    /* Surfaces: porcelain page, white cards, blush-grey fills */
-    --color-paper: #faf7f8;
+    /* Surfaces: blush-white page, white cards, blush fills */
+    --color-paper: #fffafa;
     --color-surface: #ffffff;
-    --color-mist: #f3edf0;
+    --color-mist: #f8eef0;
 
     /* Lines: `line` is decorative, `line-strong` is for form field borders (≥3:1) */
-    --color-line: #e8dfe4;
-    --color-line-strong: #8a7b8f;
+    --color-line: #f0e1e5;
+    --color-line-strong: #8f7a82;
 
-    /* Brand: deep mulberry for actions; antique gold only for offers (always with ink text) */
-    --color-brand: #7b1e45;
-    --color-brand-dark: #5f1735;
-    --color-brand-tint: #f6e6ec;
-    --color-accent: #d6a64b;
-    --color-accent-ink: #7a5214;
-    --color-accent-tint: #f8edd6;
+    /* Brand: rose-wine for actions; rose gold only for offers and waiting states (always with ink text) */
+    --color-brand: #9b2c55;
+    --color-brand-dark: #7c2244;
+    --color-brand-tint: #fbe9ef;
+    --color-accent: #e8b4a0;
+    --color-accent-ink: #7a3e2c;
+    --color-accent-tint: #fbede6;
 
     /* Feedback and statuses */
     --color-pistachio: #2f6b4e;
@@ -47,13 +47,13 @@
     --color-danger: #b3261e;
     --color-danger-tint: #fbeae8;
 
-    /* Type: fonts are injected by the Vite fonts plugin (@fonts) */
+    /* Type: fonts are injected by the Vite fonts plugin (@fonts). Mukta covers Devanagari. */
     --font-*: initial;
-    --font-display: var(--font-source-display), 'Trebuchet MS', ui-sans-serif, system-ui, sans-serif;
-    --font-sans: var(--font-source-body), ui-sans-serif, system-ui, sans-serif;
+    --font-display: var(--font-source-display), Georgia, 'Times New Roman', serif;
+    --font-sans: var(--font-source-body), var(--font-source-devanagari), ui-sans-serif, system-ui, sans-serif;
     --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
-    /* Type scale 14 / 16 / 18 / 22 / 28 / 36 */
+    /* Type scale 13 / 14 / 16 / 18 / 22 / 28 / 36 */
     --text-xs: 0.8125rem;
     --text-xs--line-height: 1.35;
     --text-sm: 0.875rem;
@@ -69,13 +69,13 @@
     --text-3xl: 2.25rem;
     --text-3xl--line-height: 1.1;
 
-    /* Radius by importance: fields < cards < sheets */
-    --radius-field: 0.5rem;
-    --radius-card: 0.875rem;
-    --radius-sheet: 1.25rem;
+    /* Radius by importance: fields < cards < sheets (soft, rounded) */
+    --radius-field: 0.75rem;
+    --radius-card: 1.25rem;
+    --radius-sheet: 1.75rem;
 
-    /* Only overlays get a shadow; everything else uses borders */
-    --shadow-overlay: 0 12px 32px -8px rgb(31 20 36 / 0.26);
+    /* Overlays get a real shadow; cards get a soft rose lift (--card-shadow) */
+    --shadow-overlay: 0 16px 40px -12px rgb(42 26 32 / 0.28);
 
     --animate-sheet-up: sheet-up 0.22s ease-out;
     --animate-pop: pop 0.18s ease-out;
@@ -103,11 +103,17 @@
     }
 }
 
+:root {
+    --card-shadow: 0 12px 30px -18px rgb(155 44 85 / 0.35);
+}
+
 @layer base {
     /* Keeps focused elements clear of the sticky header and mobile bottom bar (WCAG 2.4.11) */
     html {
         -webkit-text-size-adjust: 100%;
         scroll-padding-block: 5rem 5.5rem;
+        /* DM Serif Display has a single weight: never fake a bold version */
+        font-synthesis-weight: none;
     }
 
     body {
@@ -167,4 +173,13 @@
 
 @utility pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Horizontal scroll rows without a visible scrollbar */
+@utility no-scrollbar {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }

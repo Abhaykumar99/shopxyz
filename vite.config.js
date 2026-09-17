@@ -9,21 +9,28 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                // Headings and prices (docs/decisions.md, design system).
-                bunny('Bricolage Grotesque', {
+                // Rose Atelier theme (ADR-017). Headings and prices.
+                bunny('DM Serif Display', {
                     alias: 'display',
                     variable: '--font-source-display',
-                    weights: [600, 700],
-                    preload: [{ weight: 700 }],
+                    weights: [400],
+                    preload: [{ weight: 400 }],
                 }),
-                // Body text. Includes Devanagari for future Hindi labels
-                // (only downloaded when Devanagari characters are on the page).
-                bunny('Mukta', {
+                // Body text.
+                bunny('Figtree', {
                     alias: 'body',
                     variable: '--font-source-body',
-                    weights: [400, 500, 600],
-                    subsets: ['latin', 'devanagari'],
+                    weights: [400, 500, 600, 700],
                     preload: [{ weight: 400 }],
+                }),
+                // Devanagari fallback for Hindi text (Figtree has no Devanagari).
+                // Only downloaded when Devanagari characters are on the page.
+                bunny('Mukta', {
+                    alias: 'devanagari',
+                    variable: '--font-source-devanagari',
+                    weights: [400, 600],
+                    subsets: ['devanagari'],
+                    preload: false,
                 }),
             ],
         }),

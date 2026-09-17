@@ -160,3 +160,14 @@ invoices, labels and emails.
   their labels, colours and rules.
 - Phase 2 defaults for open client questions are recorded in `docs/client-questions.md` and live in `config/shop.php`.
 - Friendly wording for image upload errors lives in `lang/en/validation.php`, which is merged over Laravel's messages.
+
+## ADR-017: Rose Atelier theme (supersedes the values in ADR-015)
+**Status:** Accepted, Phase 2. Chosen by the owner after comparing four candidates on the live site.
+
+- Colours: rose-wine `#9B2C55` for actions, rose gold `#E8B4A0` for offers and waiting states (always with ink
+  text), deep rose-brown text `#2A1A20` on a blush-white page `#FFFAFA`. Role-based token names from ADR-015 are
+  unchanged.
+- Type: **DM Serif Display** for headings and prices, **Figtree** for text, **Mukta** only as the Devanagari fallback.
+  DM Serif Display has one weight, so faux bold is switched off (`font-synthesis-weight: none`).
+- Shapes: softer corners (12 / 20 / 28 px) and a soft rose card shadow (`--card-shadow`).
+- Every text pairing meets WCAG AA (see `docs/design-system.md`).

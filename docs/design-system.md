@@ -10,12 +10,12 @@ labels and sweet-box colours**. One signature shape is used: the **price tag** (
 punched hole). It appears on prices, discounts, the current step of the order tracker and the logo monogram.
 Everything else stays quiet: borders instead of shadows, and no decorative motion.
 
-**Palette: velvet and gold** (Phase 2, ADR-015). Deep mulberry (think lipstick and gift-box velvet) for every action,
-antique gold (sweet-box foil, gift wrap) for offers, on a cool porcelain page with plum-black text. It reads premium
-without the usual cream-and-terracotta or black-and-neon looks.
+**Theme: Rose Atelier** (ADR-017). Rose-wine for every action (lipstick, gift ribbon), rose gold for offers
+(gift wrap, sweet-box foil), on a blush-white page with deep rose-brown text. DM Serif Display headings give a
+boutique feel; Figtree keeps text clean and readable; soft corners and a gentle rose shadow lift cards.
 
 Rules we hold to:
-- Gold (`accent`) means **discount or waiting** and nothing else.
+- Rose gold (`accent`) means **discount or waiting** and nothing else.
 - Status colours always mean the same thing everywhere (see below).
 - Sentence case everywhere. No all-caps labels, no gradients, and motion only to confirm an action.
 - Mobile first: design at 360 px, then widen.
@@ -26,16 +26,16 @@ Tailwind's default palette is removed. To rebrand, only change the values in `@t
 
 | Token | Hex | Use | Contrast |
 |---|---|---|---|
-| `ink` | `#1F1424` | Text | 16.7:1 on paper |
-| `ink-soft` | `#665A6B` | Secondary text, placeholders | 6.1:1 on paper, 5.4:1 on tints |
-| `paper` | `#FAF7F8` | Page background (porcelain) | — |
+| `ink` | `#2A1A20` | Text | 16.0:1 on paper |
+| `ink-soft` | `#6E5B62` | Secondary text, placeholders | 6.1:1 on paper, 5.5:1 on mist |
+| `paper` | `#FFFAFA` | Page background (blush white) | — |
 | `surface` | `#FFFFFF` | Cards, fields | — |
-| `mist` | `#F3EDF0` | Quiet fills, hover | ink 15.4:1 |
-| `line` | `#E8DFE4` | Decorative dividers | — |
-| `line-strong` | `#8A7B8F` | Form field borders | 4.0:1 on white (≥3:1 required) |
-| `brand` / `brand-dark` | `#7B1E45` / `#5F1735` | Actions, links, focus ring (mulberry) | white on brand 9.9:1 |
-| `brand-tint` | `#F6E6EC` | Selected state, price tag | brand 8.3:1 |
-| `accent` / `accent-ink` / `accent-tint` | `#D6A64B` / `#7A5214` / `#F8EDD6` | Offers and "waiting" states only (antique gold) | ink on accent 8.0:1, accent-ink on tint 5.9:1 |
+| `mist` | `#F8EEF0` | Quiet fills, hover | — |
+| `line` | `#F0E1E5` | Decorative dividers | — |
+| `line-strong` | `#8F7A82` | Form field borders | 4.0:1 on white (≥3:1 required) |
+| `brand` / `brand-dark` | `#9B2C55` / `#7C2244` | Actions, links, focus ring (rose-wine) | white on brand 7.3:1, brand on paper 7.0:1 |
+| `brand-tint` | `#FBE9EF` | Selected state, price tag | brand 6.2:1 |
+| `accent` / `accent-ink` / `accent-tint` | `#E8B4A0` / `#7A3E2C` / `#FBEDE6` | Offers and "waiting" states only (rose gold) | ink on accent 9.1:1, accent-ink on tint 7.2:1 |
 | `pistachio` / `pistachio-tint` | `#2F6B4E` / `#E2F0E7` | Paid, delivered, success | 5.4:1 |
 | `info` / `info-tint` | `#2A5B87` / `#E5EDF5` | New, confirmed | 6.0:1 |
 | `danger` / `danger-tint` | `#B3261E` / `#FBEAE8` | Errors, cancelled, failed | 5.6:1 |
@@ -44,13 +44,13 @@ Tailwind's default palette is removed. To rebrand, only change the values in `@t
 (payment check, packing), `brand` = on the move (assigned, out for delivery), `success` = delivered or paid,
 `danger` = cancelled or failed. `OrderStatus::tone()` and `PaymentStatus::tone()` return the matching value.
 
-**Type:** Bricolage Grotesque (`font-display`: headings, prices, order numbers) and Mukta (`font-sans`: body,
-with Devanagari for future Hindi). Scale: 13 / 14 / 16 / 18 / 22 / 28 / 36 px (`text-xs` … `text-3xl`). Body text is
+**Type:** DM Serif Display (`font-display`: headings, prices, order numbers; one weight, no faux bold) and Figtree
+(`font-sans`: body), with Mukta as the Devanagari fallback for Hindi. Scale: 13 / 14 / 16 / 18 / 22 / 28 / 36 px (`text-xs` … `text-3xl`). Body text is
 16 px so phone browsers don't zoom into inputs. Use the `figures` utility for tabular numbers.
 
-**Radius by importance:** `rounded-field` (8 px) < `rounded-card` (14 px) < `rounded-sheet` (20 px).
-**Shadow:** only `shadow-overlay` for dialogs, dropdowns and toasts.
-**Utilities:** `tag-shape`, `figures`, `pb-safe`, `pb-safe-nav`.
+**Radius by importance:** `rounded-field` (12 px) < `rounded-card` (20 px) < `rounded-sheet` (28 px).
+**Shadow:** `shadow-overlay` for dialogs, dropdowns and toasts; cards use `shadow-[var(--card-shadow)]`.
+**Utilities:** `tag-shape`, `figures`, `pb-safe`, `pb-safe-nav`, `no-scrollbar`.
 
 ## Components
 
