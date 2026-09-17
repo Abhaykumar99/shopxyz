@@ -130,7 +130,7 @@ return [
 
     'temporary_file_upload' => [
         'disk' => env('LIVEWIRE_TEMPORARY_FILE_UPLOAD_DISK'), // Example: 'local', 's3'             | Default: 'default'
-        // Project: only payment screenshots are uploaded by customers (ADR-009).
+        // Project: uploads are images only (payment screenshots, product photos), ADR-009.
         'rules' => ['required', 'file', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         'directory' => null,                                  // Example: 'tmp'                     | Default: 'livewire-tmp'
         'middleware' => 'throttle:10,1',

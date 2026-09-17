@@ -13,6 +13,16 @@ arch('actions are final, single-purpose classes')
     ->classes()
     ->toBeFinal();
 
+arch('temporary demo data stays out of domain code so it is easy to remove in Phases 4–6')
+    ->expect('App\Support\Demo')
+    ->toOnlyBeUsedIn([
+        'App\Support\Demo',
+        'App\Livewire',
+        'App\Http\Controllers\Dev',
+        'App\Http\Controllers\Auth',
+        'App\Http\Middleware\RequireDemoCustomer',
+    ]);
+
 arch('models are only extended from Eloquent')
     ->expect('App\Models')
     ->classes()

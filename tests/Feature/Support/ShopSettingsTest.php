@@ -53,3 +53,58 @@ it('shows the configured shop name in page titles and the footer', function () {
         ->assertSee('<title>Design system | Sweet Corner</title>', false)
         ->assertSee('© '.now()->year.' Sweet Corner');
 });
+
+describe('delivery rules', function () {
+    beforeEach(function () {
+        config([
+            'shop.delivery.charge_paise' => 4000,
+            'shop.delivery.free_above_paise' => 49900,
+            'shop.delivery.min_order_paise' => 9900,
+            'shop.delivery.pincodes' => ['800001', '800014'],
+        ]);
+    });
+
+    it('charges delivery below the threshold and nothing from the threshold up', function (int $subtotal, int $charge, int $shortfall) {
+        $shop = freshShopSettings();
+
+        expect($shop->deliveryChargeFor($subtotal))->toBe($charge)
+            ->and($shop->freeDeliveryShortfall($subtotal))->toBe($shortfall);
+    })->with([
+        'just below' => [49899, 4000, 1],
+        'exactly at the threshold' => [49900, 0, 0],
+        'above' => [80000, 0, 0],
+    ]);
+
+    it('checks the minimum order value', function () {
+        $shop = freshShopSettings();
+
+        expect($shop->meetsMinimumOrder(9899))->toBeFalse()
+            ->and($shop->meetsMinimumOrder(9900))->toBeTrue();
+    });
+
+    it('serves only the listed pincodes', function () {
+        $shop = freshShopSettings();
+
+        expect($shop->servesPincode('800014'))->toBeTrue()
+            ->and($shop->servesPincode('110001'))->toBeFalse();
+    });
+
+    it('serves every pincode when no list is configured', function () {
+        config(['shop.delivery.pincodes' => []]);
+
+        expect(freshShopSettings()->servesPincode('110001'))->toBeTrue();
+    });
+});
+
+it('builds a UPI payment link for the exact amount and order number', function () {
+    config(['shop.payment.upi_vpa' => 'sweet.corner@okaxis', 'shop.payment.upi_payee_name' => 'Sweet Corner']);
+
+    expect(freshShopSettings()->upiPaymentUri(215750, 'ORD-10245'))
+        ->toBe('upi://pay?pa=sweet.corner%40okaxis&pn=Sweet%20Corner&am=2157.50&cu=INR&tn=ORD-10245');
+});
+
+it('builds no UPI link when no UPI ID is set', function () {
+    config(['shop.payment.upi_vpa' => null]);
+
+    expect(freshShopSettings()->upiPaymentUri(1000, 'ORD-1'))->toBeNull();
+});
