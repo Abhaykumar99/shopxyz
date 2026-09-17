@@ -89,7 +89,7 @@ final class DemoCustomer
         );
         usort($addresses, fn (DemoAddress $a, DemoAddress $b): int => $b->isDefault <=> $a->isDefault);
 
-        return array_values($addresses);
+        return $addresses;
     }
 
     public function address(?string $id): ?DemoAddress

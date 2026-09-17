@@ -2,6 +2,8 @@
 
 namespace App\Support\Demo;
 
+use App\Support\IndianPhone;
+
 /**
  * TEMPORARY (Phases 2–4): replaced by the Address model.
  */
@@ -78,6 +80,6 @@ final readonly class DemoAddress
 
     public function formattedPhone(): string
     {
-        return '+91 '.substr($this->phone, 0, 5).' '.substr($this->phone, 5);
+        return IndianPhone::format($this->phone);
     }
 }

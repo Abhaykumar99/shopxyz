@@ -30,7 +30,7 @@ class CategoryShow extends Component
         abort_if($category === null, 404);
 
         $root = DemoCatalog::category($category->rootSlug());
-        $siblings = $root?->children ?? [];
+        $siblings = $root->children ?? [];
 
         $breadcrumb = ['Home' => route('shop.home')];
         if ($category->parentSlug && $root) {

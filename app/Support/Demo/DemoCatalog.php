@@ -203,18 +203,18 @@ final class DemoCatalog
      */
     private static function build(): array
     {
-        $shades = fn (string $prefix, array $shades, int $paise, ?int $mrp, array $stock = []): array => array_values(array_map(
+        $shades = fn (string $prefix, array $shades, int $paise, ?int $mrp, array $stock = []): array => array_map(
             fn (string $name, string $hex, int $index): DemoVariant => new DemoVariant("{$prefix}-".($index + 1), $name, $paise, $mrp, $stock[$index] ?? 15, $hex),
             array_keys($shades),
             array_values($shades),
             array_keys(array_values($shades)),
-        ));
+        );
 
-        $sizes = fn (string $prefix, array $sizes): array => array_values(array_map(
+        $sizes = fn (string $prefix, array $sizes): array => array_map(
             fn (array $size, int $index): DemoVariant => new DemoVariant("{$prefix}-".($index + 1), $size[0], $size[1], $size[2] ?? null, $size[3] ?? 20),
             $sizes,
             array_keys($sizes),
-        ));
+        );
 
         return [
             // Cosmetics
