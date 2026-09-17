@@ -3,7 +3,13 @@
     'title' => null,
     'description' => null,
     'noindex' => false,
+    'ogType' => 'website',
 ])
+
+@php
+    $pageTitle = $title ? $title.' | '.$shop->name : $shop->name;
+    $pageDescription = $description ?? $shop->tagline;
+@endphp
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -11,11 +17,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#faf7f8">
-    <title>{{ $title ? $title.' | '.$shop->name : $shop->name }}</title>
-    <meta name="description" content="{{ $description ?? $shop->tagline }}">
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="{{ $pageDescription }}">
     @if ($noindex)
         <meta name="robots" content="noindex, nofollow">
+    @else
+        <link rel="canonical" href="{{ url()->current() }}">
     @endif
+    <meta property="og:site_name" content="{{ $shop->name }}">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $title ?? $shop->name }}">
+    <meta property="og:description" content="{{ $pageDescription }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta name="twitter:card" content="summary">
 
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])

@@ -31,6 +31,26 @@ return [
     'logo_path' => null,
 
     /*
+    | UPI details shown on the payment QR (placeholder until the admin sets them).
+    */
+    'payment' => [
+        'upi_vpa' => 'demo.shop@okaxis',
+        'upi_payee_name' => 'Shop owner (demo)',
+    ],
+
+    /*
+    | Delivery rules, all amounts in paise (client questions 3 and 4, defaults).
+    */
+    'delivery' => [
+        'charge_paise' => 4000,
+        'free_above_paise' => 49900,
+        'min_order_paise' => 9900,
+        'eta' => 'Same day if ordered before 5 pm',
+        'pincodes' => ['800001', '800002', '800003', '800004', '800006', '800008', '800013', '800014', '800016', '800020', '800025'],
+        'area' => 'Patna',
+    ],
+
+    /*
     | Default print formats (ADR-014). Values of App\Enums\PrintFormat.
     */
     'print' => [

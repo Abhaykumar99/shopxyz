@@ -1,51 +1,65 @@
 {{--
-    Customer-facing layout: sticky header with search and bag, category bar on
-    desktop, bottom navigation on phones.
+    Customer-facing layout: delivery strip, sticky header with search and bag,
+    desktop category bar, phone bottom navigation and footer.
     `active`: home | categories | cart | orders | account
-    Links use url() until the Phase 2 routes exist; switch to route() then.
 --}}
 @props([
     'title' => null,
     'description' => null,
     'active' => null,
-    'cartCount' => 0,
     'search' => '',
     'noindex' => false,
+    'ogType' => 'website',
 ])
+
+@use('App\Http\Controllers\InfoPageController')
+@use('App\Support\Money')
 
 @php
     $categories = [
-        'Cosmetics' => url('/c/cosmetics'),
-        'Confectionery' => url('/c/confectionery'),
-        'Gifts' => url('/c/gifts'),
+        'Cosmetics' => route('shop.category', 'cosmetics'),
+        'Confectionery' => route('shop.category', 'confectionery'),
+        'Gifts' => route('shop.category', 'gifts'),
     ];
-    $bottomNav = [
-        'home' => ['Home', 'house', url('/')],
-        'categories' => ['Shop', 'layout-grid', url('/categories')],
-        'cart' => ['Bag', 'shopping-bag', url('/cart')],
-        'orders' => ['Orders', 'package', url('/account/orders')],
-        'account' => ['Account', 'user', url('/account')],
+    $navItems = [
+        'home' => ['Home', 'house', route('shop.home')],
+        'categories' => ['Shop', 'layout-grid', route('shop.categories')],
+        'orders' => ['Orders', 'package', route('account.orders')],
+        'account' => ['Account', 'user', route('account.profile')],
     ];
 @endphp
 
-<x-layouts::app :title="$title" :description="$description" :noindex="$noindex" class="pb-safe-nav lg:pb-0">
-    <header class="sticky top-0 z-30 border-b border-line bg-paper">
-        <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
-            <x-shop.logo :href="url('/')" class="me-auto lg:me-0" />
+<x-layouts::app :title="$title" :description="$description" :noindex="$noindex" :og-type="$ogType" class="pb-safe-nav lg:pb-0">
+    @unless (app()->isProduction())
+        <p class="bg-accent-tint px-4 py-1.5 text-center text-sm text-accent-ink">
+            Preview with sample products and orders. Nothing here is real yet.
+        </p>
+    @endunless
 
-            <form action="{{ url('/search') }}" method="get" role="search" class="hidden grow lg:mx-8 lg:block">
+    @if ($shop->freeDeliveryAbovePaise > 0)
+        <p class="bg-brand px-4 py-1.5 text-center text-sm text-white">
+            Free delivery{{ $shop->deliveryArea ? ' in '.$shop->deliveryArea : '' }} on orders above {{ Money::format($shop->freeDeliveryAbovePaise) }}
+        </p>
+    @endif
+
+    <header class="sticky top-0 z-30 border-b border-line bg-paper">
+        <div class="mx-auto flex h-16 max-w-6xl items-center gap-2 px-4 sm:gap-3">
+            <x-shop.logo :href="route('shop.home')" class="me-auto min-w-0 lg:me-0" />
+
+            <form action="{{ route('shop.search') }}" method="get" role="search" class="hidden grow lg:mx-8 lg:block">
                 <label for="header-search" class="sr-only">Search products</label>
                 <div class="flex h-11 items-center gap-2 rounded-full border border-line-strong bg-surface ps-4 pe-1 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-brand">
                     <x-ui.icon name="search" class="text-ink-soft" />
-                    <input id="header-search" type="search" name="q" value="{{ $search }}" placeholder="Search lipsticks, chocolates, gift hampers" class="min-w-0 grow bg-transparent focus:outline-none">
+                    <input id="header-search" type="search" name="q" value="{{ $search }}" placeholder="Search lipsticks, mithai, gift hampers" class="min-w-0 grow bg-transparent focus:outline-none" autocomplete="off">
                     <x-ui.button type="submit" size="sm" class="rounded-full">Search</x-ui.button>
                 </div>
             </form>
 
             <div class="flex shrink-0 items-center gap-1">
-                <span class="lg:hidden"><x-ui.icon-button icon="search" label="Search" :href="url('/search')" /></span>
-                <span class="hidden lg:block"><x-ui.icon-button icon="user" label="Your account" :href="url('/account')" /></span>
-                <x-ui.icon-button icon="shopping-bag" label="Your bag" :href="url('/cart')" :count="$cartCount" />
+                <span class="lg:hidden"><x-ui.icon-button icon="search" label="Search" :href="route('shop.search')" /></span>
+                <span class="hidden lg:block"><x-ui.icon-button icon="package" label="Your orders" :href="route('account.orders')" /></span>
+                <span class="hidden lg:block"><x-ui.icon-button icon="user" label="Your account" :href="route('account.profile')" /></span>
+                <livewire:cart.cart-count />
             </div>
         </div>
 
@@ -53,9 +67,16 @@
             <ul class="mx-auto flex max-w-6xl gap-6 px-4">
                 @foreach ($categories as $label => $href)
                     <li>
-                        <a href="{{ $href }}" class="flex h-11 items-center font-medium text-ink-soft hover:text-brand">{{ $label }}</a>
+                        <a href="{{ $href }}" @class([
+                            'flex h-11 items-center border-b-2 font-medium transition-colors',
+                            'border-brand text-brand' => request()->url() === $href,
+                            'border-transparent text-ink-soft hover:text-brand' => request()->url() !== $href,
+                        ])>{{ $label }}</a>
                     </li>
                 @endforeach
+                <li class="ms-auto">
+                    <a href="{{ route('shop.categories') }}" class="flex h-11 items-center font-medium text-ink-soft hover:text-brand">All categories</a>
+                </li>
             </ul>
         </nav>
     </header>
@@ -64,16 +85,16 @@
         {{ $slot }}
     </main>
 
-    <footer class="mt-8 border-t border-line bg-surface">
-        <div class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 lg:grid-cols-3">
-            <div class="flex flex-col gap-2">
+    <footer class="mt-12 border-t border-line bg-surface">
+        <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="flex flex-col gap-3">
                 <x-shop.logo />
                 @if ($shop->tagline)
                     <p class="text-ink-soft">{{ $shop->tagline }}</p>
                 @endif
             </div>
             <div class="flex flex-col gap-1.5 text-ink-soft">
-                <h2 class="font-sans text-base font-semibold text-ink">Visit or call us</h2>
+                <h2 class="mb-1 font-sans text-base font-semibold text-ink">Visit or call us</h2>
                 @if ($shop->address)
                     <p>{{ $shop->address }}</p>
                 @endif
@@ -90,42 +111,36 @@
                     </a>
                 @endif
             </div>
-            <nav aria-label="Footer" class="flex flex-col gap-1.5">
-                <h2 class="font-sans text-base font-semibold text-ink">Shop</h2>
+            <nav aria-label="Shop" class="flex flex-col gap-1.5">
+                <h2 class="mb-1 font-sans text-base font-semibold text-ink">Shop</h2>
                 @foreach ($categories as $label => $href)
                     <a href="{{ $href }}" class="text-ink-soft hover:text-brand">{{ $label }}</a>
                 @endforeach
-                <a href="{{ url('/account/orders') }}" class="text-ink-soft hover:text-brand">Track an order</a>
+                <a href="{{ route('account.orders') }}" class="text-ink-soft hover:text-brand">Track an order</a>
+            </nav>
+            <nav aria-label="Help and policies" class="flex flex-col gap-1.5">
+                <h2 class="mb-1 font-sans text-base font-semibold text-ink">Help</h2>
+                @foreach (InfoPageController::PAGES as $slug => $label)
+                    <a href="{{ route('pages.show', $slug) }}" class="text-ink-soft hover:text-brand">{{ $label }}</a>
+                @endforeach
             </nav>
         </div>
-        <p class="border-t border-line py-4 text-center text-sm text-ink-soft">© {{ now()->year }} {{ $shop->name }}</p>
+        <div class="border-t border-line">
+            <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-sm text-ink-soft sm:flex-row">
+                <p>© {{ now()->year }} {{ $shop->name }}</p>
+                <p>Cash on delivery and UPI accepted</p>
+            </div>
+        </div>
     </footer>
 
     <nav aria-label="Main" class="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface lg:hidden">
         <ul class="grid grid-cols-5">
-            @foreach ($bottomNav as $key => [$label, $icon, $href])
-                <li>
-                    <a
-                        href="{{ $href }}"
-                        @if ($active === $key) aria-current="page" @endif
-                        @class([
-                            'relative flex h-16 flex-col items-center justify-center gap-0.5 text-xs font-medium',
-                            'text-brand' => $active === $key,
-                            'text-ink-soft' => $active !== $key,
-                        ])
-                    >
-                        @if ($active === $key)
-                            <span aria-hidden="true" class="absolute top-0 h-0.5 w-8 rounded-full bg-brand"></span>
-                        @endif
-                        <span class="relative">
-                            <x-ui.icon :name="$icon" :size="22" />
-                            @if ($key === 'cart' && $cartCount)
-                                <span class="figures absolute -top-1.5 -right-2.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[0.6875rem] font-semibold text-white">{{ $cartCount }}</span>
-                            @endif
-                        </span>
-                        {{ $label }}
-                    </a>
-                </li>
+            @foreach (array_slice($navItems, 0, 2, true) as $key => [$label, $icon, $href])
+                <li><x-shop.nav-item :href="$href" :icon="$icon" :active="$active === $key">{{ $label }}</x-shop.nav-item></li>
+            @endforeach
+            <li><livewire:cart.cart-count variant="nav" :active="$active === 'cart'" /></li>
+            @foreach (array_slice($navItems, 2, null, true) as $key => [$label, $icon, $href])
+                <li><x-shop.nav-item :href="$href" :icon="$icon" :active="$active === $key">{{ $label }}</x-shop.nav-item></li>
             @endforeach
         </ul>
     </nav>

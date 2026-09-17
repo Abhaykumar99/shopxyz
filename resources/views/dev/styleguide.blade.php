@@ -30,7 +30,7 @@
     ];
 @endphp
 
-<x-layouts::shop title="Design system" active="home" :cart-count="3" noindex class="flex flex-col gap-10">
+<x-layouts::shop title="Design system" active="home" noindex class="flex flex-col gap-10">
 
     <div class="flex flex-col gap-4">
         <x-ui.breadcrumb :items="['Developer' => url('/dev/ui'), 'Design system' => null]" />
