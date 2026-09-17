@@ -1,0 +1,33 @@
+{{-- Base HTML document. Every other layout wraps this one. --}}
+@props([
+    'title' => null,
+    'description' => null,
+    'noindex' => false,
+])
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#fbf7fa">
+    <title>{{ $title ? $title.' | '.$shop->name : $shop->name }}</title>
+    <meta name="description" content="{{ $description ?? $shop->tagline }}">
+    @if ($noindex)
+        <meta name="robots" content="noindex, nofollow">
+    @endif
+
+    @fonts
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+    {{ $head ?? '' }}
+</head>
+<body {{ $attributes->class('min-h-dvh') }}>
+    <a href="#main" class="sr-only z-50 rounded-field bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2">Skip to content</a>
+
+    {{ $slot }}
+
+    <x-ui.toaster />
+    @livewireScripts
+</body>
+</html>

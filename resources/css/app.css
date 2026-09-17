@@ -106,7 +106,6 @@
 @layer base {
     html {
         -webkit-text-size-adjust: 100%;
-        scroll-padding-top: 5rem;
     }
 
     body {

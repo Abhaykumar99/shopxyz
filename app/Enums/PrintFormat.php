@@ -14,7 +14,7 @@ enum PrintFormat: string
     public function label(): string
     {
         return match ($this) {
-            self::Thermal4x6 => '4×6" thermal label',
+            self::Thermal4x6 => '4×6" thermal',
             self::A5 => 'A5 paper',
             self::A4 => 'A4 paper',
         };
