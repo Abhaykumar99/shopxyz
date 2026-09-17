@@ -3,7 +3,167 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+/*
+|--------------------------------------------------------------------------
+| Design tokens: "the shop counter" (Phase 1 design system)
+|--------------------------------------------------------------------------
+| Only these colours exist; Tailwind's default palette is removed so every
+| screen stays on-brand. All text pairs meet WCAG AA (see docs/design-system.md).
+| To rebrand, change the values here only.
+*/
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-*: initial;
+    --color-transparent: transparent;
+    --color-current: currentColor;
+    --color-white: #ffffff;
+    --color-black: #000000;
+
+    /* Text */
+    --color-ink: #2b1631;
+    --color-ink-soft: #6b5870;
+
+    /* Surfaces */
+    --color-paper: #fbf7fa;
+    --color-surface: #ffffff;
+    --color-mist: #f3ecf2;
+
+    /* Lines: `line` is decorative, `line-strong` is for form field borders (≥3:1) */
+    --color-line: #e6dae5;
+    --color-line-strong: #8c7a90;
+
+    /* Brand: berry for actions, marigold only for offers (always with ink text) */
+    --color-berry: #a3214f;
+    --color-berry-dark: #7e1a3e;
+    --color-berry-tint: #f7e6ee;
+    --color-marigold: #f3a712;
+    --color-marigold-ink: #7a4b00;
+    --color-marigold-tint: #fdf0d2;
+
+    /* Feedback and statuses */
+    --color-pistachio: #2f6b45;
+    --color-pistachio-tint: #e3f1e1;
+    --color-info: #1d5b8f;
+    --color-info-tint: #e4eef7;
+    --color-danger: #b42318;
+    --color-danger-tint: #fdecea;
+
+    /* Type: fonts are injected by the Vite fonts plugin (@fonts) */
+    --font-*: initial;
+    --font-display: var(--font-source-display), 'Trebuchet MS', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: var(--font-source-body), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+    /* Type scale 14 / 16 / 18 / 22 / 28 / 36 */
+    --text-xs: 0.8125rem;
+    --text-xs--line-height: 1.35;
+    --text-sm: 0.875rem;
+    --text-sm--line-height: 1.45;
+    --text-base: 1rem;
+    --text-base--line-height: 1.55;
+    --text-lg: 1.125rem;
+    --text-lg--line-height: 1.45;
+    --text-xl: 1.375rem;
+    --text-xl--line-height: 1.3;
+    --text-2xl: 1.75rem;
+    --text-2xl--line-height: 1.2;
+    --text-3xl: 2.25rem;
+    --text-3xl--line-height: 1.1;
+
+    /* Radius by importance: fields < cards < sheets */
+    --radius-field: 0.5rem;
+    --radius-card: 0.875rem;
+    --radius-sheet: 1.25rem;
+
+    /* Only overlays get a shadow; everything else uses borders */
+    --shadow-overlay: 0 12px 32px -8px rgb(43 22 49 / 0.28);
+
+    --animate-sheet-up: sheet-up 0.22s ease-out;
+    --animate-pop: pop 0.18s ease-out;
+
+    @keyframes sheet-up {
+        from {
+            transform: translateY(1.5rem);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes pop {
+        from {
+            transform: scale(0.96);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+}
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+        scroll-padding-top: 5rem;
+    }
+
+    body {
+        @apply bg-paper font-sans text-base text-ink antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-display text-balance;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-berry;
+    }
+
+    ::selection {
+        @apply bg-berry-tint text-ink;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+}
+
+/*
+| The price tag: the one signature shape of the design. A tag with a
+| pointed left edge and a punched hole, like the tags on a shop shelf.
+*/
+@utility tag-shape {
+    clip-path: polygon(0.7rem 0, 100% 0, 100% 100%, 0.7rem 100%, 0 50%);
+    mask: radial-gradient(circle at 0.75rem 50%, transparent 0.18rem, #000 0.2rem);
+    padding-inline-start: 1.35rem;
+}
+
+/* Tabular figures for prices, quantities and order numbers */
+@utility figures {
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Keeps content clear of the mobile bottom navigation and iOS home bar */
+@utility pb-safe-nav {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+
+@utility pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
 }

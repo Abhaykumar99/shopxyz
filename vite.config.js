@@ -9,8 +9,21 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
+                // Headings and prices (docs/decisions.md, design system).
+                bunny('Bricolage Grotesque', {
+                    alias: 'display',
+                    variable: '--font-source-display',
+                    weights: [600, 700],
+                    preload: [{ weight: 700 }],
+                }),
+                // Body text. Includes Devanagari for future Hindi labels
+                // (only downloaded when Devanagari characters are on the page).
+                bunny('Mukta', {
+                    alias: 'body',
+                    variable: '--font-source-body',
                     weights: [400, 500, 600],
+                    subsets: ['latin', 'devanagari'],
+                    preload: [{ weight: 400 }],
                 }),
             ],
         }),
