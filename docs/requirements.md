@@ -66,6 +66,8 @@ Plus: Cancelled, Delivery failed (see client-questions.md). Every change is logg
   price, discount, total, payment method and status, order date.
 - **Package label** (printable): shop name, order ID, customer name, phone, address, pincode, items, payment
   method, total, barcode/QR.
+- **Print formats** (admin selects a default and can override per print): labels in **4×6" thermal**, **A5** or **A4**.
+  Invoices in **A4** or **A5**. See ADR-014.
 
 ## 8. Delivery
 
@@ -84,6 +86,9 @@ out for delivery, delivered, cancelled, revenue, COD collected, COD pending, low
 Management: products (images, price, discount, stock, category, description, status), categories,
 inventory, orders, payments, customers (details, addresses, order history, total spend), delivery boys,
 assignments, reports, settings.
+
+**Shop settings (admin-editable, never hardcoded):** shop name (a temporary demo name is used until the admin sets it),
+logo, contact details, address, GSTIN, UPI details, and the default print formats. See ADR-013.
 
 ## 10. Inventory
 

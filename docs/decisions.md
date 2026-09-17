@@ -98,3 +98,36 @@ and rely on CI to catch differences. Plan to switch local development to MySQL 8
 
 The PHP 8.0 bundled with XAMPP is too old. PHP 8.4.25 (official Windows NTS build, checksum-verified) and Composer
 2 are installed portably in `D:\dev-tools` and added to the user PATH. XAMPP is used only for MariaDB.
+
+## ADR-013: Shop details are settings, never hardcoded
+**Status:** Accepted, Phase 1
+
+The shop name (and later logo, phone, address, GSTIN, UPI VPA, payee name) is a **system setting** that
+the admin can change from the admin panel. It is used everywhere: header, footer, page titles, sign-in page,
+invoices, labels and emails.
+
+- All code reads shop details through `App\Support\ShopSettings`, which is shared with every view as `$shop`.
+  No view, PDF or notification may contain a literal shop name.
+- **Phase 1:** values come from `config/shop.php` defaults, with the temporary demo name
+  **"Demo Gift Store"** (env `SHOP_DEMO_NAME`).
+- **Phase 4:** `ShopSettings` reads the database settings store (cached) and falls back to the config defaults
+  until the admin saves real values. The settings package (likely `spatie/laravel-settings`) is decided then.
+- **Phase 7:** Filament "Shop settings" page to edit the values. Saving clears the cache.
+- `APP_NAME` is a technical identifier only and is never shown to customers.
+- A test fails if the demo name appears anywhere in application code (`app/`, `resources/`, `routes/`, `database/`,
+  other `config/` files). Only `config/shop.php` may contain it.
+
+## ADR-014: Selectable print formats
+**Status:** Accepted, Phase 1
+
+| Document | Formats | Default |
+|---|---|---|
+| Parcel label | `thermal_4x6` (100×150 mm), `a5`, `a4` | `thermal_4x6` |
+| Invoice | `a4`, `a5` | `a4` |
+
+- The default format per document is a shop setting (`print.label_format`, `print.invoice_format`) that the admin
+  chooses in the admin panel. The print screen also offers a per-print format override.
+- Printing uses browser print with CSS `@page` sizes (one layout, `layouts/print`), which works with thermal and
+  office printers alike. A PDF download of the same markup is added in Phase 8.
+- On A4/A5 a label prints one per sheet, scaled up. A multi-label sheet option can be added later.
+- Formats are a backed enum (`App\Enums\PrintFormat`) that knows its page size and which documents allow it.
