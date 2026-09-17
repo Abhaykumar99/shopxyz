@@ -7,7 +7,7 @@
 @use('App\Support\Money')
 
 @php
-    $scale = $format === PrintFormat::A5 ? '10px' : '13px';
+    $scale = $format === PrintFormat::A5 ? '11px' : '13px';
     $customer = $order['customer'];
 @endphp
 
@@ -25,7 +25,7 @@
                 </p>
             </div>
             <div class="shrink-0 text-end">
-                <h1 class="font-display text-[1.8em] leading-none font-bold">Invoice</h1>
+                <h2 class="font-display text-[1.8em] leading-none font-bold">Invoice</h2>
                 <dl class="figures mt-[0.6em] grid grid-cols-[auto_auto] gap-x-[1em] gap-y-[0.15em] text-start">
                     <dt>Invoice no.</dt><dd class="font-semibold">{{ $order['invoice_number'] }}</dd>
                     <dt>Order no.</dt><dd class="font-semibold">{{ $order['number'] }}</dd>

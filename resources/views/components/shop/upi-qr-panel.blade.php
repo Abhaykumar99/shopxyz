@@ -26,6 +26,7 @@
         </div>
         <div
             x-data="{ copied: false }"
+            data-vpa="{{ $vpa }}"
             class="flex items-center gap-2 rounded-full bg-mist py-1 ps-4 pe-1"
         >
             <span class="text-sm text-ink-soft">UPI ID</span>
@@ -34,7 +35,7 @@
                 icon="copy"
                 label="Copy UPI ID"
                 class="size-9"
-                x-on:click="navigator.clipboard.writeText(@js($vpa)); copied = true; $dispatch('toast', { message: 'UPI ID copied', tone: 'success' })"
+                x-on:click="navigator.clipboard.writeText($event.currentTarget.closest('[data-vpa]').dataset.vpa); copied = true; $dispatch('toast', { message: 'UPI ID copied', tone: 'success' })"
             />
         </div>
         <p class="text-sm text-ink-soft">Paying to {{ $payee }}. Add <span class="figures font-semibold text-ink">{{ $orderNumber }}</span> in the payment note.</p>

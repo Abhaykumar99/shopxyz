@@ -35,17 +35,17 @@
     </style>
 </head>
 <body class="bg-mist text-ink print:bg-white" data-print-format="{{ $format->value }}">
-    <div class="sticky top-0 z-10 border-b border-line bg-surface print:hidden">
+    <header class="sticky top-0 z-10 border-b border-line bg-surface print:hidden">
         <form method="get" class="mx-auto flex max-w-3xl flex-wrap items-end gap-3 px-4 py-3">
             @foreach (request()->except('format') as $key => $value)
                 @if (is_string($value))
                     <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                 @endif
             @endforeach
-            <p class="me-auto flex flex-col">
-                <span class="font-display text-lg font-bold">{{ $title }}</span>
-                <span class="text-sm text-ink-soft">{{ $document->label() }} on {{ $format->label() }}</span>
-            </p>
+            <div class="me-auto flex flex-col">
+                <h1 class="text-lg font-bold">{{ $title }}</h1>
+                <p class="text-sm text-ink-soft">{{ $document->label() }} on {{ $format->label() }}</p>
+            </div>
             <x-ui.select
                 name="format"
                 label="Paper"
@@ -58,9 +58,11 @@
             <noscript><x-ui.button type="submit" variant="secondary">Apply</x-ui.button></noscript>
             <x-ui.button icon="printer" onclick="window.print()">Print</x-ui.button>
         </form>
-    </div>
+    </header>
 
-    <main class="flex justify-center overflow-x-auto p-4 sm:p-8 print:block print:p-0">
+    {{-- Focusable so keyboard users can scroll a sheet wider than the screen. --}}
+    <main tabindex="0" aria-label="Print preview" class="flex justify-center overflow-x-auto p-4 sm:p-8 print:block print:p-0">
+
         <div {{ $attributes->class('print-sheet mx-auto shrink-0 bg-white text-black shadow-overlay') }}>
             {{ $slot }}
         </div>

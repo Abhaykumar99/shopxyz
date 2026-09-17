@@ -23,7 +23,7 @@
     {{ $head ?? '' }}
 </head>
 <body {{ $attributes->class('min-h-dvh') }}>
-    <a href="#main" class="sr-only z-50 rounded-field bg-ink px-4 py-2 text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2">Skip to content</a>
+    <a href="#main" class="sr-only z-50 rounded-field bg-ink text-white focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:px-4 focus:py-2">Skip to content</a>
 
     {{ $slot }}
 

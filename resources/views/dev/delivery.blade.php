@@ -53,7 +53,7 @@
     <x-ui.card class="flex flex-col gap-3">
         <h2 class="text-lg font-semibold">Customer's delivery code</h2>
         <p class="text-ink-soft">Ask the customer for the 6-digit code shown in their order page.</p>
-        <x-ui.input label="Delivery code" name="demo_otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required class="[&_input]:figures [&_input]:text-center [&_input]:text-2xl [&_input]:tracking-[0.4em]" />
+        <x-ui.input label="Delivery code" name="demo_otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required input-class="figures text-center font-display text-2xl tracking-[0.4em]" />
         <x-ui.input label="Cash collected" name="demo_cash" inputmode="decimal" prefix="₹" required :value="$order['total'] / 100" />
     </x-ui.card>
 
@@ -66,6 +66,7 @@
             :pincode="$delivery['pincode']"
             :items="$delivery['items']"
             :cod-paise="$delivery['cod']"
+            :collected="$delivery['collected']"
             :status="$delivery['status']"
             :tone="$delivery['tone']"
         />

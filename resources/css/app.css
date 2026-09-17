@@ -104,8 +104,10 @@
 }
 
 @layer base {
+    /* Keeps focused elements clear of the sticky header and mobile bottom bar (WCAG 2.4.11) */
     html {
         -webkit-text-size-adjust: 100%;
+        scroll-padding-block: 5rem 5.5rem;
     }
 
     body {

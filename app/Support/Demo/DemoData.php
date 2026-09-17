@@ -102,14 +102,14 @@ final class DemoData
     }
 
     /**
-     * @return list<array{number: string, customer: string, area: string, pincode: string, items: int, cod: int|null, status: string, tone: string}>
+     * @return list<array{number: string, customer: string, area: string, pincode: string, items: int, cod: int|null, collected: bool, status: string, tone: string}>
      */
     public static function deliveries(): array
     {
         return [
-            ['number' => 'ORD-10245', 'customer' => 'Priya Sharma', 'area' => 'Boring Road', 'pincode' => '800001', 'items' => 4, 'cod' => 175400, 'status' => 'Out for delivery', 'tone' => 'berry'],
-            ['number' => 'ORD-10248', 'customer' => 'Aman Verma', 'area' => 'Kankarbagh', 'pincode' => '800020', 'items' => 1, 'cod' => null, 'status' => 'Assigned', 'tone' => 'info'],
-            ['number' => 'ORD-10231', 'customer' => 'Neha Singh', 'area' => 'Rajendra Nagar', 'pincode' => '800016', 'items' => 2, 'cod' => 64000, 'status' => 'Delivered', 'tone' => 'success'],
+            ['number' => 'ORD-10245', 'customer' => 'Priya Sharma', 'area' => 'Boring Road', 'pincode' => '800001', 'items' => 4, 'cod' => 215700, 'collected' => false, 'status' => 'Out for delivery', 'tone' => 'berry'],
+            ['number' => 'ORD-10248', 'customer' => 'Aman Verma', 'area' => 'Kankarbagh', 'pincode' => '800020', 'items' => 1, 'cod' => null, 'collected' => false, 'status' => 'Assigned', 'tone' => 'info'],
+            ['number' => 'ORD-10231', 'customer' => 'Neha Singh', 'area' => 'Rajendra Nagar', 'pincode' => '800016', 'items' => 2, 'cod' => 64000, 'collected' => true, 'status' => 'Delivered', 'tone' => 'success'],
         ];
     }
 }

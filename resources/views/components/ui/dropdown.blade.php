@@ -1,20 +1,28 @@
-{{-- Disclosure-style dropdown. Put links or <x-ui.dropdown-item> in the slot. --}}
+{{--
+    Disclosure-style dropdown. The first button or link in the `trigger` slot
+    gets aria-expanded/aria-controls. Put links or <x-ui.dropdown-item> in the slot.
+--}}
 @props([
     'align' => 'end',
     'width' => 'w-56',
 ])
 
+@php($panelId = 'dropdown-'.uniqid())
+
 <div
-    x-data="{ open: false }"
-    x-on:keydown.escape.prevent.stop="open = false; $refs.trigger.focus()"
+    x-data="{ open: false, button() { return this.$refs.trigger.querySelector('button, a') } }"
+    x-init="button()?.setAttribute('aria-controls', @js($panelId))"
+    x-effect="button()?.setAttribute('aria-expanded', open ? 'true' : 'false')"
+    x-on:keydown.escape.prevent.stop="open = false; button()?.focus()"
     x-on:focusout="if (! $el.contains($event.relatedTarget)) open = false"
     {{ $attributes->class('relative inline-block') }}
 >
-    <div x-ref="trigger" x-on:click="open = ! open" x-bind:aria-expanded="open.toString()">
+    <div x-ref="trigger" x-on:click="open = ! open">
         {{ $trigger }}
     </div>
 
     <div
+        id="{{ $panelId }}"
         x-cloak
         x-show="open"
         x-transition.opacity.duration.100ms

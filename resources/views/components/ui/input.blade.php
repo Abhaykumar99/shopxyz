@@ -8,6 +8,7 @@
     'prefix' => null,
     'icon' => null,
     'required' => false,
+    'inputClass' => null,
 ])
 
 @php
@@ -35,7 +36,7 @@
             @if ($required) required @endif
             @if ($message) aria-invalid="true" @endif
             @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif
-            {{ $attributes->except('class')->class('w-full min-w-0 bg-transparent px-3 text-base text-ink placeholder:text-ink-soft focus:outline-none') }}
+            {{ $attributes->except('class')->class(['w-full min-w-0 bg-transparent px-3 text-base text-ink placeholder:text-ink-soft focus:outline-none', $inputClass]) }}
         >
     </div>
 </x-ui.field>

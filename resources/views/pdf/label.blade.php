@@ -27,7 +27,7 @@
                 @endif
             </div>
             <div class="flex shrink-0 flex-col items-center">
-                <div class="flex size-[6.5em] items-center justify-center border-2 border-black" aria-label="QR code placeholder">
+                <div role="img" aria-label="Order QR code (placeholder)" class="flex size-[6.5em] items-center justify-center border-2 border-black">
                     <x-ui.icon name="qr-code" class="size-[5em]" />
                 </div>
             </div>

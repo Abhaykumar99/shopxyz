@@ -6,6 +6,7 @@
     'pincode',
     'items',
     'codPaise' => null,
+    'collected' => false,
     'status',
     'tone' => 'info',
 ])
@@ -31,7 +32,7 @@
         @if ($codPaise)
             <span class="flex items-center gap-1.5 font-semibold text-ink">
                 <x-ui.icon name="banknote" :size="18" class="text-marigold-ink" />
-                Collect <x-shop.price :paise="$codPaise" size="sm" />
+                {{ $collected ? 'Collected' : 'Collect' }} <x-shop.price :paise="$codPaise" size="sm" />
             </span>
         @else
             <x-ui.badge tone="success" icon="check">Paid by UPI</x-ui.badge>

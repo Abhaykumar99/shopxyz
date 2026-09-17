@@ -10,6 +10,7 @@ online shop, manual UPI/COD payment verification, billing, packing labels and mu
 | [docs/requirements.md](docs/requirements.md) | Scope, roles, flows, phase plan |
 | [docs/decisions.md](docs/decisions.md) | Architecture decisions (ADRs) |
 | [docs/erd.md](docs/erd.md) | Draft database design and status machines |
+| [docs/design-system.md](docs/design-system.md) | Colours, type, components, layouts, printing, accessibility |
 | [docs/client-questions.md](docs/client-questions.md) | Open questions for the client |
 | [docs/git-workflow.md](docs/git-workflow.md) | Branches, commits, PRs, releases |
 | [docs/security.md](docs/security.md) | Security checklist |
@@ -64,6 +65,11 @@ npm run build
 | `composer analyse` | Static analysis (Larastan) |
 | `composer check` | Everything CI runs: style + analysis + tests |
 
+### Design system preview (local only)
+With the app running, open `/dev/ui` for every component, `/dev/ui/delivery` and `/dev/ui/sign-in` for the
+other layouts, and `/dev/ui/print/label?format=thermal_4x6|a5|a4` or `/dev/ui/print/invoice?format=a4|a5` for
+print previews. These routes don't exist in production.
+
 ## Project structure
 ```
 app/
@@ -83,4 +89,6 @@ docs/                    project documentation
 ```
 
 ## Status
-**Phase 0 (foundation)** complete. Feature development starts at Phase 1 after approval.
+- **Phase 0 (foundation):** complete.
+- **Phase 1 (design system):** complete, see [docs/design-system.md](docs/design-system.md).
+- **Phase 2 (customer UI with dummy data):** starts after approval.
