@@ -135,8 +135,21 @@ Only one *active* assignment per order (enforced in the Action). Earlier ones ar
 `delivery_user_id` FK, `amount_paise`, `received_by` FK users, `received_at`, `note`.
 
 ### settings
-`key` unique, `value` json. Holds shop name, address, phone, GSTIN ❓, UPI VPA and payee name, delivery charge rules ❓,
-serviceable pincodes ❓.
+Key/value store for admin-editable system settings (exact storage decided in Phase 4, see ADR-013).
+Read only through `App\Support\ShopSettings`, cached, with `config/shop.php` as the fallback.
+
+| Key | Example | Notes |
+|---|---|---|
+| `shop.name` | "Demo Gift Store" (demo) | Shown everywhere. Never hardcoded |
+| `shop.tagline` | | Optional |
+| `shop.logo_path` | | Public disk |
+| `shop.phone`, `shop.whatsapp`, `shop.email` | | Header/footer, invoice, label |
+| `shop.address` | | Invoice, label, footer |
+| `shop.gstin` ❓ | | Invoice |
+| `payment.upi_vpa`, `payment.upi_payee_name` | | UPI QR |
+| `print.label_format` | `thermal_4x6` \| `a5` \| `a4` | ADR-014 |
+| `print.invoice_format` | `a4` \| `a5` | ADR-014 |
+| `delivery.charge_rules`, `delivery.pincodes` ❓ | | Checkout |
 
 ### Package / framework tables
 `sessions`, `cache`, `jobs`, `failed_jobs`, `password_reset_tokens` (Laravel), `activity_log`

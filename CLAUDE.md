@@ -34,6 +34,10 @@ Read `docs/requirements.md`, `docs/decisions.md` and `docs/erd.md` before changi
 - Copy product name, SKU and price into `order_items`, and the delivery address into `orders`.
 - Stock changes run in `DB::transaction()` with `lockForUpdate()` and write `inventory_movements`.
 - Totals are always computed server-side from DB prices.
+- **Never hardcode the shop name or shop details.** Read them from `App\Support\ShopSettings` (shared with views as `$shop`,
+  e.g. `{{ $shop->name }}`). The demo default lives only in `config/shop.php` (ADR-013). `APP_NAME` is never shown to customers.
+- Print formats come from `App\Enums\PrintFormat` (labels: 4×6" thermal / A5 / A4; invoices: A4 / A5). The admin picks the
+  default, with a per-print override (ADR-014).
 
 ## Auth & security rules
 - Customers: **Google sign-in only** (Socialite). Match on `google_id`. `password` nullable. Phone required before the first order.
