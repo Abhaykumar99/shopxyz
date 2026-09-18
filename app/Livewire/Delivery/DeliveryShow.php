@@ -100,14 +100,14 @@ class DeliveryShow extends Component
 
         $this->dispatch('toast', message: $step === DeliveryStep::Accepted
             ? 'Accepted. Enter the pickup code on each box label at the counter.'
-            : 'Marked as reached. Ask the customer for their 6-digit OTP.', tone: 'success');
+            : 'Out for delivery. The customer can see you are on the way.', tone: 'success');
     }
 
     public function confirmDelivery(DemoDeliveries $deliveries): void
     {
         $job = $this->job($deliveries);
 
-        if ($job->step !== DeliveryStep::Reached) {
+        if ($job->step !== DeliveryStep::OutForDelivery) {
             return;
         }
 

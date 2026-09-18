@@ -118,6 +118,13 @@ snapshot: `product_name`, `variant_name`, `sku`, `mrp_paise`, `unit_price_paise`
 went into which box, so each label lists its own contents.
 An order is `out_for_delivery` only when every package has `picked_up_at`.
 
+### cod_settlements (ADR-022)
+`reference` unique (e.g. `CS-2041`), `user_id` FK (the delivery boy, restrict), `amount_paise`,
+`status` (`CashSettlementStatus`: awaiting_verification | settled | short), `handed_over_at`,
+`verified_by` FK users null, `verified_at` null, `counted_paise` null (what the shop actually counted),
+`note` null. `delivery_assignments.cod_settlement_id` points here, so each collection belongs to at most one
+batch and "cash with the delivery boy" is simply every delivered COD assignment with no settlement yet.
+
 ### delivery_assignments (ADR-020, ADR-021)
 `order_id` FK (cascade), `user_id` FK (the delivery boy, restrict), `step` (`DeliveryStep`),
 `assigned_by` FK users null, `assigned_at`, `accepted_at` null, `picked_up_at` null, `reached_at` null,

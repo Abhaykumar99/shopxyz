@@ -21,7 +21,7 @@ it('shows the boxes, customer, address, items and the cash to collect', function
         ->assertSee('Velvet matte lipstick')
         ->assertSee('Collect in cash')
         ->assertSee('₹1,748')
-        ->assertSee('On the way')
+        ->assertSee('Picked up')
         ->assertSee('2 boxes');
 });
 
@@ -52,7 +52,7 @@ it('collects every box with the pickup code on its label before going out for de
     $test->set('pickupCodes.PKG-10250-2', '913526')
         ->call('verifyPickup', 'PKG-10250-2')
         ->assertHasNoErrors()
-        ->assertSee('On the way');
+        ->assertSee('Picked up');
 
     $job = app(DemoDeliveries::class)->find('ORD-10250');
     expect($job->step)->toBe(DeliveryStep::PickedUp)
@@ -94,13 +94,13 @@ it('does not offer pickup codes once the boxes are collected', function () {
         ->assertDontSee('Enter the pickup code printed on each box label');
 });
 
-it('walks from picked up to at the address with a tap', function () {
+it('starts the delivery with a tap once every box is with the boy', function () {
     Livewire::test(DeliveryShow::class, ['order' => 'ORD-10245'])
         ->call('advance')
         ->assertDispatched('toast', tone: 'success')
-        ->assertSee('At the address');
+        ->assertSee('Out for delivery');
 
-    expect(app(DemoDeliveries::class)->find('ORD-10245')->step)->toBe(DeliveryStep::Reached);
+    expect(app(DemoDeliveries::class)->find('ORD-10245')->step)->toBe(DeliveryStep::OutForDelivery);
 });
 
 it('confirms a cash delivery with the customer code and the cash collected', function () {
@@ -114,8 +114,7 @@ it('confirms a cash delivery with the customer code and the cash collected', fun
 
     $job = app(DemoDeliveries::class)->find('ORD-10246');
     expect($job->step)->toBe(DeliveryStep::Delivered)
-        ->and($job->cashCollectedPaise)->toBe(139800)
-        ->and($job->cashToHandOver())->toBe(139800);
+        ->and($job->cashCollectedPaise)->toBe(139800);
 });
 
 it('counts down the tries for a wrong delivery OTP and then stops', function () {
@@ -126,7 +125,7 @@ it('counts down the tries for a wrong delivery OTP and then stops', function () 
     $test->set('code', '222222')->call('confirmDelivery')->assertSee('Too many wrong OTPs');
     $test->set('code', '905617')->call('confirmDelivery')->assertHasErrors(['code']);
 
-    expect(app(DemoDeliveries::class)->find('ORD-10246')->step)->toBe(DeliveryStep::Reached);
+    expect(app(DemoDeliveries::class)->find('ORD-10246')->step)->toBe(DeliveryStep::OutForDelivery);
 });
 
 it('insists on the full cash amount', function () {
@@ -137,7 +136,7 @@ it('insists on the full cash amount', function () {
         ->assertHasErrors(['cash'])
         ->assertSee('Collect the full ₹1,398');
 
-    expect(app(DemoDeliveries::class)->find('ORD-10246')->step)->toBe(DeliveryStep::Reached);
+    expect(app(DemoDeliveries::class)->find('ORD-10246')->step)->toBe(DeliveryStep::OutForDelivery);
 });
 
 it('needs the code to be six digits', function (string $code) {

@@ -8,7 +8,7 @@ use App\Support\Demo\DemoDeliveryJob;
 it('gives the delivery boy a round covering every step', function () {
     $steps = collect(app(DemoDeliveries::class)->today())->map(fn (DemoDeliveryJob $job): DeliveryStep => $job->step);
 
-    expect($steps)->toContain(DeliveryStep::Assigned, DeliveryStep::Accepted, DeliveryStep::PickedUp, DeliveryStep::Reached, DeliveryStep::Delivered);
+    expect($steps)->toContain(DeliveryStep::Assigned, DeliveryStep::Accepted, DeliveryStep::PickedUp, DeliveryStep::OutForDelivery, DeliveryStep::Delivered);
 });
 
 it('moves a delivery along the steps a tap can reach', function () {
@@ -21,7 +21,7 @@ it('moves a delivery along the steps a tap can reach', function () {
     $deliveries->verifyPickup('ORD-10252', 'PKG-10252-1', '640913');
 
     expect($deliveries->find('ORD-10252')->step)->toBe(DeliveryStep::PickedUp)
-        ->and($deliveries->advance('ORD-10252'))->toBe(DeliveryStep::Reached)
+        ->and($deliveries->advance('ORD-10252'))->toBe(DeliveryStep::OutForDelivery)
         ->and($deliveries->advance('ORD-10252'))->toBeNull();
 });
 
@@ -105,7 +105,7 @@ it('only accepts the customer’s own delivery code', function () {
     $deliveries = app(DemoDeliveries::class);
 
     expect($deliveries->deliver('ORD-10246', '000000', 139800))->toBe(2)
-        ->and($deliveries->find('ORD-10246')->step)->toBe(DeliveryStep::Reached)
+        ->and($deliveries->find('ORD-10246')->step)->toBe(DeliveryStep::OutForDelivery)
         ->and($deliveries->deliver('ORD-10246', '905617', 139800))->toBeNull()
         ->and($deliveries->find('ORD-10246')->step)->toBe(DeliveryStep::Delivered);
 });
@@ -123,12 +123,12 @@ it('stops after three wrong codes', function () {
 it('does not record cash for an order that was paid by UPI', function () {
     $deliveries = app(DemoDeliveries::class);
     $deliveries->advance('ORD-10252');
-    $deliveries->advance('ORD-10252');
+    $deliveries->verifyPickup('ORD-10252', 'PKG-10252-1', '640913');
     $deliveries->advance('ORD-10252');
     $deliveries->deliver('ORD-10252', '318204', 149900);
 
     expect($deliveries->find('ORD-10252')->cashCollectedPaise)->toBe(0)
-        ->and($deliveries->cash()['collected'])->toBe(44700);
+        ->and($deliveries->summary()['cod_collected'])->toBe(44700);
 });
 
 it('records a failure with its reason and note', function () {
@@ -140,19 +140,29 @@ it('records a failure with its reason and note', function () {
     expect($job->step)->toBe(DeliveryStep::Failed)
         ->and($job->failureReason)->toBe(DeliveryFailureReason::Refused)
         ->and($job->failureNote)->toBe('Customer changed their mind')
-        ->and($job->cashToHandOver())->toBe(0);
+        ->and($job->cashCollectedPaise)->toBe(0);
 });
 
 it('refuses to fail a delivery that has not been accepted or is finished', function (string $number) {
     expect(app(DemoDeliveries::class)->fail($number, DeliveryFailureReason::NobodyHome))->toBeFalse();
 })->with(['not accepted' => 'ORD-10252', 'delivered' => 'ORD-10243', 'unknown' => 'ORD-00000']);
 
-it('keeps cash handed over yesterday out of today’s total', function () {
-    $cash = app(DemoDeliveries::class)->cash();
+it('counts today’s round', function () {
+    expect(app(DemoDeliveries::class)->summary())->toMatchArray([
+        'to_deliver' => 4,
+        'delivered' => 2,
+        'failed' => 0,
+        'cod_collected' => 44700,
+    ]);
+});
 
-    expect($cash['collected'])->toBe(44700)
-        ->and($cash['to_hand_over'])->toBe(44700)
-        ->and($cash['upi_deliveries'])->toBe(1);
+it('groups today’s deliveries into the panel’s buckets', function () {
+    $groups = app(DemoDeliveries::class)->grouped();
+
+    expect(array_keys($groups))->toBe(['To pick up', 'Picked up', 'Out for delivery', 'Delivered'])
+        ->and($groups['To pick up'])->toHaveCount(2)
+        ->and($groups['Picked up'][0]->number)->toBe('ORD-10245')
+        ->and($groups['Out for delivery'][0]->number)->toBe('ORD-10246');
 });
 
 it('lists finished deliveries newest first, including earlier days', function () {

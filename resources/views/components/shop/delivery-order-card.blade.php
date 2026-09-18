@@ -9,6 +9,8 @@
     'collected' => false,
     'status',
     'tone' => 'info',
+    'boxes' => 0,
+    'boxesPickedUp' => 0,
 ])
 
 <article {{ $attributes->class('relative flex flex-col gap-3 rounded-card border border-line bg-surface p-4') }}>
@@ -28,7 +30,13 @@
     </p>
 
     <div class="flex items-center justify-between gap-3 border-t border-line pt-3">
-        <span class="figures text-sm text-ink-soft">{{ $items }} {{ \Illuminate\Support\Str::plural('item', $items) }}</span>
+        <span class="figures flex items-center gap-2 text-sm text-ink-soft">
+            {{ $items }} {{ \Illuminate\Support\Str::plural('item', $items) }}
+            @if ($boxes > 0)
+                @php($boxLabel = ($boxesPickedUp > 0 && $boxesPickedUp < $boxes ? $boxesPickedUp.'/'.$boxes : $boxes).' '.\Illuminate\Support\Str::plural('box', $boxes))
+                <span class="flex items-center gap-1"><x-ui.icon name="boxes" :size="16" /> {{ $boxLabel }}</span>
+            @endif
+        </span>
         @if ($codPaise)
             <span class="flex items-center gap-1.5 font-semibold text-ink">
                 <x-ui.icon name="banknote" :size="18" class="text-accent-ink" />

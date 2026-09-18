@@ -161,7 +161,7 @@
     </x-ui.card>
 
     {{-- Confirming the delivery --}}
-    @if ($job->step === DeliveryStep::Reached)
+    @if ($job->step === DeliveryStep::OutForDelivery)
         <x-ui.card class="flex flex-col gap-3">
             <h2 class="text-lg font-semibold">Confirm with the customer</h2>
             <p class="text-ink-soft">Hand over the {{ $job->packageCount() }} {{ \Illuminate\Support\Str::plural('box', $job->packageCount()) }}, then ask for the 6-digit OTP on their order page.</p>
@@ -218,7 +218,7 @@
     {{-- The one action in thumb reach --}}
     @unless ($job->isFinished())
         <x-slot:action>
-            @if ($job->step === DeliveryStep::Reached)
+            @if ($job->step === DeliveryStep::OutForDelivery)
                 <x-ui.button type="submit" form="confirm-form" size="lg" block icon="check" loading="confirmDelivery">Confirm delivery</x-ui.button>
             @elseif ($job->step === DeliveryStep::Accepted)
                 <x-ui.button href="#pickup" size="lg" block icon="boxes">

@@ -7,8 +7,8 @@ use App\Enums\OrderStatus;
 it('only changes the order status at the milestones the customer sees', function () {
     expect(DeliveryStep::Assigned->orderStatus())->toBeNull()
         ->and(DeliveryStep::Accepted->orderStatus())->toBeNull()
-        ->and(DeliveryStep::Reached->orderStatus())->toBeNull()
-        ->and(DeliveryStep::PickedUp->orderStatus())->toBe(OrderStatus::OutForDelivery)
+        ->and(DeliveryStep::PickedUp->orderStatus())->toBeNull()
+        ->and(DeliveryStep::OutForDelivery->orderStatus())->toBe(OrderStatus::OutForDelivery)
         ->and(DeliveryStep::Delivered->orderStatus())->toBe(OrderStatus::Delivered)
         ->and(DeliveryStep::Failed->orderStatus())->toBe(OrderStatus::DeliveryFailed);
 });
@@ -16,11 +16,19 @@ it('only changes the order status at the milestones the customer sees', function
 it('maps each step to an order status the order can actually reach', function () {
     $status = OrderStatus::Assigned;
 
-    foreach ([DeliveryStep::PickedUp, DeliveryStep::Delivered] as $step) {
+    foreach ([DeliveryStep::OutForDelivery, DeliveryStep::Delivered] as $step) {
         $next = $step->orderStatus();
         expect($status->canTransitionTo($next))->toBeTrue();
         $status = $next;
     }
+});
+
+it('groups the round into the buckets the panel shows', function () {
+    expect(collect(DeliveryStep::groups())->map(fn (DeliveryStep $step): string => $step->group())->all())
+        ->toBe(['To pick up', 'Picked up', 'Out for delivery', 'Delivered', 'Failed delivery'])
+        ->and(DeliveryStep::Assigned->group())->toBe('To pick up')
+        ->and(DeliveryStep::Assigned->isBeforePickup())->toBeTrue()
+        ->and(DeliveryStep::PickedUp->isBeforePickup())->toBeFalse();
 });
 
 it('walks from assigned to delivered and then stops', function () {
@@ -43,8 +51,8 @@ it('offers a next action while there is work left', function (DeliveryStep $step
 })->with([
     'new' => [DeliveryStep::Assigned, true],
     'accepted' => [DeliveryStep::Accepted, true],
-    'on the way' => [DeliveryStep::PickedUp, true],
-    'at the address' => [DeliveryStep::Reached, true],
+    'picked up' => [DeliveryStep::PickedUp, true],
+    'out for delivery' => [DeliveryStep::OutForDelivery, true],
     'delivered' => [DeliveryStep::Delivered, false],
     'failed' => [DeliveryStep::Failed, false],
 ]);

@@ -19,15 +19,19 @@
         <dl class="figures flex flex-col divide-y divide-line">
             <div class="flex items-center justify-between gap-3 py-2">
                 <dt class="text-ink-soft">Still to deliver</dt>
-                <dd class="font-semibold">{{ $active }}</dd>
+                <dd class="font-semibold">{{ $summary['to_deliver'] }}</dd>
             </div>
             <div class="flex items-center justify-between gap-3 py-2">
                 <dt class="text-ink-soft">Delivered</dt>
-                <dd class="font-semibold">{{ $cash['deliveries'] }}</dd>
+                <dd class="font-semibold">{{ $summary['delivered'] }}</dd>
             </div>
             <div class="flex items-center justify-between gap-3 py-2">
-                <dt class="text-ink-soft">Cash to hand over</dt>
-                <dd class="font-semibold">{{ Money::format($cash['to_hand_over']) }}</dd>
+                <dt class="text-ink-soft">Could not deliver</dt>
+                <dd class="font-semibold">{{ $summary['failed'] }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3 py-2">
+                <dt class="text-ink-soft">Cash with you</dt>
+                <dd class="font-semibold">{{ Money::format($cashWithYou) }}</dd>
             </div>
         </dl>
     </x-ui.card>

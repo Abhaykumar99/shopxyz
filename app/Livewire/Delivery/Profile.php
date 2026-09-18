@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Delivery;
 
+use App\Support\Demo\DemoCash;
 use App\Support\Demo\DemoDeliveries;
 use App\Support\Demo\DemoDeliveryBoy;
 use Illuminate\Contracts\View\View;
@@ -21,12 +22,12 @@ class Profile extends Component
         return $this->redirectRoute('delivery.login', navigate: false);
     }
 
-    public function render(DemoDeliveries $deliveries, DemoDeliveryBoy $deliveryBoy): View
+    public function render(DemoDeliveries $deliveries, DemoCash $cash, DemoDeliveryBoy $deliveryBoy): View
     {
         return view('livewire.delivery.profile', [
             'profile' => $deliveryBoy->profile(),
-            'cash' => $deliveries->cash(),
-            'active' => count($deliveries->active()),
+            'summary' => $deliveries->summary(),
+            'cashWithYou' => $cash->withYouTotal(),
         ])->layout('layouts::delivery', [
             'title' => 'Profile',
             'active' => 'profile',

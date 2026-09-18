@@ -12,6 +12,7 @@ use App\Livewire\Cart\CartPage;
 use App\Livewire\Checkout\CheckoutPage;
 use App\Livewire\Checkout\OrderPlaced;
 use App\Livewire\Checkout\UpiPayment;
+use App\Livewire\Delivery\CashHistory;
 use App\Livewire\Delivery\CashSummary;
 use App\Livewire\Delivery\DeliveryHistory;
 use App\Livewire\Delivery\DeliveryList;
@@ -70,6 +71,7 @@ Route::prefix('delivery')->name('delivery.')->group(function () {
     Route::middleware(RequireDemoDeliveryBoy::class)->group(function () {
         Route::livewire('/', DeliveryList::class)->name('index');
         Route::livewire('/cash', CashSummary::class)->name('cash');
+        Route::livewire('/cash/history', CashHistory::class)->name('cash.history');
         Route::livewire('/history', DeliveryHistory::class)->name('history');
         Route::livewire('/profile', DeliveryProfile::class)->name('profile');
         Route::livewire('/{order}', DeliveryShow::class)->name('order');

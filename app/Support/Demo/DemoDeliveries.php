@@ -147,7 +147,7 @@ final class DemoDeliveries
     {
         $job = $this->find($number);
 
-        if ($job === null || $job->step !== DeliveryStep::Reached) {
+        if ($job === null || $job->step !== DeliveryStep::OutForDelivery) {
             return 0;
         }
 
@@ -194,23 +194,41 @@ final class DemoDeliveries
     }
 
     /**
-     * Cash position for the "hand over" screen, in paise.
+     * Counts for the round screen and the profile.
      *
-     * @return array{collected: int, to_hand_over: int, handed_over: int, deliveries: int, cod_deliveries: list<DemoDeliveryJob>, upi_deliveries: int}
+     * @return array{to_deliver: int, delivered: int, failed: int, cod_collected: int}
      */
-    public function cash(): array
+    public function summary(): array
     {
-        $delivered = array_values(array_filter($this->today(), fn (DemoDeliveryJob $job): bool => $job->step === DeliveryStep::Delivered));
-        $cod = array_values(array_filter($delivered, fn (DemoDeliveryJob $job): bool => $job->cashCollectedPaise > 0));
+        $today = $this->today();
+        $delivered = array_values(array_filter($today, fn (DemoDeliveryJob $job): bool => $job->step === DeliveryStep::Delivered));
 
         return [
-            'collected' => array_sum(array_map(fn (DemoDeliveryJob $job): int => $job->cashCollectedPaise, $cod)),
-            'to_hand_over' => array_sum(array_map(fn (DemoDeliveryJob $job): int => $job->cashToHandOver(), $cod)),
-            'handed_over' => array_sum(array_map(fn (DemoDeliveryJob $job): int => $job->handedOver ? $job->cashCollectedPaise : 0, $cod)),
-            'deliveries' => count($delivered),
-            'cod_deliveries' => $cod,
-            'upi_deliveries' => count($delivered) - count($cod),
+            'to_deliver' => count(array_filter($today, fn (DemoDeliveryJob $job): bool => ! $job->isFinished())),
+            'delivered' => count($delivered),
+            'failed' => count(array_filter($today, fn (DemoDeliveryJob $job): bool => $job->step === DeliveryStep::Failed)),
+            'cod_collected' => array_sum(array_map(fn (DemoDeliveryJob $job): int => $job->cashCollectedPaise, $delivered)),
         ];
+    }
+
+    /**
+     * Today's deliveries grouped by step, in the order the panel shows them.
+     *
+     * @return array<string, list<DemoDeliveryJob>>
+     */
+    public function grouped(): array
+    {
+        $groups = [];
+
+        foreach (DeliveryStep::groups() as $step) {
+            $groups[$step->group()] = [];
+        }
+
+        foreach ($this->today() as $job) {
+            $groups[$job->step->group()][] = $job;
+        }
+
+        return array_filter($groups, fn (array $jobs): bool => $jobs !== []);
     }
 
     /**
@@ -281,7 +299,6 @@ final class DemoDeliveries
             failureReason: is_string($reason) ? DeliveryFailureReason::from($reason) : null,
             failureNote: $data['failure_note'] ?? null,
             cashCollectedPaise: (int) ($data['cash_collected_paise'] ?? 0),
-            handedOver: (bool) ($data['handed_over'] ?? false),
         );
     }
 
@@ -349,13 +366,13 @@ final class DemoDeliveries
                 'timeline' => ['assigned' => $at(30), 'accepted' => $at(22)],
             ],
             [
-                'number' => 'ORD-10246', 'step' => 'reached', 'customer' => 'Mohit Raj', 'phone' => '9701122334',
+                'number' => 'ORD-10246', 'step' => 'out_for_delivery', 'customer' => 'Mohit Raj', 'phone' => '9701122334',
                 'address' => ['Flat 8C, Ganga Heights'], 'area' => 'Kankarbagh', 'pincode' => '800020',
                 'items' => [$dryFruit, $diya],
                 'packages' => [$box('PKG-10246-1', '884120', [$dryFruit, $diya], $at(60))],
                 'payment_method' => 'cod', 'total_paise' => 139800, 'cod_paise' => 139800,
                 'note' => null, 'code' => '905617',
-                'timeline' => ['assigned' => $at(95), 'accepted' => $at(90), 'picked_up' => $at(60), 'reached' => $at(4)],
+                'timeline' => ['assigned' => $at(95), 'accepted' => $at(90), 'picked_up' => $at(60), 'out_for_delivery' => $at(52)],
             ],
             [
                 'number' => 'ORD-10243', 'step' => 'delivered', 'customer' => 'Kavita Singh', 'phone' => '9988776655',
@@ -364,7 +381,7 @@ final class DemoDeliveries
                 'packages' => [$box('PKG-10243-1', '448301', [$kajal], $at(190))],
                 'payment_method' => 'cod', 'total_paise' => 44700, 'cod_paise' => 44700,
                 'note' => null, 'code' => '221900', 'cash_collected_paise' => 44700,
-                'timeline' => ['assigned' => $at(210), 'accepted' => $at(205), 'picked_up' => $at(190), 'reached' => $at(170), 'delivered' => $at(168)],
+                'timeline' => ['assigned' => $at(210), 'accepted' => $at(205), 'picked_up' => $at(190), 'out_for_delivery' => $at(188), 'delivered' => $at(168)],
             ],
             [
                 'number' => 'ORD-10240', 'step' => 'delivered', 'customer' => 'Deepak Jha', 'phone' => '9911223344',
@@ -377,7 +394,7 @@ final class DemoDeliveries
                 ],
                 'payment_method' => 'upi', 'total_paise' => 298800, 'cod_paise' => 0,
                 'note' => 'Ask for the front desk manager.', 'code' => '640288',
-                'timeline' => ['assigned' => $at(260), 'accepted' => $at(255), 'picked_up' => $at(240), 'reached' => $at(220), 'delivered' => $at(218)],
+                'timeline' => ['assigned' => $at(260), 'accepted' => $at(255), 'picked_up' => $at(240), 'out_for_delivery' => $at(238), 'delivered' => $at(218)],
             ],
             [
                 'number' => 'ORD-10198', 'step' => 'failed', 'customer' => 'Ravi Ranjan', 'phone' => '9001122334',
@@ -386,7 +403,7 @@ final class DemoDeliveries
                 'packages' => [$box('PKG-10198-1', '330761', [$ladoo], $yesterday(11, 40))],
                 'payment_method' => 'cod', 'total_paise' => 34000, 'cod_paise' => 34000,
                 'note' => null, 'code' => '512773', 'failure_reason' => 'nobody_home',
-                'timeline' => ['assigned' => $yesterday(11, 5), 'accepted' => $yesterday(11, 9), 'picked_up' => $yesterday(11, 40), 'reached' => $yesterday(12, 2), 'failed' => $yesterday(12, 15)],
+                'timeline' => ['assigned' => $yesterday(11, 5), 'accepted' => $yesterday(11, 9), 'picked_up' => $yesterday(11, 40), 'out_for_delivery' => $yesterday(11, 45), 'failed' => $yesterday(12, 15)],
             ],
             [
                 'number' => 'ORD-10231', 'step' => 'delivered', 'customer' => 'Priya Sharma', 'phone' => '9830012345',
@@ -397,8 +414,8 @@ final class DemoDeliveries
                     $box('PKG-10231-2', '148806', [$mugs], $yesterday(15, 50)),
                 ],
                 'payment_method' => 'upi', 'total_paise' => 145700, 'cod_paise' => 0,
-                'note' => null, 'code' => '133906', 'handed_over' => true,
-                'timeline' => ['assigned' => $yesterday(15, 20), 'accepted' => $yesterday(15, 24), 'picked_up' => $yesterday(15, 50), 'reached' => $yesterday(16, 12), 'delivered' => $yesterday(16, 15)],
+                'note' => null, 'code' => '133906',
+                'timeline' => ['assigned' => $yesterday(15, 20), 'accepted' => $yesterday(15, 24), 'picked_up' => $yesterday(15, 50), 'out_for_delivery' => $yesterday(15, 55), 'delivered' => $yesterday(16, 15)],
             ],
         ];
     }

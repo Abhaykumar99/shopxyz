@@ -76,6 +76,8 @@ Sign in as the sample customer with the Google button on `/login`, or directly w
 Open `/delivery` on a phone-sized window. Sign in with **+91 90000 11111** and the password **delivery-demo**
 (shown on the sign-in screen locally). The round covers every step, and what you do is kept in your session.
 
+The round is grouped into to pick up, picked up, out for delivery, delivered and failed. COD cash follows its
+own trail on the Cash tab: collected → handed over → counted by the shop → settled, with a full history.
 Pickup codes are printed on the box labels, so read them from the label preview at `/dev/ui/print/label`
 (`?box=2` for the second box). Sample codes: ORD-10250 boxes **204877** and **913526**; the customer's delivery
 OTP for ORD-10246 is **905617** (shown on their order page at `/account/orders`).

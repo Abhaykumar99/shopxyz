@@ -21,9 +21,11 @@
 
 <dialog
     wire:ignore.self
-    x-data
-    x-on:open-modal.window="if ($event.detail === @js($name)) $el.showModal()"
-    x-on:close-modal.window="if ($event.detail === @js($name)) $el.close()"
+    {{-- `named` accepts the modal name however it arrives: a plain string from
+         Alpine, or the params object Livewire sends from a PHP $this->dispatch(). --}}
+    x-data="{ named: (detail) => (typeof detail === 'string' ? detail : (detail?.name ?? Object.values(detail ?? {})[0])) === @js($name) }"
+    x-on:open-modal.window="if (named($event.detail)) $el.showModal()"
+    x-on:close-modal.window="if (named($event.detail)) $el.close()"
     x-on:click="if ($event.target === $el) $el.close()"
     aria-labelledby="modal-{{ $name }}-title"
     {{ $attributes->class([

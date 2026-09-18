@@ -284,3 +284,37 @@ Two different codes guard the two ends of a delivery, and neither is ever shown 
 
 Phase 3 keeps packages in `App\Support\Demo\DemoPackage` and `DemoDeliveries` (ADR-016). Phase 8 prints real
 labels per package and Phase 9 adds the `order_packages` table, hashed codes and the delivery actions.
+
+## ADR-022: The round in five groups, and cash as its own trail
+**Status:** Accepted, Phase 3 (owner request, extends ADR-020 and ADR-021)
+
+**The round is grouped by what the delivery boy has to do next**, not by one long list:
+
+| Group | Step | What the panel offers |
+|---|---|---|
+| To pick up | `assigned`, `accepted` | Accept, then enter the pickup code on each box |
+| Picked up | `picked_up` | Start delivery (every box is with the boy) |
+| Out for delivery | `out_for_delivery` | Confirm with the customer's OTP, or report a problem |
+| Delivered | `delivered` | Nothing; the cash trail takes over |
+| Failed delivery | `failed` | Take the boxes back to the shop |
+
+- Each group has a heading with a count, a chip row filters to one group, and the header shows the single
+  **next action** with a link straight to that order. Cards show "1/2 boxes" while an order is half collected.
+- `picked_up` and `out_for_delivery` are now separate: collecting every box does not yet mean the boy has left
+  the shop, and **only starting the delivery sets the order to `Out for delivery`** for the customer. The
+  earlier "reached the address" step is gone; it told the customer nothing the OTP screen does not.
+
+**COD cash is a trail of its own**, kept apart from the delivery steps:
+
+`Cash collected` (at the door, with the boy) → `Cash to hand over` (handed in at the shop as one batch,
+`CS-…`) → `Admin verification` (the shop counts it) → `Settled` → `Cash history` (every batch, for ever).
+
+- A handover takes **everything collected so far in one batch**, listed order by order and confirmed in a sheet
+  so the boy can count along with the shop. Cash already in a batch never appears as "with you" again.
+- The batch carries a status (`App\Enums\CashSettlementStatus`: awaiting verification, settled, short). The
+  **panel never marks its own cash settled** — that is the admin's job in Phase 7. Outside production a
+  "Preview" button stands in for the shop so the whole trail can be reviewed.
+- The history keeps every batch with what it contained, when it was handed over and when it was counted.
+
+Phase 3 keeps this in `App\Support\Demo\DemoCash` and `DemoCashSettlement` (ADR-016). Phase 9 replaces them
+with a `cod_settlements` table plus settlement actions, and the admin screen that verifies a batch.

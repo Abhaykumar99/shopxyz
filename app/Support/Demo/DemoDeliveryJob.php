@@ -38,7 +38,6 @@ final readonly class DemoDeliveryJob
         public ?DeliveryFailureReason $failureReason = null,
         public ?string $failureNote = null,
         public int $cashCollectedPaise = 0,
-        public bool $handedOver = false,
     ) {}
 
     public function isCod(): bool
@@ -99,14 +98,6 @@ final readonly class DemoDeliveryJob
     public function isFinished(): bool
     {
         return $this->step->isFinished();
-    }
-
-    /**
-     * Cash this delivery still has to be handed over to the shop.
-     */
-    public function cashToHandOver(): int
-    {
-        return $this->step === DeliveryStep::Delivered && ! $this->handedOver ? $this->cashCollectedPaise : 0;
     }
 
     public function address(): string
