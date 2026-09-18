@@ -20,9 +20,11 @@
         },
         match ($variant) {
             'secondary' => 'border border-line-strong bg-surface text-ink hover:bg-mist',
-            'ghost' => 'text-berry hover:bg-berry-tint',
+            'ghost' => 'text-brand hover:bg-brand-tint',
             'danger' => 'bg-danger text-white hover:bg-danger/90',
-            default => 'bg-berry text-white hover:bg-berry-dark',
+            'inverse' => 'bg-white text-brand hover:bg-brand-tint',
+            'inverse-outline' => 'border border-white/50 text-white hover:bg-white/10',
+            default => 'bg-brand text-white hover:bg-brand-dark',
         },
         'w-full' => $block,
     ];

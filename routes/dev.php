@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Dev\StyleguideController;
+use App\Http\Controllers\Dev\SwitchDemoCustomerController;
 use App\Http\Middleware\LocalOnly;
 use Illuminate\Support\Facades\Route;
 
@@ -20,4 +21,5 @@ Route::middleware(LocalOnly::class)->prefix('dev/ui')->name('dev.ui.')->group(fu
     Route::get('/sign-in', [StyleguideController::class, 'signIn'])->name('sign-in');
     Route::get('/print/{document}', [StyleguideController::class, 'print'])->name('print');
     Route::view('/phone', 'dev.phone')->name('phone');
+    Route::get('/as/{role}', SwitchDemoCustomerController::class)->whereIn('role', ['guest', 'customer'])->name('as');
 });

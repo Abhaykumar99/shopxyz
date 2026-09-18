@@ -28,7 +28,7 @@
             <span aria-hidden="true" @class([
                 'relative z-10 mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full',
                 'bg-pistachio text-white' => $state === 'done',
-                'bg-berry text-white ring-4 ring-berry-tint' => $state === 'current' && ! $failed,
+                'bg-brand text-white ring-4 ring-brand-tint' => $state === 'current' && ! $failed,
                 'bg-danger text-white ring-4 ring-danger-tint' => $state === 'current' && $failed,
                 'border-2 border-line-strong bg-surface' => $state === 'upcoming',
             ])>
@@ -43,7 +43,7 @@
                 <p @class([
                     'leading-snug',
                     'tag-shape inline-flex h-8 items-center self-start pe-3 font-display text-lg font-bold text-white' => $state === 'current',
-                    'bg-berry' => $state === 'current' && ! $failed,
+                    'bg-brand' => $state === 'current' && ! $failed,
                     'bg-danger' => $state === 'current' && $failed,
                     'font-medium text-ink' => $state === 'done',
                     'text-ink-soft' => $state === 'upcoming',

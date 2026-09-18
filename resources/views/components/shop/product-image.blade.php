@@ -7,9 +7,9 @@
 
 @php
     [$tint, $icon] = match ($category) {
-        'confectionery' => ['bg-marigold-tint text-marigold-ink', 'candy'],
+        'confectionery' => ['bg-accent-tint text-accent-ink', 'candy'],
         'gifts' => ['bg-pistachio-tint text-pistachio', 'gift'],
-        'cosmetics' => ['bg-berry-tint text-berry', 'sparkles'],
+        'cosmetics' => ['bg-brand-tint text-brand', 'sparkles'],
         default => ['bg-mist text-ink-soft', 'package'],
     };
 @endphp
@@ -17,7 +17,7 @@
 @if ($src)
     <img src="{{ $src }}" alt="{{ $alt }}" loading="lazy" decoding="async" {{ $attributes->class('object-cover') }}>
 @else
-    <div role="img" aria-label="{{ $alt }}" {{ $attributes->class(['flex items-center justify-center', $tint]) }}>
+    <div @if ($alt !== '') role="img" aria-label="{{ $alt }}" @else aria-hidden="true" @endif {{ $attributes->class(['flex items-center justify-center', $tint]) }}>
         <x-ui.icon :name="$icon" :size="40" class="opacity-70" />
     </div>
 @endif

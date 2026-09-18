@@ -131,3 +131,100 @@ invoices, labels and emails.
   office printers alike. A PDF download of the same markup is added in Phase 8.
 - On A4/A5 a label prints one per sheet, scaled up. A multi-label sheet option can be added later.
 - Formats are a backed enum (`App\Enums\PrintFormat`) that knows its page size and which documents allow it.
+
+## ADR-015: Velvet and gold palette, role-based colour names
+**Status:** Accepted, Phase 2 (owner asked for a premium, modern palette)
+
+- Actions use deep mulberry `#7B1E45` (was berry `#A3214F`). Offers use antique gold `#D6A64B` (was marigold
+  `#F3A712`). Text is plum-black `#1F1424` on a porcelain page `#FAF7F8`. Status colours were retuned to match.
+- Colour tokens are named by **role**, not hue: `brand`, `brand-dark`, `brand-tint`, `accent`, `accent-ink`,
+  `accent-tint`. A future rebrand then changes values in `resources/css/app.css` without renaming classes.
+  The status tone `berry` is now `brand`.
+- Every text pairing still meets WCAG AA (table in `docs/design-system.md`).
+
+## ADR-016: Clickable prototype on a temporary demo layer (Phase 2)
+**Status:** Accepted, Phase 2. To be removed step by step in Phases 4–6.
+
+- The customer site is built as real Livewire pages, routes and form validation on top of
+  `App\Support\Demo\*`: a fixed sample catalogue (33 products), and a session-backed bag, customer
+  (profile, addresses) and order history (sample orders in every status plus orders placed in the preview).
+- An architecture test keeps demo classes out of domain code. Only Livewire components, the dev
+  controllers, the sign-in controller and `RequireDemoCustomer` may use them.
+- `RequireDemoCustomer` stands in for `auth` until Google sign-in (Phase 4). The local-only
+  `/dev/ui/as/{guest|customer}` switch lets reviewers preview both states. The sign-in page's Google button uses
+  it on developer machines.
+- Replacement plan: Phase 4 swaps customers and addresses for models and Socialite, Phase 5 swaps the catalogue and bag,
+  Phase 6 swaps orders and payments (including storing re-encoded payment screenshots). The page components keep their public
+  behaviour, so the Phase 2 tests carry over with new setup helpers.
+- `OrderStatus`, `PaymentStatus` and `PaymentMethod` enums were created now (ADR-006) because the screens need
+  their labels, colours and rules.
+- Phase 2 defaults for open client questions are recorded in `docs/client-questions.md` and live in `config/shop.php`.
+- Friendly wording for image upload errors lives in `lang/en/validation.php`, which is merged over Laravel's messages.
+
+## ADR-017: Rose Atelier theme (supersedes the values in ADR-015)
+**Status:** Accepted, Phase 2. Chosen by the owner after comparing four candidates on the live site.
+
+- Colours: rose-wine `#9B2C55` for actions, rose gold `#E8B4A0` for offers and waiting states (always with ink
+  text), deep rose-brown text `#2A1A20` on a blush-white page `#FFFAFA`. Role-based token names from ADR-015 are
+  unchanged.
+- Type: **DM Serif Display** for headings and prices, **Figtree** for text, **Mukta** only as the Devanagari fallback.
+  DM Serif Display has one weight, so faux bold is switched off (`font-synthesis-weight: none`).
+- Shapes: softer corners (12 / 20 / 28 px) and a soft rose card shadow (`--card-shadow`).
+- Every text pairing meets WCAG AA (see `docs/design-system.md`).
+
+## ADR-018: Wholesale as catalogue + enquiry, and a desktop hero carousel
+**Status:** The wholesale part is **superseded by ADR-019**. The hero carousel stands.
+
+**Wholesale** (`/wholesale`, "Wholesale" tab in the category bar on every screen size, footer link):
+- A public price list of bulk-ready products with **price slabs** (e.g. 5–19, 20–49, 50+), a minimum
+  order quantity and the retail price for comparison. No wholesale account or separate checkout.
+- Customers build an **enquiry list** (quantities never below the minimum) and send a **quote request**
+  (business name and type, contact, mobile, optional email/GSTIN, delivery city and pincode, needed-by
+  date, message). With no products listed, a message of at least 20 characters is required. Rate limited to
+  3 enquiries per 10 minutes per session. The confirmation shows a reference (`WQ-…`) and a WhatsApp follow-up.
+- Phase 2 keeps slabs and enquiries in `App\Support\Demo\DemoWholesale` (ADR-016). Later phases add wholesale
+  slabs to product variants, a `wholesale_enquiries` table and an admin screen to manage enquiries.
+
+**Home hero**:
+- From desktop width (`lg`, 1024 px) up, the hero is a four-slide carousel (welcome, festive hampers, beauty
+  offers, wholesale). It auto-advances every 6 s with a progress indicator and pauses on hover, keyboard focus,
+  hidden tabs and a visible pause button. It never auto-plays for people who prefer reduced motion. Slides are `inert`
+  when hidden and the carousel is `wire:ignore` so page updates don't reset it.
+- Below desktop width the existing single hero is unchanged; phones and tablets get a wholesale card further
+  down the page instead of a slide.
+
+## ADR-019: Wholesale sells through the ordinary bag; a quote is optional
+**Status:** Accepted, Phase 2 (owner request, supersedes the wholesale part of ADR-018)
+
+Wholesale is **not a separate ordering process**. It is the same shop, at quantity prices.
+
+**Slab prices apply automatically.** A product that has wholesale slabs is priced at the shop's retail price
+below its minimum quantity and at the matching slab price at or above it. There is no wholesale mode, no second
+bag and no duplicate line for the same product, and a bulk quantity of a product reached from a category page
+earns the same price as one reached from `/wholesale`. The bag line shows the slab it is on, the saving against
+retail and what the next slab would cost ("add 30 more to pay ₹840 each"); a product page shows the same slabs
+under "Buying in bulk?".
+
+- Anyone can see and order at wholesale prices. No wholesale account, approval or GSTIN is required, and
+  sign-in is only needed at checkout, exactly as for a retail order.
+- A wholesale line is **not limited by shelf stock** (the shop orders bulk quantities in) and is capped at
+  `DemoWholesale::MAX_QUANTITY` (10,000). Retail lines keep the per-line limit of 10 and the stock check. A line
+  above the shelf count is marked "ordered in for you".
+- Checkout, payment (COD/UPI with manual verification), invoices, labels, delivery and tracking are unchanged.
+  Order items snapshot the price actually charged plus a `wholesale` flag, so invoices and the order history
+  show what the customer paid.
+- **Cash on delivery stops at ₹20,000** (`shop.payment.cod_max_paise`, admin-editable later). Above it only UPI
+  is offered, in the bag, at checkout and in a server-side check when the order is placed. Zero removes the ceiling.
+
+**Quote requests stay, as an optional feature** at `/wholesale/quote` (linked from the wholesale page, the bag
+and the footer, never as the main call to action). They are for what the price list cannot answer: custom
+hampers or packing, branding, quantities beyond the slabs, a supply arrangement or payment terms. The form asks
+what is needed (message of at least 20 characters, always required), the business details (name and type,
+contact, mobile, optional email/GSTIN, delivery city and pincode, needed-by date) and can **attach the current
+bag** for context. Attaching neither orders nor empties the bag. Rate limited to 3 requests per 10 minutes per
+session; the confirmation shows a `WQ-…` reference and a WhatsApp follow-up. The separate enquiry list from
+ADR-018 is gone: the bag is the only list a customer manages.
+
+Phase 2 keeps this in `App\Support\Demo\DemoWholesale` and `DemoCartLine` (ADR-016). Later phases add a
+`price_slabs` table on product variants (min quantity, unit price in paise), an `is_wholesale` flag on order
+items, and a `wholesale_enquiries` table with an admin screen.

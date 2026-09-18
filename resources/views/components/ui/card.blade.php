@@ -4,7 +4,7 @@
 ])
 
 <{{ $as }} {{ $attributes->class([
-    'rounded-card border border-line bg-surface',
+    'rounded-card border border-line bg-surface shadow-[var(--card-shadow)]',
     match ($padding) {
         'none' => '',
         'sm' => 'p-3',

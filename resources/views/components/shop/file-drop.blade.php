@@ -18,12 +18,12 @@
         x-data="{ file: '' }"
         for="{{ $id }}"
         @class([
-            'flex cursor-pointer flex-col items-center gap-2 rounded-card border-2 border-dashed bg-paper px-4 py-6 text-center hover:bg-mist has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-berry',
+            'flex cursor-pointer flex-col items-center gap-2 rounded-card border-2 border-dashed bg-paper px-4 py-6 text-center hover:bg-mist has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand',
             'border-danger' => $message,
             'border-line-strong' => ! $message,
         ])
     >
-        <x-ui.icon name="upload" :size="28" class="text-berry" />
+        <x-ui.icon name="upload" :size="28" class="text-brand" />
         <span class="font-semibold text-ink" x-text="file || 'Choose screenshot'">Choose screenshot</span>
         <span class="text-sm text-ink-soft" x-show="! file">or take a photo</span>
         <input

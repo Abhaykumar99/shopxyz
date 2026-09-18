@@ -11,7 +11,7 @@
     $classes = [
         'relative inline-flex size-11 shrink-0 items-center justify-center rounded-full transition-colors',
         match ($variant) {
-            'primary' => 'bg-berry text-white hover:bg-berry-dark',
+            'primary' => 'bg-brand text-white hover:bg-brand-dark',
             'secondary' => 'border border-line-strong bg-surface text-ink hover:bg-mist',
             default => 'text-ink hover:bg-mist',
         },
@@ -26,7 +26,7 @@
 @endif
     <x-ui.icon :name="$icon" :size="22" />
     @if ($count)
-        <span aria-hidden="true" class="figures absolute -top-0.5 -right-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-berry px-1 text-xs font-semibold text-white ring-2 ring-surface">
+        <span aria-hidden="true" class="figures absolute -top-0.5 -right-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-xs font-semibold text-white ring-2 ring-surface">
             {{ $count > 99 ? '99+' : $count }}
         </span>
     @endif

@@ -20,6 +20,7 @@
 @endphp
 
 <dialog
+    wire:ignore.self
     x-data
     x-on:open-modal.window="if ($event.detail === @js($name)) $el.showModal()"
     x-on:close-modal.window="if ($event.detail === @js($name)) $el.close()"

@@ -35,13 +35,20 @@ without a rewrite.
 
 ## 4. Customer website
 
-- Home, categories, product list, search, filters, product details
+- Home (auto-sliding banners on desktop), categories, product list, search, filters, product details, wholesale
 - Cart (change quantity, remove), checkout, address selection or creation, payment method, place order
 - Google sign-in; profile with a **required phone number before the first order**
 - Saved addresses, My Orders, order details, order status timeline
 - Delivery partner name/phone shown once assigned; delivery OTP shown to the customer
 
 Initial categories: Cosmetics, Confectionery, Gifts. Subcategories are supported.
+
+**Wholesale** (ADR-019): a Wholesale section with bulk price slabs and minimum quantities for shops, event
+planners, hotels and corporate gifting. Wholesale is ordered through the **same bag, checkout, payment and
+tracking** as any other order: the slab price applies automatically from the minimum quantity, and no wholesale
+account or approval is needed. Cash on delivery stops at the COD ceiling (₹20,000 by default), above which only
+UPI is offered. A **quote request** (`/wholesale/quote`) is an optional extra for custom pricing, packing,
+branding or supply arrangements, and can attach the current bag; the shop replies by phone or WhatsApp.
 
 ## 5. Payments (no gateway)
 

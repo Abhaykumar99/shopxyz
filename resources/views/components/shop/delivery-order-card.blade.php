@@ -31,7 +31,7 @@
         <span class="figures text-sm text-ink-soft">{{ $items }} {{ \Illuminate\Support\Str::plural('item', $items) }}</span>
         @if ($codPaise)
             <span class="flex items-center gap-1.5 font-semibold text-ink">
-                <x-ui.icon name="banknote" :size="18" class="text-marigold-ink" />
+                <x-ui.icon name="banknote" :size="18" class="text-accent-ink" />
                 {{ $collected ? 'Collected' : 'Collect' }} <x-shop.price :paise="$codPaise" size="sm" />
             </span>
         @else

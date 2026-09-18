@@ -107,7 +107,7 @@ final class DemoData
     public static function deliveries(): array
     {
         return [
-            ['number' => 'ORD-10245', 'customer' => 'Priya Sharma', 'area' => 'Boring Road', 'pincode' => '800001', 'items' => 4, 'cod' => 215700, 'collected' => false, 'status' => 'Out for delivery', 'tone' => 'berry'],
+            ['number' => 'ORD-10245', 'customer' => 'Priya Sharma', 'area' => 'Boring Road', 'pincode' => '800001', 'items' => 4, 'cod' => 215700, 'collected' => false, 'status' => 'Out for delivery', 'tone' => 'brand'],
             ['number' => 'ORD-10248', 'customer' => 'Aman Verma', 'area' => 'Kankarbagh', 'pincode' => '800020', 'items' => 1, 'cod' => null, 'collected' => false, 'status' => 'Assigned', 'tone' => 'info'],
             ['number' => 'ORD-10231', 'customer' => 'Neha Singh', 'area' => 'Rajendra Nagar', 'pincode' => '800016', 'items' => 2, 'cod' => 64000, 'collected' => true, 'status' => 'Delivered', 'tone' => 'success'],
         ];

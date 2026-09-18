@@ -1,6 +1,6 @@
 @props([
     'label' => null,
-    'name',
+    'name' => null,
     'phone',
     'lines' => [],
     'pincode',
@@ -9,12 +9,14 @@
 
 <div {{ $attributes->class('flex flex-col gap-1 text-base') }}>
     <div class="flex flex-wrap items-center gap-2">
-        <p class="font-semibold text-ink">{{ $name }}</p>
+        @if ($name)
+            <p class="font-semibold text-ink">{{ $name }}</p>
+        @endif
         @if ($label)
             <x-ui.badge>{{ $label }}</x-ui.badge>
         @endif
         @if ($isDefault)
-            <x-ui.badge tone="berry">Default</x-ui.badge>
+            <x-ui.badge tone="brand">Default</x-ui.badge>
         @endif
     </div>
     <address class="text-ink-soft not-italic">

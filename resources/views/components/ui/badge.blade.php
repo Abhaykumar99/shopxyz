@@ -4,10 +4,10 @@
 ])
 
 <span {{ $attributes->class([
-    'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium whitespace-nowrap',
+    'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-medium whitespace-nowrap ring-1 ring-current/15 ring-inset',
     match ($tone) {
-        'berry' => 'bg-berry-tint text-berry-dark',
-        'offer' => 'bg-marigold-tint text-marigold-ink',
+        'brand' => 'bg-brand-tint text-brand-dark',
+        'offer' => 'bg-accent-tint text-accent-ink',
         'success' => 'bg-pistachio-tint text-pistachio',
         'info' => 'bg-info-tint text-info',
         'danger' => 'bg-danger-tint text-danger',

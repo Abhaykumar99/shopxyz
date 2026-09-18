@@ -1,16 +1,16 @@
 @php
     $swatches = [
-        ['ink', '#2B1631', 'Text', 'bg-ink'],
-        ['ink-soft', '#6B5870', 'Secondary text', 'bg-ink-soft'],
-        ['paper', '#FBF7FA', 'Page background', 'bg-paper'],
-        ['mist', '#F3ECF2', 'Quiet fills', 'bg-mist'],
-        ['line-strong', '#8C7A90', 'Field borders', 'bg-line-strong'],
-        ['berry', '#A3214F', 'Actions and links', 'bg-berry'],
-        ['berry-tint', '#F7E6EE', 'Selected, price tag', 'bg-berry-tint'],
-        ['marigold', '#F3A712', 'Offers only', 'bg-marigold'],
-        ['pistachio', '#2F6B45', 'Paid, delivered', 'bg-pistachio'],
-        ['info', '#1D5B8F', 'New, confirmed', 'bg-info'],
-        ['danger', '#B42318', 'Errors, cancelled', 'bg-danger'],
+        ['ink', '#2A1A20', 'Text', 'bg-ink'],
+        ['ink-soft', '#6E5B62', 'Secondary text', 'bg-ink-soft'],
+        ['paper', '#FFFAFA', 'Page background', 'bg-paper'],
+        ['mist', '#F8EEF0', 'Quiet fills', 'bg-mist'],
+        ['line-strong', '#8F7A82', 'Field borders', 'bg-line-strong'],
+        ['brand', '#9B2C55', 'Actions, links, focus', 'bg-brand'],
+        ['brand-tint', '#FBE9EF', 'Selected, price tag', 'bg-brand-tint'],
+        ['accent', '#E8B4A0', 'Offers and waiting only', 'bg-accent'],
+        ['pistachio', '#2F6B4E', 'Paid, delivered', 'bg-pistachio'],
+        ['info', '#2A5B87', 'New, confirmed', 'bg-info'],
+        ['danger', '#B3261E', 'Errors, cancelled', 'bg-danger'],
     ];
     $sections = [
         'colours' => 'Colours',
@@ -30,7 +30,7 @@
     ];
 @endphp
 
-<x-layouts::shop title="Design system" active="home" :cart-count="3" noindex class="flex flex-col gap-10">
+<x-layouts::shop title="Design system" active="home" noindex class="flex flex-col gap-10">
 
     <div class="flex flex-col gap-4">
         <x-ui.breadcrumb :items="['Developer' => url('/dev/ui'), 'Design system' => null]" />
@@ -41,7 +41,7 @@
         </p>
         <nav aria-label="Sections" class="flex flex-wrap gap-2">
             @foreach ($sections as $anchor => $label)
-                <a href="#{{ $anchor }}" class="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-berry hover:text-berry">{{ $label }}</a>
+                <a href="#{{ $anchor }}" class="rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-brand hover:text-brand">{{ $label }}</a>
             @endforeach
         </nav>
     </div>
@@ -61,7 +61,7 @@
         </div>
     </x-dev.section>
 
-    <x-dev.section id="type" title="Type" description="Bricolage Grotesque for headings and prices, Mukta for reading. Mukta also covers Hindi: नमस्ते, आपका ऑर्डर रास्ते में है।">
+    <x-dev.section id="type" title="Type" description="DM Serif Display for headings and prices, Figtree for reading, and Mukta for Hindi: नमस्ते, आपका ऑर्डर रास्ते में है।">
         <x-ui.card class="flex flex-col gap-3">
             <p class="font-display text-3xl font-bold">Gifts for every occasion</p>
             <p class="font-display text-2xl font-bold">Fresh kaju katli, packed today</p>
@@ -114,20 +114,20 @@
         </fieldset>
     </x-dev.section>
 
-    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, marigold for waiting, berry for on the move, green for done, red for stopped.">
+    <x-dev.section id="status" title="Status" description="One colour per meaning, used everywhere: blue for new, rose gold for waiting, rose-wine for on the move, green for done, red for stopped.">
         <div class="flex flex-wrap gap-2">
             <x-ui.status-pill tone="info">Placed</x-ui.status-pill>
             <x-ui.status-pill tone="offer">Payment check</x-ui.status-pill>
             <x-ui.status-pill tone="info">Confirmed</x-ui.status-pill>
             <x-ui.status-pill tone="offer">Packing</x-ui.status-pill>
-            <x-ui.status-pill tone="berry">Out for delivery</x-ui.status-pill>
+            <x-ui.status-pill tone="brand">Out for delivery</x-ui.status-pill>
             <x-ui.status-pill tone="success">Delivered</x-ui.status-pill>
             <x-ui.status-pill tone="danger">Cancelled</x-ui.status-pill>
             <x-ui.status-pill>Draft</x-ui.status-pill>
         </div>
         <div class="flex flex-wrap gap-2">
             <x-ui.badge>Home</x-ui.badge>
-            <x-ui.badge tone="berry">Default</x-ui.badge>
+            <x-ui.badge tone="brand">Default</x-ui.badge>
             <x-ui.badge tone="offer">Festive offer</x-ui.badge>
             <x-ui.badge tone="success" icon="check">Paid by UPI</x-ui.badge>
             <x-ui.badge tone="info" icon="clock">Arrives today</x-ui.badge>
@@ -148,7 +148,7 @@
         </div>
         <div class="grid gap-3 md:grid-cols-2">
             <x-ui.card>
-                <x-ui.empty-state icon="shopping-bag" title="Your bag is empty">
+                <x-ui.empty-state icon="shopping-bag" title="Your bag is empty" :level="3">
                     Browse sweets, make-up and gifts, and add what you like.
                     <x-slot:action>
                         <x-ui.button :href="url('/')">Start shopping</x-ui.button>
@@ -212,7 +212,7 @@
         <x-ui.pagination :paginator="$paginator" />
     </x-dev.section>
 
-    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Marigold tags only ever mean a discount.">
+    <x-dev.section id="prices" title="Prices" description="The shelf tag is the one signature shape. Rose gold tags only ever mean a discount.">
         <div class="flex flex-wrap items-center gap-4">
             <x-shop.price-tag :paise="34900" :mrp="49900" />
             <x-shop.price-tag :paise="52000" />
@@ -294,7 +294,7 @@
             <x-ui.card class="flex flex-col gap-4">
                 <div class="flex items-center justify-between gap-2">
                     <h3 class="figures text-lg font-bold">{{ $order['number'] }}</h3>
-                    <x-ui.status-pill tone="berry">Out for delivery</x-ui.status-pill>
+                    <x-ui.status-pill tone="brand">Out for delivery</x-ui.status-pill>
                 </div>
                 <x-shop.order-tracker :steps="$steps" />
             </x-ui.card>

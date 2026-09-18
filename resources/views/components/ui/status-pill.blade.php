@@ -1,7 +1,7 @@
 {{--
     Status with a coloured dot. Tones map to fixed meanings across the shop,
     delivery panel and admin: info = new/confirmed, offer = waiting on someone,
-    berry = on the move, success = done/paid, danger = cancelled/failed.
+    brand = on the move, success = done/paid, danger = cancelled/failed.
 --}}
 @props(['tone' => 'neutral'])
 
@@ -9,8 +9,8 @@
     'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-sm font-semibold whitespace-nowrap',
     match ($tone) {
         'info' => 'bg-info-tint text-info',
-        'offer' => 'bg-marigold-tint text-marigold-ink',
-        'berry' => 'bg-berry-tint text-berry-dark',
+        'offer' => 'bg-accent-tint text-accent-ink',
+        'brand' => 'bg-brand-tint text-brand-dark',
         'success' => 'bg-pistachio-tint text-pistachio',
         'danger' => 'bg-danger-tint text-danger',
         default => 'bg-mist text-ink-soft',

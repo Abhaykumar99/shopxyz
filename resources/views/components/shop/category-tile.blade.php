@@ -7,9 +7,9 @@
 
 @php
     [$tint, $icon] = match ($slug) {
-        'confectionery' => ['bg-marigold-tint text-marigold-ink', 'candy'],
+        'confectionery' => ['bg-accent-tint text-accent-ink', 'candy'],
         'gifts' => ['bg-pistachio-tint text-pistachio', 'gift'],
-        'cosmetics' => ['bg-berry-tint text-berry-dark', 'sparkles'],
+        'cosmetics' => ['bg-brand-tint text-brand-dark', 'sparkles'],
         default => ['bg-mist text-ink', 'store'],
     };
 @endphp
