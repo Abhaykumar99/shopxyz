@@ -168,3 +168,35 @@ it('checks the pincode as soon as it is entered', function () {
         ->assertHasErrors(['addressForm.pincode'])
         ->assertSee('We don&#039;t deliver to 560001 yet.', false);
 });
+
+it('places a bulk order at slab prices through the ordinary checkout', function () {
+    signInDemoCustomer();
+    fillDemoCart(['MG-KK-3' => 20]);
+
+    Livewire::test(CheckoutPage::class)
+        ->assertSee('Wholesale price')
+        ->assertSee('₹17,600')
+        ->call('placeOrder')
+        ->assertRedirect(route('orders.placed', 'ORD-10301'));
+
+    $order = app(DemoOrders::class)->find('ORD-10301');
+    expect($order->items[0])->toMatchArray(['sku' => 'MG-KK-3', 'quantity' => 20, 'paise' => 88000, 'wholesale' => true])
+        ->and($order->total())->toBe(20 * 88000)
+        ->and($order->hasWholesaleItems())->toBeTrue();
+});
+
+it('offers only UPI above the cash on delivery ceiling', function () {
+    signInDemoCustomer();
+    fillDemoCart(['MG-KK-3' => 25]);
+
+    Livewire::test(CheckoutPage::class)
+        ->assertSet('paymentMethod', 'upi')
+        ->assertSee('Cash on delivery is not available for this order')
+        ->assertSee('Not available above ₹20,000')
+        ->set('paymentMethod', 'cod')
+        ->call('placeOrder')
+        ->assertHasErrors(['paymentMethod'])
+        ->assertSet('paymentMethod', 'upi');
+
+    expect(app(DemoCart::class)->isEmpty())->toBeFalse();
+});

@@ -8,8 +8,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
- * TEMPORARY wholesale catalogue and enquiry list (Phase 2, catalogue + enquiry model).
- * Replaced by wholesale slabs on products and a WholesaleEnquiry model later.
+ * TEMPORARY wholesale catalogue (Phase 2). Slab prices apply in the ordinary bag
+ * through DemoCartLine (ADR-019); the optional quote requests are kept in the session.
+ * Replaced by a `price_slabs` table on product variants and a WholesaleEnquiry model later.
  */
 final class DemoWholesale
 {
@@ -92,88 +93,22 @@ final class DemoWholesale
 
     /*
     |--------------------------------------------------------------------------
-    | Enquiry list (session)
+    | Quote requests (optional, ADR-019)
     |--------------------------------------------------------------------------
+    |
+    | Ordering happens through the normal bag. A quote request is for buyers who
+    | need something the catalogue cannot price: custom packing, branding,
+    | quantities beyond the slabs or a special payment arrangement. Customers may
+    | attach what is in their bag so the shop can see what they are looking at.
     */
 
     /**
-     * Adds units to the enquiry list, raising the line to the minimum order. Returns the stored quantity.
-     */
-    public function add(string $sku, int $quantity): int
-    {
-        $item = self::item($sku);
-
-        if ($item === null) {
-            return 0;
-        }
-
-        return $this->setQuantity($sku, $this->quantityOf($sku) + max(1, $quantity));
-    }
-
-    /**
-     * Sets a line's quantity between the minimum order and the maximum. Zero or less removes it.
-     */
-    public function setQuantity(string $sku, int $quantity): int
-    {
-        $item = self::item($sku);
-
-        if ($item === null || $quantity < 1) {
-            $this->remove($sku);
-
-            return 0;
-        }
-
-        $quantity = min(self::MAX_QUANTITY, max($item->moq(), $quantity));
-        $this->session->put(self::KEY.'.list.'.$sku, $quantity);
-
-        return $quantity;
-    }
-
-    public function remove(string $sku): void
-    {
-        $list = $this->raw();
-        unset($list[$sku]);
-        $this->session->put(self::KEY.'.list', $list);
-    }
-
-    public function quantityOf(string $sku): int
-    {
-        return $this->raw()[$sku] ?? 0;
-    }
-
-    public function count(): int
-    {
-        return count($this->raw());
-    }
-
-    /**
-     * @return list<array{item: DemoWholesaleItem, quantity: int, unit: int, total: int}>
-     */
-    public function lines(): array
-    {
-        $lines = [];
-
-        foreach ($this->raw() as $sku => $quantity) {
-            if ($item = self::item((string) $sku)) {
-                $unit = $item->unitPriceFor($quantity);
-                $lines[] = ['item' => $item, 'quantity' => $quantity, 'unit' => $unit, 'total' => $unit * $quantity];
-            }
-        }
-
-        return $lines;
-    }
-
-    public function estimate(): int
-    {
-        return array_sum(array_column($this->lines(), 'total'));
-    }
-
-    /**
-     * Records the enquiry, empties the list and returns its reference.
+     * Records the request and returns its reference.
      *
      * @param  array<string, mixed>  $details
+     * @param  list<DemoCartLine>  $lines  bag contents the customer chose to attach
      */
-    public function submit(array $details): string
+    public function submit(array $details, array $lines = []): string
     {
         $sequence = (int) $this->session->get(self::KEY.'.sequence', 0) + 1;
         $reference = 'WQ-'.(5100 + $sequence);
@@ -182,16 +117,15 @@ final class DemoWholesale
             'reference' => $reference,
             'submitted_at' => CarbonImmutable::now()->toIso8601String(),
             'details' => $details,
-            'items' => array_map(fn (array $line): array => [
-                'sku' => $line['item']->sku(),
-                'name' => $line['item']->product->name,
-                'quantity' => $line['quantity'],
-                'unit_paise' => $line['unit'],
-            ], $this->lines()),
-            'estimate' => $this->estimate(),
+            'items' => array_map(fn (DemoCartLine $line): array => [
+                'sku' => $line->variant->sku,
+                'name' => $line->product->name,
+                'quantity' => $line->quantity,
+                'unit_paise' => $line->unitPrice(),
+            ], $lines),
+            'estimate' => array_sum(array_map(fn (DemoCartLine $line): int => $line->total(), $lines)),
         ]);
         $this->session->put(self::KEY.'.sequence', $sequence);
-        $this->session->forget(self::KEY.'.list');
 
         return $reference;
     }
@@ -204,15 +138,5 @@ final class DemoWholesale
         $enquiry = $this->session->get(self::KEY.'.enquiries.'.$reference);
 
         return is_array($enquiry) ? $enquiry : null;
-    }
-
-    /**
-     * @return array<string, int>
-     */
-    private function raw(): array
-    {
-        $list = $this->session->get(self::KEY.'.list', []);
-
-        return is_array($list) ? array_map('intval', $list) : [];
     }
 }

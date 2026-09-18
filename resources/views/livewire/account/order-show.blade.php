@@ -67,7 +67,10 @@
                             <x-shop.product-image :category="$item['category']" alt="" class="size-16 shrink-0 rounded-field" />
                             <div class="min-w-0 grow">
                                 <a href="{{ route('shop.product', $item['slug']) }}" class="font-medium hover:underline">{{ $item['name'] }}</a>
-                                <p class="figures text-sm text-ink-soft">{{ $item['variant'] }}, qty {{ $item['quantity'] }}</p>
+                                <p class="figures text-sm text-ink-soft">{{ $item['variant'] }}, qty {{ $item['quantity'] }} &times; {{ \App\Support\Money::format($item['paise']) }}</p>
+                                @if ($item['wholesale'] ?? false)
+                                    <x-ui.badge tone="brand" icon="boxes" class="mt-1">Wholesale price</x-ui.badge>
+                                @endif
                             </div>
                             <x-shop.price :paise="$item['paise'] * $item['quantity']" size="sm" />
                         </li>

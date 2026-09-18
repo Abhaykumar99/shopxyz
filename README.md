@@ -66,8 +66,9 @@ npm run build
 | `composer check` | Everything CI runs: style + analysis + tests |
 
 ### Customer site preview (Phase 2, sample data)
-Open `/` to browse and `/wholesale` for bulk prices and quote requests. Everything runs on sample data kept in
-your browser session (ADR-016).
+Open `/` to browse and `/wholesale` for bulk prices, which are ordered through the ordinary bag and checkout
+(`/wholesale/quote` is the optional quote request). Everything runs on sample data kept in your browser session
+(ADR-016).
 Sign in as the sample customer with the Google button on `/login`, or directly with `/dev/ui/as/customer`
 (`/dev/ui/as/guest` signs out). Sample orders cover every status: `/account/orders`.
 

@@ -8,6 +8,7 @@ use App\Support\Demo\DemoCatalog;
 use App\Support\Demo\DemoCategory;
 use App\Support\Demo\DemoProduct;
 use App\Support\Demo\DemoVariant;
+use App\Support\Demo\DemoWholesale;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
@@ -51,6 +52,21 @@ class ProductShow extends Component
         $this->addToCart($this->selectedVariant()->sku, $this->clampedQuantity());
     }
 
+    /**
+     * Adds the minimum wholesale quantity, so the slab price applies straight away.
+     */
+    public function addWholesaleMinimum(): void
+    {
+        $item = DemoWholesale::item($this->selectedVariant()->sku);
+
+        if ($item === null) {
+            return;
+        }
+
+        $this->quantity = max($this->quantity, $item->moq());
+        $this->addToCart($item->sku(), $this->quantity);
+    }
+
     public function buyNow(): mixed
     {
         $variant = $this->selectedVariant();
@@ -77,8 +93,9 @@ class ProductShow extends Component
         return view('livewire.shop.product-show', [
             'product' => $product,
             'variant' => $variant,
-            'maxQuantity' => max(1, min(DemoCart::MAX_PER_LINE, $variant->stock)),
+            'maxQuantity' => app(DemoCart::class)->ceilingFor($variant->sku, $variant),
             'inBag' => app(DemoCart::class)->quantityOf($variant->sku),
+            'wholesale' => DemoWholesale::item($variant->sku),
             'similar' => DemoCatalog::similar($product),
             'breadcrumb' => $this->breadcrumb($product, $root, $section),
         ])->layout('layouts::shop', [
@@ -123,6 +140,6 @@ class ProductShow extends Component
     {
         $variant = $this->selectedVariant();
 
-        return max(1, min($this->quantity, DemoCart::MAX_PER_LINE, max(1, $variant->stock)));
+        return max(1, min($this->quantity, app(DemoCart::class)->ceilingFor($variant->sku, $variant)));
     }
 }

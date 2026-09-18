@@ -2,23 +2,24 @@
 
 namespace App\Livewire\Wholesale;
 
-use App\Livewire\Forms\WholesaleEnquiryForm;
-use App\Support\Demo\DemoCustomer;
+use App\Livewire\Concerns\AddsToCart;
+use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoWholesale;
-use App\Support\Money;
+use App\Support\Demo\DemoWholesaleItem;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
-use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Wholesale: bulk price slabs, an enquiry list and a quote request form.
+ * Wholesale catalogue: quantity price slabs and minimum quantities, ordered
+ * through the ordinary bag and checkout (ADR-019). Buyers who need custom
+ * pricing, packing or branding use the separate quote page.
  */
 class WholesalePage extends Component
 {
+    use AddsToCart;
+
     public const CATEGORIES = [
         '' => 'All products',
         'confectionery' => 'Sweets and chocolates',
@@ -35,31 +36,17 @@ class WholesalePage extends Component
     /** @var array<string, int|string> Quantities typed next to each product */
     public array $quantities = [];
 
-    /** @var array<string, int|string> Quantities in the enquiry list */
-    public array $listQuantities = [];
-
-    public WholesaleEnquiryForm $form;
-
-    #[Locked]
-    public ?string $submittedReference = null;
-
-    public function mount(DemoWholesale $wholesale, DemoCustomer $customer): void
+    public function mount(): void
     {
         foreach (DemoWholesale::items() as $item) {
             $this->quantities[$item->sku()] = $item->moq();
         }
-
-        $this->syncList($wholesale);
-
-        if ($customer->isSignedIn()) {
-            $profile = $customer->profile();
-            $this->form->contactName = $profile['name'];
-            $this->form->email = $profile['email'];
-            $this->form->phone = (string) $profile['phone'];
-        }
     }
 
-    public function addToEnquiry(string $sku, DemoWholesale $wholesale): void
+    /**
+     * Adds a bulk quantity to the bag, never below the minimum for that product.
+     */
+    public function addBulkToCart(string $sku): void
     {
         $item = DemoWholesale::item($sku);
 
@@ -68,66 +55,17 @@ class WholesalePage extends Component
         }
 
         $requested = (int) ($this->quantities[$sku] ?? $item->moq());
-        $stored = $wholesale->add($sku, max($item->moq(), $requested));
-        $this->quantities[$sku] = $item->moq();
-        $this->syncList($wholesale);
+        $quantity = min(DemoWholesale::MAX_QUANTITY, max($item->moq(), $requested));
 
-        $this->dispatch('toast', message: "{$item->product->name}: {$stored} in your enquiry at ".Money::format($item->unitPriceFor($stored)).' each.', tone: 'success');
-    }
-
-    public function updatedListQuantities(mixed $value, string $sku): void
-    {
-        $wholesale = app(DemoWholesale::class);
-        $item = DemoWholesale::item($sku);
-
-        if ($item === null || $wholesale->quantityOf($sku) === 0) {
-            $this->syncList($wholesale);
-
-            return;
+        if ($requested < $item->moq()) {
+            $this->dispatch('toast', message: "The wholesale minimum for {$item->product->name} is {$item->moq()} {$item->unit}s. We have added that many.", tone: 'info');
         }
 
-        $requested = (int) $value;
-        $stored = $wholesale->setQuantity($sku, max(1, $requested));
-
-        if ($stored !== $requested) {
-            $this->dispatch('toast', message: $requested < $item->moq()
-                ? "The minimum order for {$item->product->name} is {$item->moq()}."
-                : 'Quantity updated.', tone: $requested < $item->moq() ? 'warning' : 'info');
-        }
-
-        $this->syncList($wholesale);
+        $this->quantities[$sku] = $quantity;
+        $this->addToCart($sku, $quantity);
     }
 
-    public function removeFromEnquiry(string $sku, DemoWholesale $wholesale): void
-    {
-        $wholesale->remove($sku);
-        $this->syncList($wholesale);
-    }
-
-    public function submit(DemoWholesale $wholesale): void
-    {
-        $key = 'wholesale-enquiry:'.session()->getId();
-        if (RateLimiter::tooManyAttempts($key, 3)) {
-            throw ValidationException::withMessages([
-                'form.businessName' => 'You have sent several enquiries already. Please wait '.ceil(RateLimiter::availableIn($key) / 60).' minutes, or message us on WhatsApp.',
-            ]);
-        }
-
-        $details = $this->form->payload($wholesale->count() > 0);
-        RateLimiter::hit($key, 600);
-
-        $this->submittedReference = $wholesale->submit($details);
-        $this->syncList($wholesale);
-        $this->dispatch('wholesale-submitted');
-    }
-
-    public function startNewEnquiry(): void
-    {
-        $this->submittedReference = null;
-        $this->form->reset('message', 'neededBy');
-    }
-
-    public function render(DemoWholesale $wholesale): View
+    public function render(DemoCart $cart): View
     {
         $search = Str::limit(trim($this->search), 60, '');
 
@@ -137,22 +75,15 @@ class WholesalePage extends Component
                 $search,
             ),
             'featured' => DemoWholesale::item('MG-KK-3') ?? DemoWholesale::items()[0],
-            'lines' => $wholesale->lines(),
-            'estimate' => $wholesale->estimate(),
             'categories' => self::CATEGORIES,
-            'businessTypes' => DemoWholesale::BUSINESS_TYPES,
-            'submitted' => $this->submittedReference ? $wholesale->enquiry($this->submittedReference) : null,
+            'inBag' => collect(DemoWholesale::items())
+                ->mapWithKeys(fn (DemoWholesaleItem $item): array => [$item->sku() => $cart->quantityOf($item->sku())])
+                ->all(),
+            'bagCount' => $cart->count(),
         ])->layout('layouts::shop', [
             'title' => 'Wholesale',
-            'description' => 'Wholesale prices on sweets, gifts and cosmetics for shops, events and corporate gifting.',
+            'description' => 'Wholesale prices on sweets, gifts and cosmetics for shops, events and corporate gifting. Order online with COD or UPI.',
             'active' => 'wholesale',
         ]);
-    }
-
-    private function syncList(DemoWholesale $wholesale): void
-    {
-        $this->listQuantities = collect($wholesale->lines())
-            ->mapWithKeys(fn (array $line): array => [$line['item']->sku() => $line['quantity']])
-            ->all();
     }
 }

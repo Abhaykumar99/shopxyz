@@ -5,6 +5,8 @@ namespace App\Livewire\Cart;
 use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoCartLine;
 use App\Support\Demo\DemoCatalog;
+use App\Support\Demo\DemoWholesale;
+use App\Support\Money;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -22,8 +24,9 @@ class CartPage extends Component
     public function updatedQuantities(mixed $value, string $sku): void
     {
         $cart = app(DemoCart::class);
+        $previous = $cart->quantityOf($sku);
 
-        if ($cart->quantityOf($sku) === 0) {
+        if ($previous === 0) {
             $this->syncQuantities($cart);
 
             return;
@@ -31,9 +34,14 @@ class CartPage extends Component
 
         $requested = max(1, (int) $value);
         $stored = $cart->setQuantity($sku, $requested);
+        $wholesale = DemoWholesale::item($sku);
 
         if ($stored < $requested) {
-            $this->dispatch('toast', message: "We can only sell {$stored} of this item right now.", tone: 'warning');
+            $this->dispatch('toast', message: $wholesale !== null
+                ? "The most we take in one order is {$stored}. Ask us for a quote for anything larger."
+                : "We can only sell {$stored} of this item right now.", tone: 'warning');
+        } elseif ($wholesale !== null && $previous >= $wholesale->moq() && $stored < $wholesale->moq()) {
+            $this->dispatch('toast', message: "Below {$wholesale->moq()}, this line goes back to the retail price of ".Money::format($wholesale->variant->paise).'.', tone: 'info');
         }
 
         $this->syncQuantities($cart);

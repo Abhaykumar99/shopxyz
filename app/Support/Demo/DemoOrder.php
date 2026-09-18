@@ -13,7 +13,7 @@ use Carbon\CarbonImmutable;
 final readonly class DemoOrder
 {
     /**
-     * @param  list<array{name: string, variant: string, sku: string, slug: string, category: string, quantity: int, mrp: int, paise: int}>  $items
+     * @param  list<array{name: string, variant: string, sku: string, slug: string, category: string, quantity: int, mrp: int, paise: int, wholesale?: bool}>  $items
      * @param  array<string, string>  $timeline  OrderStatus value => ISO time the order reached it
      * @param  array{name: string, phone: string}|null  $deliveryPartner
      */
@@ -59,6 +59,20 @@ final readonly class DemoOrder
     public function itemCount(): int
     {
         return array_sum(array_column($this->items, 'quantity'));
+    }
+
+    /**
+     * At least one line was priced at a wholesale slab.
+     */
+    public function hasWholesaleItems(): bool
+    {
+        foreach ($this->items as $item) {
+            if ($item['wholesale'] ?? false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function isActive(): bool

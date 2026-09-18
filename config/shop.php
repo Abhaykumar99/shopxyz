@@ -31,11 +31,14 @@ return [
     'logo_path' => null,
 
     /*
-    | UPI details shown on the payment QR (placeholder until the admin sets them).
+    | UPI details shown on the payment QR (placeholder until the admin sets them),
+    | and the ceiling for cash on delivery. Above it only UPI is offered, which
+    | keeps large bulk orders off credit (ADR-019). Zero removes the ceiling.
     */
     'payment' => [
         'upi_vpa' => 'demo.shop@okaxis',
         'upi_payee_name' => 'Shop owner (demo)',
+        'cod_max_paise' => 2000000,
     ],
 
     /*

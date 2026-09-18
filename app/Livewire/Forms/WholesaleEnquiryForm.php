@@ -32,11 +32,6 @@ class WholesaleEnquiryForm extends Form
     public string $message = '';
 
     /**
-     * Whether products are already in the enquiry list (set before validating).
-     */
-    public bool $hasItems = false;
-
-    /**
      * @return array<string, array<int, mixed>>
      */
     protected function rules(): array
@@ -51,7 +46,7 @@ class WholesaleEnquiryForm extends Form
             'city' => ['required', 'string', 'max:60'],
             'pincode' => ['required', 'string', 'regex:/^[1-9]\d{5}$/'],
             'neededBy' => ['nullable', 'date_format:Y-m-d', 'after:today'],
-            'message' => [$this->hasItems ? 'nullable' : 'required', 'string', $this->hasItems ? 'min:0' : 'min:20', 'max:1000'],
+            'message' => ['required', 'string', 'min:20', 'max:1000'],
         ];
     }
 
@@ -70,17 +65,16 @@ class WholesaleEnquiryForm extends Form
             'pincode.required' => 'Enter a 6-digit pincode.',
             'pincode.regex' => 'Enter a 6-digit pincode.',
             'neededBy.after' => 'Choose a date after today.',
-            'message.required' => 'Add products to your enquiry, or describe what you need here.',
-            'message.min' => 'Tell us a little more: products, quantities and occasion (at least 20 characters).',
+            'message.required' => 'Tell us what you need, and we will come back with a quote.',
+            'message.min' => 'Tell us a little more: products, quantities, packing or branding (at least 20 characters).',
         ];
     }
 
     /**
      * @return array<string, string|null>
      */
-    public function payload(bool $hasItems): array
+    public function payload(): array
     {
-        $this->hasItems = $hasItems;
         $this->gstin = Str::upper(str_replace(' ', '', $this->gstin));
         foreach (['businessName', 'contactName', 'email', 'city', 'pincode', 'message'] as $field) {
             $this->{$field} = trim($this->{$field});

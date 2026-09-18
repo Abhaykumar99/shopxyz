@@ -35,15 +35,70 @@ final readonly class DemoWholesaleItem
      */
     public function unitPriceFor(int $quantity): int
     {
-        $price = $this->slabs[0]['paise'];
+        return $this->slabFor($quantity)['paise'];
+    }
+
+    /**
+     * The slab a quantity is priced at (the MOQ slab for anything smaller).
+     *
+     * @return array{min: int, paise: int}
+     */
+    public function slabFor(int $quantity): array
+    {
+        $match = $this->slabs[0];
 
         foreach ($this->slabs as $slab) {
             if ($quantity >= $slab['min']) {
-                $price = $slab['paise'];
+                $match = $slab;
             }
         }
 
-        return $price;
+        return $match;
+    }
+
+    /**
+     * The next cheaper slab above a quantity, or null when it is already the best.
+     *
+     * @return array{min: int, paise: int}|null
+     */
+    public function slabAfter(int $quantity): ?array
+    {
+        foreach ($this->slabs as $slab) {
+            if ($quantity < $slab['min']) {
+                return $slab;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * How many more units are needed for the next cheaper slab.
+     */
+    public function unitsToNextSlab(int $quantity): int
+    {
+        $next = $this->slabAfter($quantity);
+
+        return $next === null ? 0 : $next['min'] - $quantity;
+    }
+
+    /**
+     * Label for a slab, such as "20–49" or "50+".
+     */
+    public function slabRange(int $index): string
+    {
+        $slab = $this->slabs[$index];
+        $next = $this->slabs[$index + 1]['min'] ?? null;
+
+        return $next === null ? "{$slab['min']}+" : "{$slab['min']}–".($next - 1);
+    }
+
+    /**
+     * Saving per unit at a quantity, against the shop's retail price.
+     */
+    public function savingFor(int $quantity): int
+    {
+        return max(0, $this->variant->paise - $this->unitPriceFor($quantity));
     }
 
     public function bestPrice(): int

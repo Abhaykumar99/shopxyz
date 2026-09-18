@@ -48,6 +48,7 @@
                 <h2 class="sr-only">Items in your bag</h2>
                 <x-ui.card padding="none" class="divide-y divide-line px-4">
                     @foreach ($lines as $line)
+                        @php($next = $line->nextSlab())
                         <x-shop.cart-line
                             wire:key="line-{{ $line->variant->sku }}"
                             :sku="$line->variant->sku"
@@ -55,12 +56,18 @@
                             :url="route('shop.product', ['product' => $line->product->slug, 'option' => $line->product->hasChoices() ? $line->variant->sku : null])"
                             :category="$line->product->category"
                             :variant="$line->product->hasChoices() || $line->variant->name !== 'Standard' ? $line->variant->name : null"
-                            :paise="$line->variant->paise"
+                            :paise="$line->unitPrice()"
                             :mrp="$line->variant->mrp"
                             :quantity="$line->quantity"
                             :max="$line->maxQuantity()"
                             :available="$line->isAvailable()"
                             :stock="$line->variant->stock"
+                            :wholesale="$line->isWholesale()"
+                            :slab="$line->slabLabel()"
+                            :next-slab-units="$next ? $next['min'] - $line->quantity : 0"
+                            :next-slab-paise="$next['paise'] ?? null"
+                            :made-to-order="$line->isMadeToOrder()"
+                            :step="$line->isWholesale() ? 5 : 1"
                         />
                     @endforeach
                 </x-ui.card>
@@ -74,6 +81,10 @@
                     @if ($summary['discount'] > 0)
                         <dt class="text-ink-soft">You save</dt>
                         <dd class="text-end font-medium text-pistachio">−{{ Money::format($summary['discount']) }}</dd>
+                    @endif
+                    @if ($summary['wholesale_saving'] > 0)
+                        <dt class="text-ink-soft">Of which wholesale prices</dt>
+                        <dd class="text-end font-medium text-pistachio">−{{ Money::format($summary['wholesale_saving']) }}</dd>
                     @endif
                     <dt class="text-ink-soft">Delivery</dt>
                     <dd class="text-end">{{ $summary['delivery'] ? Money::format($summary['delivery']) : 'Free' }}</dd>
@@ -92,9 +103,20 @@
                 @endif
 
                 <ul class="flex flex-col gap-2 text-sm text-ink-soft">
-                    <li class="flex items-center gap-2"><x-ui.icon name="banknote" :size="18" /> Cash on delivery or UPI</li>
+                    <li class="flex items-center gap-2">
+                        <x-ui.icon name="banknote" :size="18" />
+                        {{ $summary['cod_available'] ? 'Cash on delivery or UPI' : 'UPI for orders above '.Money::format($shop->codMaxPaise) }}
+                    </li>
                     <li class="flex items-center gap-2"><x-ui.icon name="truck" :size="18" /> {{ $shop->deliveryEta ?? 'Local delivery by our team' }}</li>
                 </ul>
+
+                @if ($summary['wholesale_lines'] > 0)
+                    <p class="border-t border-line pt-4 text-sm text-ink-soft">
+                        Need custom packing, branding or a special price?
+                        <x-ui.link :href="route('wholesale.quote')" wire:navigate>Request a quote</x-ui.link>
+                        and check out in the meantime.
+                    </p>
+                @endif
             </x-ui.card>
         </div>
 

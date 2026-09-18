@@ -1,6 +1,10 @@
 {{--
     One bag line. With `sku` inside a Livewire page, the stepper binds to
     `quantities.{sku}` and the remove button calls remove('{sku}').
+
+    A line that has reached the product's minimum wholesale quantity is priced at
+    its slab price (ADR-019): pass `wholesale`, `slab` and the next slab so the
+    line can say so and show what a larger quantity would cost.
 --}}
 @props([
     'name',
@@ -15,6 +19,12 @@
     'max' => 10,
     'available' => true,
     'stock' => null,
+    'wholesale' => false,
+    'slab' => null,
+    'nextSlabUnits' => 0,
+    'nextSlabPaise' => null,
+    'madeToOrder' => false,
+    'step' => 1,
 ])
 
 <article {{ $attributes->class('flex gap-3 py-4') }}>
@@ -34,6 +44,14 @@
                 @if ($mrp && $mrp > $paise)
                     <p class="figures text-sm text-ink-soft"><x-shop.price :paise="$paise" :mrp="$mrp" size="sm" /></p>
                 @endif
+                @if ($wholesale)
+                    <p class="mt-1 flex flex-wrap items-center gap-2">
+                        <x-ui.badge tone="brand" icon="boxes">Wholesale price</x-ui.badge>
+                        @if ($slab)
+                            <span class="figures text-sm text-ink-soft">{{ $slab }} units</span>
+                        @endif
+                    </p>
+                @endif
             </div>
             <x-ui.icon-button
                 icon="trash"
@@ -50,6 +68,20 @@
             </p>
         @endunless
 
+        @if ($madeToOrder)
+            <p class="flex items-start gap-1.5 text-sm text-ink-soft">
+                <x-ui.icon name="package" :size="16" class="mt-0.5 shrink-0" />
+                Ordered in for you. We confirm the delivery date when we call about the order.
+            </p>
+        @endif
+
+        @if ($nextSlabUnits > 0 && $nextSlabPaise)
+            <p class="figures flex items-start gap-1.5 text-sm font-medium text-brand-dark">
+                <x-ui.icon name="percent" :size="16" class="mt-0.5 shrink-0" />
+                Add {{ $nextSlabUnits }} more to pay {{ \App\Support\Money::format($nextSlabPaise) }} each
+            </p>
+        @endif
+
         <div class="flex flex-wrap items-center justify-between gap-2">
             @if ($sku)
                 <x-shop.quantity-stepper
@@ -57,6 +89,8 @@
                     wire:key="stepper-{{ $sku }}-{{ $quantity }}"
                     :value="$quantity"
                     :max="max($max, $quantity)"
+                    :step="$step"
+                    :editable="$wholesale || $max > 20"
                     :label="'Quantity of '.$name"
                 />
             @else

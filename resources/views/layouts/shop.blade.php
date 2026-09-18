@@ -129,6 +129,7 @@
                     <a href="{{ $href }}" class="text-ink-soft hover:text-brand">{{ $label }}</a>
                 @endforeach
                 <a href="{{ route('wholesale.index') }}" class="text-ink-soft hover:text-brand">Wholesale and bulk orders</a>
+                <a href="{{ route('wholesale.quote') }}" class="text-ink-soft hover:text-brand">Request a wholesale quote</a>
                 <a href="{{ route('account.orders') }}" class="text-ink-soft hover:text-brand">Track an order</a>
             </nav>
             <nav aria-label="Help and policies" class="flex flex-col gap-1.5">

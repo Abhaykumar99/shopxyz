@@ -101,7 +101,7 @@
 
                 @if ($variant->inStock())
                     <div class="flex flex-wrap items-center gap-3">
-                        <x-shop.quantity-stepper wire:model="quantity" :value="$quantity" :max="$maxQuantity" wire:key="qty-{{ $variant->sku }}" />
+                        <x-shop.quantity-stepper wire:model="quantity" :value="$quantity" :max="$maxQuantity" :editable="$maxQuantity > 20" wire:key="qty-{{ $variant->sku }}" />
                         <x-ui.button size="lg" icon="shopping-bag" wire:click="add" loading="add" class="grow">Add to bag</x-ui.button>
                     </div>
                     <x-ui.button size="lg" variant="secondary" block wire:click="buyNow" loading="buyNow">Buy now</x-ui.button>
@@ -123,6 +123,30 @@
                     @endif
                 @endif
             </div>
+
+            @if ($wholesale)
+                {{-- Bulk prices apply automatically from the minimum quantity (ADR-019) --}}
+                <section aria-labelledby="bulk-title" class="flex flex-col gap-3 rounded-sheet border border-brand/30 bg-brand-tint/50 p-4 sm:p-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h2 id="bulk-title" class="text-xl">Buying in bulk?</h2>
+                        <x-ui.badge tone="brand" icon="boxes">Wholesale</x-ui.badge>
+                    </div>
+                    <p class="text-ink-soft">
+                        From {{ $wholesale->moq() }} units the wholesale price applies automatically, in your bag and at
+                        checkout. Prices per {{ $wholesale->unit }}:
+                    </p>
+                    <x-shop.slab-table :item="$wholesale" layout="rows" :quantity="$quantity" />
+                    <div class="flex flex-wrap gap-2">
+                        <x-ui.button icon="shopping-bag" wire:click="addWholesaleMinimum" loading="addWholesaleMinimum">
+                            Add {{ max($quantity, $wholesale->moq()) }} to bag
+                        </x-ui.button>
+                        <x-ui.button variant="secondary" :href="route('wholesale.index')" wire:navigate>All wholesale prices</x-ui.button>
+                    </div>
+                    <p class="text-sm text-ink-soft">
+                        Need custom packing or branding? <x-ui.link :href="route('wholesale.quote')" wire:navigate>Request a quote</x-ui.link>
+                    </p>
+                </section>
+            @endif
 
             <ul class="grid gap-3 sm:grid-cols-2">
                 <li class="flex items-start gap-3">

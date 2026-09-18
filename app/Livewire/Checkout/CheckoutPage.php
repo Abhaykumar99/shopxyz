@@ -10,6 +10,7 @@ use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoCustomer;
 use App\Support\Demo\DemoOrders;
 use App\Support\IndianStates;
+use App\Support\Money;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
@@ -37,6 +38,10 @@ class CheckoutPage extends Component
     {
         if ($cart->isEmpty()) {
             return $this->redirectRoute('cart.show');
+        }
+
+        if (! $cart->summary($shop)['cod_available']) {
+            $this->paymentMethod = PaymentMethod::Upi->value;
         }
 
         $this->editingPhone = ! $customer->hasPhone();
@@ -107,6 +112,15 @@ class CheckoutPage extends Component
         }
 
         $method = PaymentMethod::from($this->paymentMethod);
+
+        if ($method === PaymentMethod::Cod && ! $summary['cod_available']) {
+            $this->paymentMethod = PaymentMethod::Upi->value;
+
+            throw ValidationException::withMessages([
+                'paymentMethod' => 'Cash on delivery is not available above '.Money::format($shop->codMaxPaise).'. We have selected UPI instead.',
+            ]);
+        }
+
         $order = $orders->place($cart, $address, $method, $this->note);
 
         return $method === PaymentMethod::Upi

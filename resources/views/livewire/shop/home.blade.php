@@ -105,11 +105,11 @@
             <div class="grid min-h-[27rem] grid-cols-[1.2fr_1fr] items-center gap-10 bg-ink px-12 pt-10 pb-20 text-white">
                 <div class="flex flex-col gap-5">
                     <span class="tag-shape inline-flex h-8 items-center self-start bg-accent pe-3 text-sm font-semibold text-ink">Wholesale</span>
-                    <h2 class="text-5xl leading-[1.04] tracking-tight xl:text-6xl">Buying in bulk? Talk to us.</h2>
-                    <p class="max-w-md text-lg text-white/80">Price slabs for shops, weddings, hotels and corporate gifting, with custom packing and delivery.</p>
+                    <h2 class="text-5xl leading-[1.04] tracking-tight xl:text-6xl">Buying in bulk? Order at trade prices.</h2>
+                    <p class="max-w-md text-lg text-white/80">Price slabs for shops, weddings, hotels and corporate gifting. Add the quantity you need to your bag and check out as usual.</p>
                     <div class="flex flex-wrap gap-2">
                         <x-ui.button :href="route('wholesale.index')" size="lg" variant="inverse" icon-end="chevron-right">See wholesale prices</x-ui.button>
-                        <x-ui.button :href="route('wholesale.index').'#enquiry'" size="lg" variant="inverse-outline">Request a quote</x-ui.button>
+                        <x-ui.button :href="route('wholesale.quote')" size="lg" variant="inverse-outline">Request a quote</x-ui.button>
                     </div>
                 </div>
                 @if ($slideWholesale)
@@ -180,9 +180,12 @@
     {{-- Wholesale, phones and tablets (desktop shows it in the banner) --}}
     <section aria-labelledby="wholesale-promo-title" class="flex flex-col gap-4 rounded-sheet bg-ink p-6 text-white lg:hidden">
         <span class="tag-shape inline-flex h-8 items-center self-start bg-accent pe-3 text-sm font-semibold text-ink">Wholesale</span>
-        <h2 id="wholesale-promo-title" class="text-3xl">Buying in bulk? Talk to us.</h2>
-        <p class="text-white/80">Price slabs for shops, weddings, hotels and corporate gifting.</p>
-        <x-ui.button :href="route('wholesale.index')" variant="inverse" icon-end="chevron-right" class="self-start">See wholesale prices</x-ui.button>
+        <h2 id="wholesale-promo-title" class="text-3xl">Buying in bulk? Order at trade prices.</h2>
+        <p class="text-white/80">Price slabs for shops, weddings, hotels and corporate gifting, ordered through the same bag and checkout.</p>
+        <div class="flex flex-wrap gap-2">
+            <x-ui.button :href="route('wholesale.index')" variant="inverse" icon-end="chevron-right">See wholesale prices</x-ui.button>
+            <x-ui.button :href="route('wholesale.quote')" variant="inverse-outline">Request a quote</x-ui.button>
+        </div>
     </section>
 
     {{-- How ordering works: a real sequence --}}

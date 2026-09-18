@@ -104,7 +104,10 @@ Shop: `resources/views/components/shop/`
 | `x-shop.info-page` | Information page wrapper with side menu and placeholder notice |
 | `x-shop.hero-carousel` | Desktop banner carousel: `labels`, `interval`, slots `slide1`… (ADR-018) |
 | `x-shop.hero-showcase` | Three products arranged as a shop window inside a banner (`products`) |
-| `x-shop.wholesale-slabs` | A wholesale product's price slabs as a card (`item`) |
+| `x-shop.wholesale-slabs` | A wholesale product's price slabs as a card (`item`), for banners |
+| `x-shop.slab-table` | Quantity price slabs (`item`, `layout` grid/rows, `quantity` to highlight) (ADR-019) |
+| `x-shop.cart-line` | One bag line; `wholesale`, `slab`, `next-slab-units`, `next-slab-paise`, `made-to-order` show slab pricing |
+| `x-shop.quantity-stepper` | `value`, `min`, `max`, `step`, `editable` (a number field for bulk quantities) |
 
 Every component reads shop details from `$shop` (ADR-013), never from literals.
 
@@ -144,7 +147,7 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 
 ## Customer pages (Phase 2)
 
-Home (desktop banner carousel), all categories, category, search, product, **wholesale**, bag, sign-in, checkout,
+Home (desktop banner carousel), all categories, category, search, product, **wholesale**, **wholesale quote**, bag, sign-in, checkout,
 UPI payment, order placed, profile, orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
 `app/Livewire/{Shop,Cart,Checkout,Account,Wholesale}` on the `shop` or `account` layout (see `routes/web.php`).
 Page-level patterns:

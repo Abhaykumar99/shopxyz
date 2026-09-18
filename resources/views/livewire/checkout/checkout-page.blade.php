@@ -115,12 +115,24 @@
                     </h2>
                     <fieldset class="grid gap-3 sm:grid-cols-2">
                         <legend class="sr-only">Payment method</legend>
-                        <x-shop.payment-option method="cod" name="paymentMethod" wire:model.live="paymentMethod" />
+                        <x-shop.payment-option
+                            method="cod"
+                            name="paymentMethod"
+                            wire:model.live="paymentMethod"
+                            :disabled="! $summary['cod_available']"
+                            :note="$summary['cod_available'] ? null : 'Not available above '.Money::format($shop->codMaxPaise).'.'"
+                        />
                         <x-shop.payment-option method="upi" name="paymentMethod" wire:model.live="paymentMethod" />
                     </fieldset>
                     @error('paymentMethod')
                         <p class="text-sm font-medium text-danger">{{ $message }}</p>
                     @enderror
+                    @unless ($summary['cod_available'])
+                        <x-ui.alert tone="info" title="Cash on delivery is not available for this order">
+                            Orders above {{ Money::format($shop->codMaxPaise) }} are paid by UPI. If you need to pay another way,
+                            <x-ui.link :href="route('wholesale.quote')" wire:navigate>ask us for a quote</x-ui.link> and we'll arrange it.
+                        </x-ui.alert>
+                    @endunless
                     @if ($paymentMethod === 'upi')
                         <x-ui.alert>After you place the order, we show a QR code for the exact amount. Pay with any UPI app, then upload the screenshot and UTR number.</x-ui.alert>
                     @endif
@@ -140,7 +152,10 @@
                                 <x-shop.product-image :category="$line->product->category" :alt="$line->product->name" class="size-14 shrink-0 rounded-field" />
                                 <div class="min-w-0 grow">
                                     <p class="truncate font-medium">{{ $line->product->name }}</p>
-                                    <p class="figures text-sm text-ink-soft">{{ $line->variant->name }}, qty {{ $line->quantity }}</p>
+                                    <p class="figures text-sm text-ink-soft">{{ $line->variant->name }}, qty {{ $line->quantity }} &times; {{ Money::format($line->unitPrice()) }}</p>
+                                    @if ($line->isWholesale())
+                                        <x-ui.badge tone="brand" icon="boxes" class="mt-1">Wholesale price</x-ui.badge>
+                                    @endif
                                 </div>
                                 <x-shop.price :paise="$line->total()" size="sm" />
                             </li>

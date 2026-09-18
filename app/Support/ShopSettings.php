@@ -28,6 +28,7 @@ final readonly class ShopSettings
         public PrintFormat $invoiceFormat,
         public ?string $upiVpa = null,
         public ?string $upiPayeeName = null,
+        public int $codMaxPaise = 0,
         public int $deliveryChargePaise = 0,
         public int $freeDeliveryAbovePaise = 0,
         public int $minOrderPaise = 0,
@@ -52,6 +53,7 @@ final readonly class ShopSettings
             invoiceFormat: self::format($config->get('shop.print.invoice_format'), PrintDocument::Invoice),
             upiVpa: $config->get('shop.payment.upi_vpa'),
             upiPayeeName: $config->get('shop.payment.upi_payee_name'),
+            codMaxPaise: (int) $config->get('shop.payment.cod_max_paise', 0),
             deliveryChargePaise: (int) $config->get('shop.delivery.charge_paise', 0),
             freeDeliveryAbovePaise: (int) $config->get('shop.delivery.free_above_paise', 0),
             minOrderPaise: (int) $config->get('shop.delivery.min_order_paise', 0),
@@ -88,6 +90,15 @@ final readonly class ShopSettings
     public function meetsMinimumOrder(int $subtotalPaise): bool
     {
         return $subtotalPaise >= $this->minOrderPaise;
+    }
+
+    /**
+     * Cash on delivery is offered up to a ceiling, so the shop never sends very
+     * valuable stock out on credit (ADR-019). Zero means no ceiling.
+     */
+    public function allowsCodFor(int $totalPaise): bool
+    {
+        return $this->codMaxPaise <= 0 || $totalPaise <= $this->codMaxPaise;
     }
 
     /**

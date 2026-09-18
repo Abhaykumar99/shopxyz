@@ -28,16 +28,30 @@ it('lists slabs in ascending order with falling prices', function () {
     }
 });
 
-it('caps quantities at the maximum', function () {
-    $wholesale = app(DemoWholesale::class);
+it('labels each slab by its quantity range', function () {
+    $item = DemoWholesale::item('MG-KK-3');
 
-    expect($wholesale->setQuantity('MG-KK-3', 50000))->toBe(DemoWholesale::MAX_QUANTITY);
+    expect([$item->slabRange(0), $item->slabRange(1), $item->slabRange(2)])->toBe(['5–19', '20–49', '50+']);
 });
 
-it('estimates the enquiry total at slab prices', function () {
-    $wholesale = app(DemoWholesale::class);
-    $wholesale->setQuantity('MG-KK-3', 20);
-    $wholesale->setQuantity('BB-KAJ-1', 24);
+it('points at the next cheaper slab until the best one is reached', function () {
+    $item = DemoWholesale::item('MG-KK-3');
 
-    expect($wholesale->estimate())->toBe(20 * 88000 + 24 * 12500);
+    expect($item->slabAfter(5))->toBe(['min' => 20, 'paise' => 88000])
+        ->and($item->unitsToNextSlab(5))->toBe(15)
+        ->and($item->unitsToNextSlab(20))->toBe(30)
+        ->and($item->slabAfter(50))->toBeNull()
+        ->and($item->unitsToNextSlab(50))->toBe(0);
+});
+
+it('keeps a record of a quote request with the attached bag', function () {
+    $cart = fillDemoCart(['MG-KK-3' => 20]);
+
+    $reference = app(DemoWholesale::class)->submit(['business_name' => 'Sharma Sweets'], $cart->lines());
+
+    expect($reference)->toBe('WQ-5101')
+        ->and(app(DemoWholesale::class)->enquiry($reference))->toMatchArray([
+            'reference' => 'WQ-5101',
+            'estimate' => 20 * 88000,
+        ]);
 });

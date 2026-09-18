@@ -1,6 +1,7 @@
 @props([
     'method',
     'name' => 'payment_method',
+    'note' => null,
 ])
 
 @php
@@ -10,4 +11,8 @@
     };
 @endphp
 
-<x-ui.radio-card :name="$name" :value="$method" :title="$title" :description="$description" :icon="$icon" :attributes="$attributes" />
+<x-ui.radio-card :name="$name" :value="$method" :title="$title" :description="$description" :icon="$icon" :attributes="$attributes">
+    @if ($note)
+        <span class="text-sm font-medium text-ink">{{ $note }}</span>
+    @endif
+</x-ui.radio-card>

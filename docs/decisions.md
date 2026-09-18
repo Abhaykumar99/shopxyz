@@ -173,7 +173,7 @@ invoices, labels and emails.
 - Every text pairing meets WCAG AA (see `docs/design-system.md`).
 
 ## ADR-018: Wholesale as catalogue + enquiry, and a desktop hero carousel
-**Status:** Accepted, Phase 2 (owner request)
+**Status:** The wholesale part is **superseded by ADR-019**. The hero carousel stands.
 
 **Wholesale** (`/wholesale`, "Wholesale" tab in the category bar on every screen size, footer link):
 - A public price list of bulk-ready products with **price slabs** (e.g. 5–19, 20–49, 50+), a minimum
@@ -192,3 +192,39 @@ invoices, labels and emails.
   when hidden and the carousel is `wire:ignore` so page updates don't reset it.
 - Below desktop width the existing single hero is unchanged; phones and tablets get a wholesale card further
   down the page instead of a slide.
+
+## ADR-019: Wholesale sells through the ordinary bag; a quote is optional
+**Status:** Accepted, Phase 2 (owner request, supersedes the wholesale part of ADR-018)
+
+Wholesale is **not a separate ordering process**. It is the same shop, at quantity prices.
+
+**Slab prices apply automatically.** A product that has wholesale slabs is priced at the shop's retail price
+below its minimum quantity and at the matching slab price at or above it. There is no wholesale mode, no second
+bag and no duplicate line for the same product, and a bulk quantity of a product reached from a category page
+earns the same price as one reached from `/wholesale`. The bag line shows the slab it is on, the saving against
+retail and what the next slab would cost ("add 30 more to pay ₹840 each"); a product page shows the same slabs
+under "Buying in bulk?".
+
+- Anyone can see and order at wholesale prices. No wholesale account, approval or GSTIN is required, and
+  sign-in is only needed at checkout, exactly as for a retail order.
+- A wholesale line is **not limited by shelf stock** (the shop orders bulk quantities in) and is capped at
+  `DemoWholesale::MAX_QUANTITY` (10,000). Retail lines keep the per-line limit of 10 and the stock check. A line
+  above the shelf count is marked "ordered in for you".
+- Checkout, payment (COD/UPI with manual verification), invoices, labels, delivery and tracking are unchanged.
+  Order items snapshot the price actually charged plus a `wholesale` flag, so invoices and the order history
+  show what the customer paid.
+- **Cash on delivery stops at ₹20,000** (`shop.payment.cod_max_paise`, admin-editable later). Above it only UPI
+  is offered, in the bag, at checkout and in a server-side check when the order is placed. Zero removes the ceiling.
+
+**Quote requests stay, as an optional feature** at `/wholesale/quote` (linked from the wholesale page, the bag
+and the footer, never as the main call to action). They are for what the price list cannot answer: custom
+hampers or packing, branding, quantities beyond the slabs, a supply arrangement or payment terms. The form asks
+what is needed (message of at least 20 characters, always required), the business details (name and type,
+contact, mobile, optional email/GSTIN, delivery city and pincode, needed-by date) and can **attach the current
+bag** for context. Attaching neither orders nor empties the bag. Rate limited to 3 requests per 10 minutes per
+session; the confirmation shows a `WQ-…` reference and a WhatsApp follow-up. The separate enquiry list from
+ADR-018 is gone: the bag is the only list a customer manages.
+
+Phase 2 keeps this in `App\Support\Demo\DemoWholesale` and `DemoCartLine` (ADR-016). Later phases add a
+`price_slabs` table on product variants (min quantity, unit price in paise), an `is_wholesale` flag on order
+items, and a `wholesale_enquiries` table with an admin screen.

@@ -74,10 +74,10 @@ it('puts the items back in the bag with buy again', function () {
 });
 
 it('warns when nothing can be bought again', function () {
-    $cart = app(DemoCart::class);
-    $cart->add('MG-ML-2', 30);
+    // RS-MASC-1 is a retail-only product, so the bag is full at the per-line limit.
+    app(DemoCart::class)->add('RS-MASC-1', DemoCart::MAX_PER_LINE);
 
-    Livewire::test(OrderShow::class, ['order' => 'ORD-10198'])
+    Livewire::test(OrderShow::class, ['order' => 'ORD-10150'])
         ->call('buyAgain')
         ->assertNoRedirect()
         ->assertDispatched('toast', tone: 'warning');

@@ -63,7 +63,8 @@ final class DemoOrders
             'category' => $line->product->category,
             'quantity' => $line->quantity,
             'mrp' => $line->variant->mrp ?? $line->variant->paise,
-            'paise' => $line->variant->paise,
+            'paise' => $line->unitPrice(),
+            'wholesale' => $line->isWholesale(),
         ], $cart->lines());
 
         $data = [
@@ -191,6 +192,11 @@ final class DemoOrders
             'line1' => 'Flat 3B, Shanti Apartments', 'line2' => 'Boring Road', 'landmark' => 'Pani Tanki',
             'city' => 'Patna', 'state' => 'Bihar', 'pincode' => '800001', 'is_default' => true,
         ];
+        $shopfront = [
+            'id' => 'addr_shop', 'label' => 'Work', 'name' => 'Priya Sharma', 'phone' => '9830012345',
+            'line1' => 'Sharma Sweets and Gifts, Shop 12', 'line2' => 'Bakerganj Market', 'landmark' => 'Opposite the bus stand',
+            'city' => 'Patna', 'state' => 'Bihar', 'pincode' => '800004', 'is_default' => false,
+        ];
         $item = fn (string $sku, int $quantity): array => $this->item($sku, $quantity);
         $rahul = ['name' => 'Rahul Kumar', 'phone' => '+91 90000 11111'];
 
@@ -206,6 +212,12 @@ final class DemoOrders
                 'number' => 'ORD-10248', 'placed_at' => $at(30), 'status' => 'placed', 'payment_method' => 'upi', 'payment_status' => 'pending_verification',
                 'items' => [$item('UG-HMP-1', 1)], 'address' => $home, 'delivery' => 0, 'utr' => '412345678901',
                 'timeline' => ['placed' => $at(30)],
+            ],
+            [
+                'number' => 'ORD-10249', 'placed_at' => $at(240), 'status' => 'packing', 'payment_method' => 'upi', 'payment_status' => 'verified',
+                'items' => [$item('MG-ASST-1', 60), $item('UG-HMP-1', 25)], 'address' => $shopfront, 'delivery' => 0, 'utr' => '414500011122',
+                'note' => 'Bulk order for Diwali counter. GST invoice needed.', 'invoice_number' => 'INV/2026-27/00021',
+                'timeline' => ['placed' => $at(240), 'confirmed' => $at(210)],
             ],
             [
                 'number' => 'ORD-10247', 'placed_at' => $at(300), 'status' => 'placed', 'payment_method' => 'upi', 'payment_status' => 'rejected',
@@ -239,11 +251,14 @@ final class DemoOrders
     }
 
     /**
-     * @return array{name: string, variant: string, sku: string, slug: string, category: string, quantity: int, mrp: int, paise: int}
+     * A sample line, priced at the wholesale slab once it reaches the minimum quantity.
+     *
+     * @return array{name: string, variant: string, sku: string, slug: string, category: string, quantity: int, mrp: int, paise: int, wholesale: bool}
      */
     private function item(string $sku, int $quantity): array
     {
         [$product, $variant] = DemoCatalog::findSku($sku) ?? throw new LogicException("Unknown demo SKU {$sku}");
+        $line = new DemoCartLine($product, $variant, $quantity);
 
         return [
             'name' => $product->name,
@@ -253,7 +268,8 @@ final class DemoOrders
             'category' => $product->category,
             'quantity' => $quantity,
             'mrp' => $variant->mrp ?? $variant->paise,
-            'paise' => $variant->paise,
+            'paise' => $line->unitPrice(),
+            'wholesale' => $line->isWholesale(),
         ];
     }
 }

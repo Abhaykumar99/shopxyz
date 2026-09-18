@@ -16,6 +16,7 @@ use App\Livewire\Shop\CategoryShow;
 use App\Livewire\Shop\Home;
 use App\Livewire\Shop\ProductShow;
 use App\Livewire\Shop\Search;
+use App\Livewire\Wholesale\QuotePage;
 use App\Livewire\Wholesale\WholesalePage;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,7 @@ Route::livewire('/search', Search::class)->name('shop.search');
 Route::livewire('/p/{product}', ProductShow::class)->name('shop.product');
 Route::livewire('/cart', CartPage::class)->name('cart.show');
 Route::livewire('/wholesale', WholesalePage::class)->name('wholesale.index');
+Route::livewire('/wholesale/quote', QuotePage::class)->name('wholesale.quote');
 
 Route::get('/login', [SessionController::class, 'create'])->name('auth.login');
 Route::post('/logout', [SessionController::class, 'destroy'])->name('auth.logout');

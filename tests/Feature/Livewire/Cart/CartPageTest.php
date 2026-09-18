@@ -92,3 +92,33 @@ it('counts bag items in the header', function () {
 
     Livewire::test(CartCount::class)->assertSee('aria-label="Your bag (3)"', false);
 });
+
+it('shows a wholesale line at its slab price with the next slab in reach', function () {
+    fillDemoCart(['MG-KK-3' => 20]);
+
+    Livewire::test(CartPage::class)
+        ->assertSee('Wholesale price')
+        ->assertSee('20–49')
+        ->assertSee('₹880 each')
+        ->assertSee('₹17,600')
+        ->assertSee('Add 30 more to pay ₹840 each')
+        ->assertSee('Of which wholesale prices');
+});
+
+it('takes a wholesale line back to the retail price below the minimum', function () {
+    fillDemoCart(['MG-KK-3' => 20]);
+
+    Livewire::test(CartPage::class)
+        ->set('quantities.MG-KK-3', 4)
+        ->assertDispatched('toast', tone: 'info')
+        ->assertDontSee('Wholesale price')
+        ->assertSee('₹990 each');
+});
+
+it('says cash on delivery is off the table above the ceiling', function () {
+    fillDemoCart(['MG-KK-3' => 25]);
+
+    Livewire::test(CartPage::class)
+        ->assertSee('UPI for orders above ₹20,000')
+        ->assertSee('Request a quote');
+});

@@ -9,10 +9,15 @@
 ])
 
 @php($id ??= 'option-'.$name.'-'.$value)
+@php($disabled = (bool) $attributes->get('disabled', false))
 
 <label
     for="{{ $id }}"
-    {{ $attributes->only('class')->class('flex cursor-pointer items-start gap-3 rounded-card border border-line bg-surface p-4 transition-colors hover:border-line-strong has-checked:border-brand has-checked:bg-brand-tint has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand') }}
+    {{ $attributes->only('class')->class([
+        'flex items-start gap-3 rounded-card border border-line bg-surface p-4 transition-colors has-checked:border-brand has-checked:bg-brand-tint has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand',
+        'cursor-pointer hover:border-line-strong' => ! $disabled,
+        'cursor-not-allowed opacity-60' => $disabled,
+    ]) }}
 >
     <input
         id="{{ $id }}"

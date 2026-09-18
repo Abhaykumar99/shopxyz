@@ -68,6 +68,18 @@ soft deletes.
 `price_paise` (selling price, discount = mrp − price), `stock_quantity` unsigned int,
 `low_stock_threshold` unsigned int default 5, `weight_grams` null, `is_active` bool, `sort_order`.
 
+### price_slabs (wholesale, ADR-019)
+`product_variant_id` FK (cascade), `min_quantity` unsigned int, `unit_price_paise`, `is_active` bool,
+unique(`product_variant_id`, `min_quantity`). Slabs are read in ascending `min_quantity`; the smallest is the
+product's minimum wholesale quantity. A variant with no rows is retail-only. A line at or above the minimum is
+priced at the matching slab, both in the cart and when the order is placed.
+
+### wholesale_enquiries (optional quote requests, ADR-019)
+`reference` unique (e.g. `WQ-5101`), `user_id` FK null, `business_name`, `contact_name`, `phone`, `email` null,
+`gstin` null, `business_type`, `city`, `pincode`, `needed_by` date null, `message`, `status`
+(`new` | `quoted` | `won` | `lost`), `handled_by` FK users null, `items` json null (the bag the customer
+attached: sku, name, quantity, unit price), `estimate_paise` null.
+
 ### product_images
 `product_id` FK (cascade), `product_variant_id` FK null, `path`, `alt` null, `sort_order`.
 
@@ -95,7 +107,8 @@ Indexes: (`status`, `created_at`), (`payment_status`), (`user_id`, `created_at`)
 ### order_items
 `order_id` FK (cascade), `product_id` FK null (set null), `product_variant_id` FK null (set null),
 snapshot: `product_name`, `variant_name`, `sku`, `mrp_paise`, `unit_price_paise`, `quantity`,
-`line_total_paise`, `tax_rate_bp` null ❓, `hsn_code` null ❓.
+`line_total_paise`, `is_wholesale` bool (the line was priced at a slab, ADR-019), `tax_rate_bp` null ❓,
+`hsn_code` null ❓.
 
 ### order_status_histories
 `order_id` FK (cascade), `from_status` null, `to_status`, `changed_by` FK users null, `note` null,

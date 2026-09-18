@@ -75,3 +75,26 @@ it('goes straight to the bag with buy now', function () {
 
     expect(app(DemoCart::class)->quantityOf('MG-KK-1'))->toBe(1);
 });
+
+it('shows bulk prices on a product that has wholesale slabs', function () {
+    $this->get('/p/kaju-katli?option=MG-KK-3')
+        ->assertOk()
+        ->assertSee('Buying in bulk?')
+        ->assertSee('5 to 19')
+        ->assertSee('₹920 each')
+        ->assertSee('Add 5 to bag')
+        ->assertSee('href="'.route('wholesale.index').'"', false);
+});
+
+it('leaves retail-only products without a bulk block', function () {
+    $this->get('/p/volume-mascara')->assertOk()->assertDontSee('Buying in bulk?');
+});
+
+it('adds the wholesale minimum from the product page', function () {
+    Livewire::test(ProductShow::class, ['product' => 'kaju-katli'])
+        ->set('sku', 'MG-KK-3')
+        ->call('addWholesaleMinimum')
+        ->assertDispatched('cart-updated');
+
+    expect(app(DemoCart::class)->quantityOf('MG-KK-3'))->toBe(5);
+});
