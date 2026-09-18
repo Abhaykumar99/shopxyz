@@ -80,10 +80,24 @@ Plus: Cancelled, Delivery failed (see client-questions.md). Every change is logg
 
 - Admin manages delivery boys (name, phone, active/inactive), assigns orders, and sees assigned, pending and
   completed orders plus history per delivery boy.
-- Delivery panel (mobile web): assigned orders, customer and address details, order items, payment status,
-  COD amount, instructions.
-- Flow: Assigned → Accept → Picked up → Out for delivery → Reached → **OTP verification** → Delivered.
-- The COD amount collected is recorded at delivery, and cash handover is reconciled by the admin.
+- Delivery panel (mobile web, ADR-020, ADR-022): its own sign-in; today's round grouped into **to pick up,
+  picked up, out for delivery, delivered and failed** with counts and a one-tap next action; one delivery
+  (boxes, customer, address, call and directions, items, payment and COD amount, instructions); the cash
+  trail; a searchable history of finished deliveries; and a profile with sign out.
+- Flow (ADR-021): the shop packs the order into boxes, each with a **package id and pickup code** on its label
+  → the delivery boy accepts → at the counter he enters the **pickup code of every box** → the order goes
+  `Out for delivery` → at the address he enters the customer's **6-digit OTP** and collects the full cash for a
+  COD order → `Delivered`, otherwise `Delivery failed`.
+- **Pickup code = the shop's confirmation** that the right boxes left the counter. **OTP = the customer's
+  confirmation** that the parcel reached them. Neither is ever shown in the delivery panel; both allow at most
+  3 tries per order.
+- The delivery boy's steps are separate from the order status: picking up every box sets the order to Out for
+  delivery, delivering or failing ends it.
+- A delivery that cannot be completed is recorded with a reason (and a note when needed) that the customer
+  reads on their order, and the panel says how many boxes to take back to the shop.
+- COD cash has its own trail (ADR-022): **collected** at the door → **handed over** to the shop as one batch →
+  **verified** by the admin → **settled**, with every batch kept in the delivery boy's cash history. The panel
+  records the handover; only the admin marks a batch settled.
 
 ## 9. Admin dashboard
 

@@ -317,7 +317,8 @@
             <x-ui.card class="flex flex-col gap-2">
                 <h3 class="text-lg font-semibold">Delivery panel</h3>
                 <p class="text-ink-soft">Phone-only layout for delivery partners.</p>
-                <x-ui.link :href="route('dev.ui.delivery')">Open delivery preview</x-ui.link>
+                <x-ui.link :href="route('dev.ui.delivery')">Open delivery components preview</x-ui.link>
+                <x-ui.link :href="route('delivery.login')">Open the real delivery panel</x-ui.link>
             </x-ui.card>
             <x-ui.card class="flex flex-col gap-2">
                 <h3 class="text-lg font-semibold">Sign in</h3>

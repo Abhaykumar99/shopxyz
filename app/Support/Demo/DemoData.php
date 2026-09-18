@@ -54,7 +54,9 @@ final class DemoData
     }
 
     /**
-     * A placed order as the print templates and order pages expect it.
+     * A placed order as the print templates and order pages expect it. `packages`
+     * are the boxes it was packed into, each with the pickup code printed on its
+     * label (ADR-021).
      *
      * @return array<string, mixed>
      */
@@ -84,6 +86,10 @@ final class DemoData
             'delivery' => $delivery,
             'total' => $subtotal + $delivery,
             'note' => 'Please call before arriving. Gate code 4411.',
+            'packages' => [
+                ['id' => 'PKG-10245-1', 'code' => '731408', 'items' => [$items[0], $items[1]]],
+                ['id' => 'PKG-10245-2', 'code' => '559214', 'items' => [$items[2]]],
+            ],
         ];
     }
 

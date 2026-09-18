@@ -10,17 +10,28 @@ beforeEach(function () {
     signInDemoCustomer();
 });
 
-it('shows an order on its way with the delivery code and partner', function () {
+it('shows an order on its way with the delivery OTP, boxes and partner', function () {
     $this->get(route('account.order', 'ORD-10245'))
         ->assertOk()
-        ->assertSee('Your delivery code')
+        ->assertSee('Your delivery OTP')
         ->assertSee('482915')
+        ->assertSee('after you have all 2 boxes and the cash is ready')
+        ->assertSee('2 boxes')
+        ->assertSee('Collected by Rahul Kumar')
         ->assertSee('Rahul Kumar')
         ->assertSee('Keep ₹2,117 ready in cash')
         ->assertSeeInOrder(['Completed:', 'Order placed', 'Current step:', 'Out for delivery', 'Next:', 'Delivered']);
 });
 
-it('hides the delivery code once the order is delivered', function () {
+it('shows how many boxes are still with the shop', function () {
+    $this->get(route('account.order', 'ORD-10249'))
+        ->assertOk()
+        ->assertSee('3 boxes')
+        ->assertSee('0 of 3 collected from the shop')
+        ->assertDontSee('Your delivery OTP');
+});
+
+it('hides the delivery OTP once the order is delivered', function () {
     $this->get(route('account.order', 'ORD-10231'))
         ->assertOk()
         ->assertDontSee('Your delivery code')

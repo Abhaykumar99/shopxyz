@@ -228,3 +228,93 @@ ADR-018 is gone: the bag is the only list a customer manages.
 Phase 2 keeps this in `App\Support\Demo\DemoWholesale` and `DemoCartLine` (ADR-016). Later phases add a
 `price_slabs` table on product variants (min quantity, unit price in paise), an `is_wholesale` flag on order
 items, and a `wholesale_enquiries` table with an admin screen.
+
+## ADR-020: Delivery steps are separate from the order status
+**Status:** Accepted, Phase 3 (owner decision)
+
+The delivery panel (`/delivery`, phone-first, its own sign-in) has more steps than the customer's timeline.
+
+- **Order status stays as it is**: Ready for delivery → Out for delivery → Delivered / Delivery failed. The
+  delivery boy's own steps live in `App\Enums\DeliveryStep` (assigned, accepted, picked_up, reached, delivered,
+  failed) as timestamps on the assignment. Only the milestones move the order: **picked up** makes it Out for
+  delivery, **delivered** and **failed** end it. Accepting and reaching the address change nothing the customer
+  sees, so their timeline stays short while the shop keeps the detail.
+- **Delivery is confirmed with the customer's 6-digit code**, at most 3 tries per order, after which the delivery
+  boy has to call the shop. For a COD order the cash collected is entered and must match the amount due; a
+  customer who cannot pay is a failed delivery, not a short payment (`DeliveryFailureReason::NoCash`).
+- **Failures carry a reason** (`App\Enums\DeliveryFailureReason`), each with wording written for the customer's
+  order page, and a note that is required when the reason alone is not enough (wrong address, rescheduled).
+- **Cash to hand over** is shown in the panel: collected today, already settled and what the boy is still
+  holding. The admin confirms the handover in Phase 9; the panel only reports.
+- Screens: sign-in, today's round, one delivery, cash to hand over, history of finished deliveries, profile with
+  sign out, plus a bottom navigation. The panel is phone-only (`max-w-lg`), with the one next action pinned
+  above the navigation in thumb reach.
+- Phase 3 keeps all of this in `App\Support\Demo\DemoDeliveries`, `DemoDeliveryJob` and `DemoDeliveryBoy`
+  (ADR-016), with `RequireDemoDeliveryBoy` standing in for auth. Phase 4 replaces the sign-in with a staff
+  account and the `delivery` role; Phase 9 replaces the data with `delivery_assignments` and the delivery
+  actions, and adds COD settlement. The screens and their tests carry over.
+
+## ADR-021: Packages, pickup codes and the delivery OTP
+**Status:** Accepted, Phase 3 (owner request, extends ADR-020)
+
+Two different codes guard the two ends of a delivery, and neither is ever shown in the delivery panel:
+
+| Code | Belongs to | Printed / shown on | Confirms |
+|---|---|---|---|
+| **Pickup code** (6 digits, one per box) | the shop | the box's own label | that the delivery boy is carrying that box |
+| **Delivery OTP** (6 digits, one per order) | the customer | their order page, only while the parcel is on the way | that the parcel reached the right person |
+
+- **The shop packs an order into one or more boxes.** Each box gets a package id (`PKG-10245-1`) and its own
+  pickup code, both printed on its label together with "Box 1 of 2" and what is inside that box. Labels print
+  one per box.
+- **Pickup is per box.** At the counter the delivery boy types the code on each label. The order only becomes
+  `Out for delivery` when **every** box is verified, so a half-collected order cannot leave the shop. Until
+  then the panel shows "1 of 2 verified" and the customer sees "1 of 2 collected from the shop".
+- **Wrong codes are limited**: 3 tries per order for pickup (after which the shop has to check the boxes) and
+  3 tries per order for the delivery OTP (after which the delivery boy calls the shop). A correct pickup code
+  clears the counter, so an honest mistake on one box does not lock the whole round.
+- **A code that belongs to another box of the same order is refused**, which is what makes the check worth
+  doing: it catches a box picked up by mistake.
+- **Delivery needs the OTP and, for COD, the full cash.** A customer who cannot pay is a failed delivery
+  (`DeliveryFailureReason::NoCash`), never a short payment.
+- **A failed delivery counts the boxes to take back**, shown in the panel and to the shop.
+- The customer sees: their delivery partner's name and phone once assigned, how many boxes the order was
+  packed into and how many have been collected, the OTP only while the parcel is on the way (never before
+  pickup or after delivery), and the reason in their own words if a delivery fails.
+
+Phase 3 keeps packages in `App\Support\Demo\DemoPackage` and `DemoDeliveries` (ADR-016). Phase 8 prints real
+labels per package and Phase 9 adds the `order_packages` table, hashed codes and the delivery actions.
+
+## ADR-022: The round in five groups, and cash as its own trail
+**Status:** Accepted, Phase 3 (owner request, extends ADR-020 and ADR-021)
+
+**The round is grouped by what the delivery boy has to do next**, not by one long list:
+
+| Group | Step | What the panel offers |
+|---|---|---|
+| To pick up | `assigned`, `accepted` | Accept, then enter the pickup code on each box |
+| Picked up | `picked_up` | Start delivery (every box is with the boy) |
+| Out for delivery | `out_for_delivery` | Confirm with the customer's OTP, or report a problem |
+| Delivered | `delivered` | Nothing; the cash trail takes over |
+| Failed delivery | `failed` | Take the boxes back to the shop |
+
+- Each group has a heading with a count, a chip row filters to one group, and the header shows the single
+  **next action** with a link straight to that order. Cards show "1/2 boxes" while an order is half collected.
+- `picked_up` and `out_for_delivery` are now separate: collecting every box does not yet mean the boy has left
+  the shop, and **only starting the delivery sets the order to `Out for delivery`** for the customer. The
+  earlier "reached the address" step is gone; it told the customer nothing the OTP screen does not.
+
+**COD cash is a trail of its own**, kept apart from the delivery steps:
+
+`Cash collected` (at the door, with the boy) → `Cash to hand over` (handed in at the shop as one batch,
+`CS-…`) → `Admin verification` (the shop counts it) → `Settled` → `Cash history` (every batch, for ever).
+
+- A handover takes **everything collected so far in one batch**, listed order by order and confirmed in a sheet
+  so the boy can count along with the shop. Cash already in a batch never appears as "with you" again.
+- The batch carries a status (`App\Enums\CashSettlementStatus`: awaiting verification, settled, short). The
+  **panel never marks its own cash settled** — that is the admin's job in Phase 7. Outside production a
+  "Preview" button stands in for the shop so the whole trail can be reviewed.
+- The history keeps every batch with what it contained, when it was handed over and when it was counted.
+
+Phase 3 keeps this in `App\Support\Demo\DemoCash` and `DemoCashSettlement` (ADR-016). Phase 9 replaces them
+with a `cod_settlements` table plus settlement actions, and the admin screen that verifies a batch.

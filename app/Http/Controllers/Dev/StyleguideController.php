@@ -53,10 +53,14 @@ final class StyleguideController extends Controller
         }
 
         $payment = $request->query('payment') === 'upi' ? 'upi' : 'cod';
+        $order = DemoData::order($payment);
+        $boxes = count($order['packages'] ?? []);
 
         return view("pdf.{$document->value}", [
             'format' => $format,
-            'order' => DemoData::order($payment),
+            'order' => $order,
+            // Labels print one per box; ?box=2 previews the second one.
+            'box' => max(0, min($boxes - 1, (int) $request->query('box', '1') - 1)),
         ]);
     }
 }

@@ -21,6 +21,7 @@ arch('temporary demo data stays out of domain code so it is easy to remove in Ph
         'App\Http\Controllers\Dev',
         'App\Http\Controllers\Auth',
         'App\Http\Middleware\RequireDemoCustomer',
+        'App\Http\Middleware\RequireDemoDeliveryBoy',
     ]);
 
 arch('models are only extended from Eloquent')

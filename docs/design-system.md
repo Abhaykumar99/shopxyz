@@ -147,6 +147,7 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 
 ## Customer pages (Phase 2)
 
+Delivery panel (sign-in, round, delivery, cash, history, profile) on the `delivery` layout (ADR-020).
 Home (desktop banner carousel), all categories, category, search, product, **wholesale**, **wholesale quote**, bag, sign-in, checkout,
 UPI payment, order placed, profile, orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
 `app/Livewire/{Shop,Cart,Checkout,Account,Wholesale}` on the `shop` or `account` layout (see `routes/web.php`).

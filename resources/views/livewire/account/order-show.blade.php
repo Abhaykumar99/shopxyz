@@ -31,16 +31,41 @@
                 </x-ui.alert>
             @endif
 
-            {{-- Delivery code while on the way --}}
+            {{-- Delivery OTP while on the way (ADR-021) --}}
             @if ($order->visibleDeliveryCode())
                 <section aria-labelledby="code-title" class="flex flex-col items-center gap-2 rounded-sheet bg-brand p-5 text-center text-white">
-                    <h2 id="code-title" class="font-sans text-base font-semibold text-white/85">Your delivery code</h2>
+                    <h2 id="code-title" class="font-sans text-base font-semibold text-white/85">Your delivery OTP</h2>
                     <p class="figures font-display text-5xl font-bold tracking-[0.3em]">
                         <span aria-hidden="true">{{ $order->visibleDeliveryCode() }}</span>
                         <span class="sr-only">{{ implode(' ', str_split($order->visibleDeliveryCode())) }}</span>
                     </p>
-                    <p class="max-w-sm text-sm text-white/85">Share this code with the delivery partner only when you have your parcel.</p>
+                    @php
+                        $parcel = $order->packageCount() > 1 ? 'all '.$order->packageCount().' boxes' : 'your parcel';
+                        $cashReady = $order->paymentMethod === PaymentMethod::Cod ? ' and the cash is ready' : '';
+                    @endphp
+                    <p class="max-w-sm text-sm text-white/85">
+                        Give this to the delivery partner only after you have {{ $parcel }}{{ $cashReady }}.
+                    </p>
                 </section>
+            @endif
+
+            {{-- What the parcel looks like --}}
+            @if ($order->packageCount() > 0)
+                <x-ui.card class="flex items-center justify-between gap-3">
+                    <span class="flex items-center gap-2 font-semibold">
+                        <x-ui.icon name="boxes" :size="22" class="text-brand" />
+                        {{ $order->packageCount() }} {{ \Illuminate\Support\Str::plural('box', $order->packageCount()) }}
+                    </span>
+                    <span class="text-sm text-ink-soft">
+                        @if ($order->status === OrderStatus::Delivered)
+                            All delivered
+                        @elseif ($order->pickedUpPackageCount() === $order->packageCount())
+                            Collected by {{ $order->deliveryPartner['name'] ?? 'the delivery partner' }}
+                        @else
+                            {{ $order->pickedUpPackageCount() }} of {{ $order->packageCount() }} collected from the shop
+                        @endif
+                    </span>
+                </x-ui.card>
             @endif
 
             <x-ui.card padding="lg" class="flex flex-col gap-5">

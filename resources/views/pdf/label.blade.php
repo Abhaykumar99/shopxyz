@@ -15,9 +15,12 @@
     };
     $isCod = $order['payment_method'] === 'cod';
     $customer = $order['customer'];
+    $packages = $order['packages'] ?? [];
+    $package = $packages[$box ?? 0] ?? null;
+    $boxNumber = $package ? (int) ($box ?? 0) + 1 : 1;
 @endphp
 
-<x-layouts::print :title="'Label '.$order['number']" :document="\App\Enums\PrintDocument::Label" :format="$format">
+<x-layouts::print :title="'Label '.$order['number'].($packages !== [] ? ' box '.$boxNumber : '')" :document="\App\Enums\PrintDocument::Label" :format="$format">
     <div class="flex h-full flex-col gap-[0.8em] font-sans leading-tight" style="font-size: {{ $scale }}">
         <div class="flex items-start justify-between gap-[1em] border-b-2 border-black pb-[0.6em]">
             <div class="min-w-0">
@@ -26,17 +29,27 @@
                     <p class="figures mt-[0.3em]">{{ $shop->phone }}</p>
                 @endif
             </div>
-            <div class="flex shrink-0 flex-col items-center">
-                <div role="img" aria-label="Order QR code (placeholder)" class="flex size-[6.5em] items-center justify-center border-2 border-black">
+            <div class="flex shrink-0 flex-col items-center gap-[0.2em]">
+                <div role="img" aria-label="Package QR code (placeholder)" class="flex size-[6.5em] items-center justify-center border-2 border-black">
                     <x-ui.icon name="qr-code" class="size-[5em]" />
                 </div>
+                @if ($package)
+                    <p class="figures text-[0.85em] font-semibold">{{ $package['id'] }}</p>
+                @endif
             </div>
         </div>
 
-        <div>
-            <p class="text-[0.9em]">Order</p>
-            <p class="figures font-display text-[2.4em] leading-none font-bold">{{ $order['number'] }}</p>
-            <p class="figures mt-[0.2em] text-[0.9em]">{{ $order['placed_at'] }}</p>
+        <div class="flex items-end justify-between gap-[1em]">
+            <div>
+                <p class="text-[0.9em]">Order</p>
+                <p class="figures font-display text-[2.4em] leading-none font-bold">{{ $order['number'] }}</p>
+                <p class="figures mt-[0.2em] text-[0.9em]">{{ $order['placed_at'] }}</p>
+            </div>
+            @if ($packages !== [])
+                <p class="figures shrink-0 border-2 border-black px-[0.5em] py-[0.2em] font-display text-[1.4em] leading-none font-bold">
+                    Box {{ $boxNumber }} of {{ count($packages) }}
+                </p>
+            @endif
         </div>
 
         <div class="border-2 border-black p-[0.7em]">
@@ -52,9 +65,12 @@
         </div>
 
         <div class="grow">
-            <p class="mb-[0.3em] text-[0.9em]">Items ({{ collect($order['items'])->sum('quantity') }})</p>
+            @php($labelItems = $package['items'] ?? $order['items'])
+            <p class="mb-[0.3em] text-[0.9em]">
+                {{ $package ? 'In this box' : 'Items' }} ({{ collect($labelItems)->sum('quantity') }})
+            </p>
             <ul class="flex flex-col gap-[0.2em]">
-                @foreach ($order['items'] as $item)
+                @foreach ($labelItems as $item)
                     <li class="flex gap-[0.6em]">
                         <span class="figures w-[2em] shrink-0 font-semibold">{{ $item['quantity'] }}×</span>
                         <span class="min-w-0">{{ $item['name'] }} <span class="whitespace-nowrap">({{ $item['variant'] }})</span></span>
@@ -62,6 +78,16 @@
                 @endforeach
             </ul>
         </div>
+
+        @if ($package)
+            <div class="flex items-center justify-between gap-[1em] border-2 border-dashed border-black p-[0.7em]">
+                <p class="text-[0.95em] leading-tight">
+                    Pickup code<br>
+                    <span class="text-[0.8em]">Delivery partner enters this at the counter</span>
+                </p>
+                <p class="figures font-display text-[2.2em] leading-none font-bold tracking-[0.15em]">{{ $package['code'] }}</p>
+            </div>
+        @endif
 
         <div @class(['flex items-center justify-between gap-[1em] p-[0.7em]', 'bg-black text-white' => $isCod, 'border-2 border-black' => ! $isCod])>
             <p class="font-display text-[1.6em] leading-none font-bold">{{ $isCod ? 'Collect cash' : 'Prepaid' }}</p>

@@ -14,6 +14,7 @@ final readonly class DemoOrder
 {
     /**
      * @param  list<array{name: string, variant: string, sku: string, slug: string, category: string, quantity: int, mrp: int, paise: int, wholesale?: bool}>  $items
+     * @param  list<array{id: string, picked_up: bool}>  $packages  the boxes the shop packed (ADR-021)
      * @param  array<string, string>  $timeline  OrderStatus value => ISO time the order reached it
      * @param  array{name: string, phone: string}|null  $deliveryPartner
      */
@@ -34,7 +35,21 @@ final readonly class DemoOrder
         public ?string $rejectionReason = null,
         public ?string $failureReason = null,
         public ?string $invoiceNumber = null,
+        public array $packages = [],
     ) {}
+
+    public function packageCount(): int
+    {
+        return count($this->packages);
+    }
+
+    /**
+     * Boxes the delivery partner has picked up from the shop.
+     */
+    public function pickedUpPackageCount(): int
+    {
+        return count(array_filter($this->packages, fn (array $package): bool => $package['picked_up']));
+    }
 
     public function subtotal(): int
     {
