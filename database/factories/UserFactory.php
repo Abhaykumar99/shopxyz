@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -29,8 +30,39 @@ class UserFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'phone' => '9'.fake()->numerify('#########'),
+            'role' => UserRole::Customer,
+            'is_active' => true,
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * A customer who signed in with Google: no password, a google_id instead (ADR-004).
+     */
+    public function googleCustomer(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'role' => UserRole::Customer,
+            'password' => null,
+            'google_id' => (string) fake()->unique()->numerify('##################'),
+            'avatar_url' => 'https://lh3.googleusercontent.com/'.fake()->lexify('????????'),
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes): array => ['role' => UserRole::Admin]);
+    }
+
+    public function deliveryPartner(): static
+    {
+        return $this->state(fn (array $attributes): array => ['role' => UserRole::Delivery]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes): array => ['is_active' => false]);
     }
 
     /**

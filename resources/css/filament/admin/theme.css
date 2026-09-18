@@ -1,0 +1,86 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/*
+    Rose Atelier for the admin panel (ADR-017, ADR-023).
+
+    The panel keeps Filament's layout and components; only the surface colours,
+    type and corner radius are retuned so the admin looks like the rest of the
+    shop. Fonts come from the same self-hosted Bunny families as the customer
+    site, loaded by `@fonts` in the panel layout.
+*/
+
+@theme {
+    --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
+}
+
+:root {
+    /* Page and panel surfaces, matching the shop's paper and mist. */
+    --gray-25: #fffafa;
+    --gray-50: #f8eef0;
+    --gray-100: #f0e1e5;
+    --gray-200: #e6d3d8;
+    --gray-300: #d5bcc4;
+    /*
+        400 upwards carry text, so they are dark enough to pass WCAG AA on the
+        panel's pale surfaces: 500 is the shop's own muted ink (#6e5b62).
+    */
+    --gray-400: #8f7a82;
+    --gray-500: #6e5b62;
+    --gray-600: #56454b;
+    --gray-700: #4a373e;
+    --gray-800: #38262c;
+    --gray-900: #2a1a20;
+    --gray-950: #1d1216;
+}
+
+/* Headings in the shop's display serif, like every other panel. */
+.fi-header-heading,
+.fi-modal-heading,
+.fi-section-header-heading,
+.fi-wi-stats-overview-stat-value {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+}
+
+/* Money and counts line up when they use tabular figures. */
+.fi-ta-text-item-label:has(+ .fi-ta-text-item-label),
+.fi-wi-stats-overview-stat-value,
+.fi-in-text,
+.fi-ta-text {
+    font-variant-numeric: tabular-nums;
+}
+
+/* A softer sidebar, closer to the shop's header. */
+.fi-sidebar {
+    --tw-bg-opacity: 1;
+    background-color: color-mix(in oklab, var(--gray-25) 92%, var(--primary-50));
+}
+
+.fi-topbar nav {
+    background-color: color-mix(in oklab, var(--gray-25) 94%, var(--primary-50));
+}
+
+/* Status pills read the same way as the shop's (info, offer, brand, success, danger). */
+.fi-badge {
+    font-weight: 600;
+}
+
+/* Sidebar group labels are small and uppercase, so they need real contrast. */
+.fi-sidebar-group-label {
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+/* "None" placeholders in a record's details still have to be readable. */
+.fi-in-placeholder {
+    color: var(--gray-500);
+}

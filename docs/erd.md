@@ -1,6 +1,6 @@
 # Database Design (DRAFT, for review)
 
-> Status: **draft**. No migrations are written until Phase 4. Items marked ❓ depend on
+> Status: **built**. The migrations in `database/migrations` are the source of truth; this page explains them. Items marked ❓ depend on
 > [client-questions.md](client-questions.md).
 > Conventions: `id` bigint PK, `timestamps()` on all tables, money as `*_paise` unsigned bigint,
 > statuses as string columns backed by PHP enums, foreign keys with explicit `onDelete` rules.
@@ -112,7 +112,7 @@ snapshot: `product_name`, `variant_name`, `sku`, `mrp_paise`, `unit_price_paise`
 
 ### order_packages (ADR-021)
 `order_id` FK (cascade), `package_id` unique (e.g. `PKG-10245-1`), `sequence` (1-based, with
-`order_packages_count` giving "Box 1 of 2"), `pickup_code_hash` (6 digits, hashed, printed on the label),
+`order_packages_count` giving "Box 1 of 2"), `pickup_code` (6 digits, encrypted, printed on the label; readable so labels can be reprinted),
 `picked_up_at` null, `picked_up_by` FK users null, `weight_grams` null, `returned_at` null.
 `order_package_items`: `order_package_id` FK (cascade), `order_item_id` FK (cascade), `quantity` — which items
 went into which box, so each label lists its own contents.
@@ -129,7 +129,7 @@ batch and "cash with the delivery boy" is simply every delivered COD assignment 
 `order_id` FK (cascade), `user_id` FK (the delivery boy, restrict), `step` (`DeliveryStep`),
 `assigned_by` FK users null, `assigned_at`, `accepted_at` null, `picked_up_at` null, `reached_at` null,
 `delivered_at` null, `failed_at` null, `failure_reason` (`DeliveryFailureReason`) null, `failure_note` null,
-`otp_hash` (the customer's 6-digit delivery OTP, hashed), `otp_attempts` unsigned tiny int default 0,
+`otp` (the customer's 6-digit delivery OTP, encrypted so their order page can show it), `otp_attempts` unsigned tiny int default 0,
 `pickup_attempts` unsigned tiny int default 0,
 `cash_collected_paise` unsigned int default 0, `cod_settlement_id` FK null.
 Indexes: (`user_id`, `step`), (`order_id`). Only the milestones write to `orders.status`: picked up →
@@ -154,23 +154,18 @@ One order can have several payment attempts (e.g. UPI proof rejected, then re-up
 `order_id` FK unique, `invoice_number` unique (sequential per financial year, e.g. `INV/2026-27/00001`) ❓,
 `issued_at`, `pdf_path` null, snapshot of totals (and GST breakup ❓). Not editable once issued.
 
-### delivery_assignments
-| Column | Notes |
-|---|---|
-| order_id | FK |
-| delivery_user_id | FK users (role = delivery) |
-| assigned_by | FK users |
-| status | `DeliveryStatus`: assigned, accepted, picked_up, out_for_delivery, reached, delivered, failed, reassigned |
-| assigned_at, accepted_at, picked_up_at, out_for_delivery_at, reached_at, delivered_at | timestamps null |
-| failure_reason | null ❓ |
-| otp_hash, otp_expires_at, otp_attempts | OTP stored hashed. Max 5 attempts |
-| cod_collected_paise, cod_collected_at | null |
-| cod_settlement_id | FK null |
+### banners (homepage, ADR-024)
+`placement` (`BannerPlacement`: desktop_hero | mobile_hero | promo), `eyebrow` null, `title`, `subtitle` null,
+`body` null, `cta_label`/`cta_url` null, `secondary_cta_label`/`secondary_cta_url` null, `image_path` null,
+`image_alt` null, `theme` (brand | ink | accent | mist), `sort_order`, `is_active`, `starts_at` null,
+`ends_at` null. Index: (`placement`, `is_active`, `sort_order`).
 
-Only one *active* assignment per order (enforced in the Action). Earlier ones are kept as `reassigned` / `failed`.
-
-### cod_settlements ❓
-`delivery_user_id` FK, `amount_paise`, `received_by` FK users, `received_at`, `note`.
+### home_sections / home_section_items (ADR-024)
+`home_sections`: `key` unique, `type` (`HomeSectionType`), `title` null, `subtitle` null, `link_label` null,
+`link_url` null, `settings` json (source, category, limit, rail), `sort_order`, `is_active`, `starts_at` null,
+`ends_at` null.
+`home_section_items`: `home_section_id` FK (cascade), `product_id` FK null (cascade), `category_id` FK null
+(cascade), `sort_order` - the hand-picked contents of a section, in order.
 
 ### settings
 Key/value store for admin-editable system settings (exact storage decided in Phase 4, see ADR-013).
@@ -221,6 +216,8 @@ Moving to `cancelled` restores stock (logged in `inventory_movements`).
 | `rejected` | Admin rejected (customer may re-upload ❓) |
 | `refunded` | Future |
 
-### DeliveryStatus
-`assigned → accepted → picked_up → out_for_delivery → reached → delivered`,
-plus `failed` (from picked_up / out_for_delivery / reached) and `reassigned` (from assigned / accepted).
+### DeliveryStep (ADR-020, ADR-022)
+`assigned → accepted → picked_up → out_for_delivery → delivered`, plus `failed` from any step after accepted.
+The delivery boy's steps are not the order's status: picking up every box, going out for delivery, delivering
+and failing are the only ones that write to `orders.status`. An order can have several assignments over time;
+only one is `is_active`.

@@ -72,6 +72,12 @@ Open `/` to browse and `/wholesale` for bulk prices, which are ordered through t
 Sign in as the sample customer with the Google button on `/login`, or directly with `/dev/ui/as/customer`
 (`/dev/ui/as/guest` signs out). Sample orders cover every status: `/account/orders`.
 
+### Admin panel (Filament)
+Open `/admin` and sign in with **admin@example.com** / **admin-demo-password** (seeded, local only). The panel
+covers orders and packing, UPI verification, COD settlement, invoices, deliveries, the catalogue and stock,
+customers and delivery partners, wholesale quotes, reports, the homepage (banners and blocks) and the shop's
+own settings. Two-factor is available from the profile menu and is not required locally.
+
 ### Delivery panel preview (Phase 3, sample data)
 Open `/delivery` on a phone-sized window. Sign in with **+91 90000 11111** and the password **delivery-demo**
 (shown on the sign-in screen locally). The round covers every step, and what you do is kept in your session.

@@ -99,6 +99,14 @@ Plus: Cancelled, Delivery failed (see client-questions.md). Every change is logg
   **verified** by the admin → **settled**, with every batch kept in the delivery boy's cash history. The panel
   records the handover; only the admin marks a batch settled.
 
+## 8b. Homepage management (ADR-024)
+
+The whole homepage is managed from the admin: hero banners for desktop and phone, promotion cards, and the
+blocks of the page (rows of products, categories, promises, how ordering works). Every banner and block can be
+added, edited, reordered by dragging, switched off, and scheduled with a start and end date. Rows of products
+choose their source (bestsellers, new arrivals, discounts, featured, a category, or a hand-picked list).
+Nothing on the homepage is hardcoded.
+
 ## 9. Admin dashboard
 
 Metrics: today's orders, pending, payment verification, confirmed, packing pending, ready for delivery,
@@ -135,12 +143,15 @@ returns/refunds, WhatsApp/SMS notifications.
 | 1 | Design system (Tailwind theme, Blade UI components) |
 | 2 | Customer UI with dummy data |
 | 3 | Delivery panel UI with dummy data |
-| 4 | Database schema, models, seeders, auth (Google + staff), roles and policies |
-| 5 | Catalog, cart, inventory |
-| 6 | Orders, COD, UPI payments, order state machine |
-| 7 | Filament admin |
-| 8 | Invoice and package label |
-| 9 | Delivery workflow, OTP, COD reconciliation |
-| 10 | Hardening, tests, VPS deployment, UAT, go-live |
+| 4 | Database schema, models, factories, seeders |
+| 5 | Admin panel (Filament) on seeded data, including homepage management (ADR-023, ADR-024) |
+| 6 | Auth: Google sign-in for customers, staff accounts, roles and policies |
+| 7 | Catalog, cart and inventory on the database |
+| 8 | Orders, COD, UPI payments, order state machine |
+| 9 | Invoice and package label from real orders |
+| 10 | Delivery workflow, OTP, COD reconciliation |
+| 11 | Hardening, tests, VPS deployment, UAT, go-live |
 
-Each phase starts only after explicit approval.
+Each phase starts only after explicit approval. The order changed once the owner chose Filament for the admin
+panel: Filament reads Eloquent models, so the database came before the panel and the old "Filament admin"
+phase is gone (ADR-023).

@@ -318,3 +318,64 @@ labels per package and Phase 9 adds the `order_packages` table, hashed codes and
 
 Phase 3 keeps this in `App\Support\Demo\DemoCash` and `DemoCashSettlement` (ADR-016). Phase 9 replaces them
 with a `cod_settlements` table plus settlement actions, and the admin screen that verifies a batch.
+
+## ADR-023: Filament for the admin panel, built before the rest of the backend
+**Status:** Accepted (owner decision, after comparing Filament with custom Livewire screens)
+
+The admin panel is built with **Filament 5**, not hand-written Livewire screens.
+
+- **Why:** the shop's admin is largely CRUD (catalogue, customers, enquiries, settings) plus a few workflow
+  screens. Filament gives tables, filters, forms, relation managers, bulk actions and, importantly for ADR-004,
+  **built-in two-factor authentication**, none of which we then have to write or keep tested. The workflow
+  screens (packing, UPI verification, delivery assignment, COD settlement) are custom actions and pages inside
+  the same panel.
+- **Cost accepted:** Filament carries its own look and its own upgrade cycle. It is themed towards Rose Atelier
+  in `resources/css/filament/admin/theme.css` (colour ramp, greys, DM Serif headings, Figtree body, tabular
+  figures) so the panel reads as part of the same product, but it is not pixel-identical to the shop, and a
+  Filament major upgrade is work we have signed up for.
+- **Access:** only an active user with the `admin` role can open the panel (`User::canAccessPanel`). Delivery
+  partners and customers get 403. Printing lives outside the panel behind `auth` + the `admin` middleware.
+
+**Phase order changed.** Filament is Eloquent-native, so the database had to come first. The old Phase 7
+("Filament admin") is gone; there is no second admin build:
+
+| Phase | Was | Now |
+|---|---|---|
+| 4 | Database, models, auth | Database schema, models, factories, seeders |
+| 5 | Catalog, cart, inventory | **Admin panel (Filament) on seeded data** |
+| 6 | Orders, COD, UPI payments | Auth: Google sign-in, staff accounts, roles and policies |
+| 7 | Filament admin | Catalog, cart and inventory on the database |
+| 8 | Invoice and label | Orders, COD and UPI payments on the database |
+| 9 | Delivery workflow | Invoice and label from real orders |
+| 10 | Hardening and launch | Delivery workflow, OTP, COD reconciliation |
+| 11 | - | Hardening, tests, VPS deployment, UAT, go-live |
+
+## ADR-024: The homepage is content, not code
+**Status:** Accepted, admin phase (owner request)
+
+Nothing on the homepage is written into a template any more. It is built from two tables the admin manages:
+
+- **`banners`** - the desktop hero slides, the phone hero and the promotion cards. Each has its own eyebrow,
+  headline, supporting line, up to two buttons, an optional picture, a colour (rose, dark, soft rose gold or
+  pale), an order, an on/off switch and an optional start and end date. Desktop and phone heroes are separate
+  rows, so a small screen can say something shorter without cramming in the desktop slide.
+- **`home_sections`** - the blocks of the page in order: rows of products, the category grid, the three
+  promises, the promotion cards and "how ordering works". A row of products chooses where its products come
+  from (bestsellers, new arrivals, biggest discounts, featured, one category, or a hand-picked list in
+  `home_section_items`), how many to show and whether it swipes on phones.
+
+Both carry `is_active`, `starts_at` and `ends_at`, so a festive push can be scheduled in advance and expires by
+itself. `App\Support\Home\HomeContent` reads them (`live()` scope) and hands the page exactly what to render;
+an empty product row is dropped rather than shown as a gap. Until the shop reads products from the database,
+`HomeContent` resolves the admin's picks against the sample catalogue - that is the only line that changes when
+the catalogue moves over.
+
+The admin manages these under **Shop > Homepage banners** and **Shop > Homepage layout**, both drag-to-reorder,
+with a "Preview homepage" link. Shop details, payment, delivery rules and print formats moved to **Shop
+settings**, saved as `settings` rows that `App\Support\ShopSettings` reads before falling back to
+`config/shop.php` (ADR-013), so the shop name is never hardcoded anywhere.
+
+**Correction to ADR-021.** Pickup codes and delivery OTPs were to be stored hashed. A hashed code cannot be
+reprinted on a label or shown to the customer on their order page, which both have to happen, so they are
+**encrypted at rest** (`pickup_code`, `otp`) and compared in constant time. They are still never shown in the
+delivery panel.
