@@ -49,11 +49,11 @@
     </main>
 
     @isset($action)
-        <div class="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface">
+        <section aria-label="Next step" class="pb-safe fixed inset-x-0 bottom-16 z-30 border-t border-line bg-surface">
             <div class="mx-auto flex max-w-lg flex-col gap-2 px-3 py-3">
                 {{ $action }}
             </div>
-        </div>
+        </section>
     @endisset
 
     <nav aria-label="Delivery panel" class="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface">

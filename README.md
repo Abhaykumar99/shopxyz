@@ -76,6 +76,10 @@ Sign in as the sample customer with the Google button on `/login`, or directly w
 Open `/delivery` on a phone-sized window. Sign in with **+91 90000 11111** and the password **delivery-demo**
 (shown on the sign-in screen locally). The round covers every step, and what you do is kept in your session.
 
+Pickup codes are printed on the box labels, so read them from the label preview at `/dev/ui/print/label`
+(`?box=2` for the second box). Sample codes: ORD-10250 boxes **204877** and **913526**; the customer's delivery
+OTP for ORD-10246 is **905617** (shown on their order page at `/account/orders`).
+
 ### Design system preview (local only)
 With the app running, open `/dev/ui` for every component, `/dev/ui/delivery` and `/dev/ui/sign-in` for the
 other layouts, and `/dev/ui/print/label?format=thermal_4x6|a5|a4` or `/dev/ui/print/invoice?format=a4|a5` for

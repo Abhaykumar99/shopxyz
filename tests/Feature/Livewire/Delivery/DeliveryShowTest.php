@@ -10,7 +10,7 @@ beforeEach(function () {
     signInDemoDeliveryBoy();
 });
 
-it('shows the customer, address, items and the cash to collect', function () {
+it('shows the boxes, customer, address, items and the cash to collect', function () {
     $this->get('/delivery/ORD-10245')
         ->assertOk()
         ->assertSee('Priya Sharma')
@@ -21,7 +21,8 @@ it('shows the customer, address, items and the cash to collect', function () {
         ->assertSee('Velvet matte lipstick')
         ->assertSee('Collect in cash')
         ->assertSee('₹1,748')
-        ->assertSee('On the way');
+        ->assertSee('On the way')
+        ->assertSee('2 boxes');
 });
 
 it('says an order is already paid when it is a UPI order', function () {
@@ -34,14 +35,72 @@ it('returns 404 for an order that is not assigned to this delivery boy', functio
     $this->get('/delivery/ORD-99999')->assertNotFound();
 });
 
-it('walks a delivery from accepted to at the address', function () {
+it('collects every box with the pickup code on its label before going out for delivery', function () {
+    $test = Livewire::test(DeliveryShow::class, ['order' => 'ORD-10250'])
+        ->assertSee('Collect 2 boxes')
+        ->assertSee('PKG-10250-1')
+        ->assertSee('Box 1 of 2')
+        ->assertDontSee('204877')
+        ->set('pickupCodes.PKG-10250-1', '204877')
+        ->call('verifyPickup', 'PKG-10250-1')
+        ->assertHasNoErrors()
+        ->assertDispatched('toast', tone: 'success')
+        ->assertSee('1 of 2 verified');
+
+    expect(app(DemoDeliveries::class)->find('ORD-10250')->step)->toBe(DeliveryStep::Accepted);
+
+    $test->set('pickupCodes.PKG-10250-2', '913526')
+        ->call('verifyPickup', 'PKG-10250-2')
+        ->assertHasNoErrors()
+        ->assertSee('On the way');
+
+    $job = app(DemoDeliveries::class)->find('ORD-10250');
+    expect($job->step)->toBe(DeliveryStep::PickedUp)
+        ->and($job->allPickedUp())->toBeTrue()
+        ->and($job->timeFor(DeliveryStep::PickedUp))->not->toBeNull();
+});
+
+it('never shows a pickup code or the customer OTP in the panel', function () {
+    $this->get('/delivery/ORD-10250')->assertDontSee('204877')->assertDontSee('770143');
+    $this->get('/delivery/ORD-10246')->assertDontSee('905617')->assertDontSee('884120');
+});
+
+it('counts down the tries for a wrong pickup code', function () {
+    $test = Livewire::test(DeliveryShow::class, ['order' => 'ORD-10250']);
+
+    $test->set('pickupCodes.PKG-10250-1', '000000')
+        ->call('verifyPickup', 'PKG-10250-1')
+        ->assertHasErrors(['pickupCodes.PKG-10250-1'])
+        ->assertSee('does not match Box 1 of 2')
+        ->assertSee('2 tries left');
+
+    $test->set('pickupCodes.PKG-10250-1', '111111')->call('verifyPickup', 'PKG-10250-1')->assertSee('1 try left');
+    $test->set('pickupCodes.PKG-10250-1', '222222')->call('verifyPickup', 'PKG-10250-1')->assertSee('Ask the shop to check the boxes');
+    $test->set('pickupCodes.PKG-10250-1', '204877')->call('verifyPickup', 'PKG-10250-1')->assertHasErrors(['pickupCodes.PKG-10250-1']);
+
+    expect(app(DemoDeliveries::class)->find('ORD-10250')->allPickedUp())->toBeFalse();
+});
+
+it('needs a six digit pickup code', function (string $code) {
     Livewire::test(DeliveryShow::class, ['order' => 'ORD-10250'])
+        ->set('pickupCodes.PKG-10250-1', $code)
+        ->call('verifyPickup', 'PKG-10250-1')
+        ->assertHasErrors(['pickupCodes.PKG-10250-1']);
+})->with(['empty' => '', 'too short' => '2048', 'not digits' => 'abc123']);
+
+it('does not offer pickup codes once the boxes are collected', function () {
+    $this->get('/delivery/ORD-10245')
+        ->assertSee('All verified at pickup')
+        ->assertDontSee('Enter the pickup code printed on each box label');
+});
+
+it('walks from picked up to at the address with a tap', function () {
+    Livewire::test(DeliveryShow::class, ['order' => 'ORD-10245'])
         ->call('advance')
         ->assertDispatched('toast', tone: 'success')
-        ->call('advance')
         ->assertSee('At the address');
 
-    expect(app(DemoDeliveries::class)->find('ORD-10250')->step)->toBe(DeliveryStep::Reached);
+    expect(app(DemoDeliveries::class)->find('ORD-10245')->step)->toBe(DeliveryStep::Reached);
 });
 
 it('confirms a cash delivery with the customer code and the cash collected', function () {
@@ -59,12 +118,12 @@ it('confirms a cash delivery with the customer code and the cash collected', fun
         ->and($job->cashToHandOver())->toBe(139800);
 });
 
-it('counts down the tries for a wrong delivery code and then stops', function () {
+it('counts down the tries for a wrong delivery OTP and then stops', function () {
     $test = Livewire::test(DeliveryShow::class, ['order' => 'ORD-10246'])->set('code', '000000');
 
-    $test->call('confirmDelivery')->assertHasErrors(['code'])->assertSee('2 tries left')->assertSet('code', '');
+    $test->call('confirmDelivery')->assertHasErrors(['code'])->assertSee('That OTP is not right')->assertSee('2 tries left')->assertSet('code', '');
     $test->set('code', '111111')->call('confirmDelivery')->assertSee('1 try left');
-    $test->set('code', '222222')->call('confirmDelivery')->assertSee('Too many wrong codes');
+    $test->set('code', '222222')->call('confirmDelivery')->assertSee('Too many wrong OTPs');
     $test->set('code', '905617')->call('confirmDelivery')->assertHasErrors(['code']);
 
     expect(app(DemoDeliveries::class)->find('ORD-10246')->step)->toBe(DeliveryStep::Reached);

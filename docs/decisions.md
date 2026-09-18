@@ -253,3 +253,34 @@ The delivery panel (`/delivery`, phone-first, its own sign-in) has more steps th
   (ADR-016), with `RequireDemoDeliveryBoy` standing in for auth. Phase 4 replaces the sign-in with a staff
   account and the `delivery` role; Phase 9 replaces the data with `delivery_assignments` and the delivery
   actions, and adds COD settlement. The screens and their tests carry over.
+
+## ADR-021: Packages, pickup codes and the delivery OTP
+**Status:** Accepted, Phase 3 (owner request, extends ADR-020)
+
+Two different codes guard the two ends of a delivery, and neither is ever shown in the delivery panel:
+
+| Code | Belongs to | Printed / shown on | Confirms |
+|---|---|---|---|
+| **Pickup code** (6 digits, one per box) | the shop | the box's own label | that the delivery boy is carrying that box |
+| **Delivery OTP** (6 digits, one per order) | the customer | their order page, only while the parcel is on the way | that the parcel reached the right person |
+
+- **The shop packs an order into one or more boxes.** Each box gets a package id (`PKG-10245-1`) and its own
+  pickup code, both printed on its label together with "Box 1 of 2" and what is inside that box. Labels print
+  one per box.
+- **Pickup is per box.** At the counter the delivery boy types the code on each label. The order only becomes
+  `Out for delivery` when **every** box is verified, so a half-collected order cannot leave the shop. Until
+  then the panel shows "1 of 2 verified" and the customer sees "1 of 2 collected from the shop".
+- **Wrong codes are limited**: 3 tries per order for pickup (after which the shop has to check the boxes) and
+  3 tries per order for the delivery OTP (after which the delivery boy calls the shop). A correct pickup code
+  clears the counter, so an honest mistake on one box does not lock the whole round.
+- **A code that belongs to another box of the same order is refused**, which is what makes the check worth
+  doing: it catches a box picked up by mistake.
+- **Delivery needs the OTP and, for COD, the full cash.** A customer who cannot pay is a failed delivery
+  (`DeliveryFailureReason::NoCash`), never a short payment.
+- **A failed delivery counts the boxes to take back**, shown in the panel and to the shop.
+- The customer sees: their delivery partner's name and phone once assigned, how many boxes the order was
+  packed into and how many have been collected, the OTP only while the parcel is on the way (never before
+  pickup or after delivery), and the reason in their own words if a delivery fails.
+
+Phase 3 keeps packages in `App\Support\Demo\DemoPackage` and `DemoDeliveries` (ADR-016). Phase 8 prints real
+labels per package and Phase 9 adds the `order_packages` table, hashed codes and the delivery actions.

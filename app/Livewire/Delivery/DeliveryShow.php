@@ -8,15 +8,17 @@ use App\Support\Demo\DemoDeliveries;
 use App\Support\Demo\DemoDeliveryJob;
 use App\Support\Money;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * One delivery: address, items, payment, and the step the delivery boy is on.
- * Delivery is confirmed with the customer's code (limited attempts) and, for a
- * COD order, the cash collected (ADR-020).
+ * One delivery: boxes, address, items, payment, and the step the delivery boy is
+ * on. Pickup is confirmed box by box with the code printed on each label, and
+ * delivery with the customer's 6-digit OTP plus the full cash for a COD order.
+ * Both codes have a limited number of tries (ADR-020, ADR-021).
  */
 class DeliveryShow extends Component
 {
@@ -24,6 +26,9 @@ class DeliveryShow extends Component
     public string $number;
 
     public string $code = '';
+
+    /** @var array<string, string> Pickup codes typed per package */
+    public array $pickupCodes = [];
 
     public string $cash = '';
 
@@ -39,6 +44,52 @@ class DeliveryShow extends Component
         $this->cash = $job->isCod() ? (string) (int) round($job->codPaise / 100) : '';
     }
 
+    /**
+     * Confirms one box with the pickup code printed on its label (ADR-021).
+     */
+    public function verifyPickup(string $packageId, DemoDeliveries $deliveries): void
+    {
+        $job = $this->job($deliveries);
+        $package = $job->package($packageId);
+
+        if ($package === null || $package->isPickedUp()) {
+            return;
+        }
+
+        $field = "pickupCodes.{$packageId}";
+
+        if ($deliveries->pickupAttemptsLeft($this->number) === 0) {
+            throw ValidationException::withMessages([$field => 'Too many wrong codes. Ask the shop to check the boxes for this order.']);
+        }
+
+        $this->validate(
+            ["pickupCodes.{$packageId}" => ['required', 'digits:6']],
+            [
+                "pickupCodes.{$packageId}.required" => 'Enter the 6-digit pickup code printed on the label.',
+                "pickupCodes.{$packageId}.digits" => 'The pickup code is 6 digits.',
+            ],
+        );
+
+        $result = $deliveries->verifyPickup($this->number, $packageId, (string) $this->pickupCodes[$packageId]);
+
+        if (! $result['verified']) {
+            $this->pickupCodes[$packageId] = '';
+
+            throw ValidationException::withMessages([
+                $field => $result['attempts_left'] > 0
+                    ? "That code does not match {$package->label()}. Check the label. ".$result['attempts_left'].' '.Str::plural('try', $result['attempts_left']).' left.'
+                    : 'Too many wrong codes. Ask the shop to check the boxes for this order.',
+            ]);
+        }
+
+        unset($this->pickupCodes[$packageId]);
+        $left = count($this->job($deliveries)->pendingPackages());
+
+        $this->dispatch('toast', message: $result['all_picked_up']
+            ? 'All boxes verified. You are out for delivery.'
+            : $package->label()." verified. {$left} ".Str::plural('box', $left).' left to collect.', tone: 'success');
+    }
+
     public function advance(DemoDeliveries $deliveries): void
     {
         $step = $deliveries->advance($this->number);
@@ -47,11 +98,9 @@ class DeliveryShow extends Component
             return;
         }
 
-        $this->dispatch('toast', message: match ($step) {
-            DeliveryStep::Accepted => 'Accepted. Collect the parcel from the shop counter.',
-            DeliveryStep::PickedUp => 'Picked up. The customer can see that you are on the way.',
-            default => 'Marked as reached. Ask the customer for their delivery code.',
-        }, tone: 'success');
+        $this->dispatch('toast', message: $step === DeliveryStep::Accepted
+            ? 'Accepted. Enter the pickup code on each box label at the counter.'
+            : 'Marked as reached. Ask the customer for their 6-digit OTP.', tone: 'success');
     }
 
     public function confirmDelivery(DemoDeliveries $deliveries): void
@@ -64,7 +113,7 @@ class DeliveryShow extends Component
 
         if ($deliveries->codeAttemptsLeft($this->number) === 0) {
             throw ValidationException::withMessages([
-                'code' => 'Too many wrong codes. Please call the shop before handing the parcel over.',
+                'code' => 'Too many wrong OTPs. Please call the shop before handing the parcel over.',
             ]);
         }
 
@@ -72,8 +121,8 @@ class DeliveryShow extends Component
             'code' => ['required', 'digits:6'],
             'cash' => $job->isCod() ? ['required', 'numeric', 'integer', 'min:0'] : ['nullable'],
         ], [
-            'code.required' => 'Ask the customer for the 6-digit code on their order page.',
-            'code.digits' => 'The delivery code is 6 digits.',
+            'code.required' => 'Ask the customer for the 6-digit OTP on their order page.',
+            'code.digits' => 'The OTP is 6 digits.',
             'cash.required' => 'Enter how much cash you collected.',
         ]);
 
@@ -92,8 +141,8 @@ class DeliveryShow extends Component
 
             throw ValidationException::withMessages([
                 'code' => $left > 0
-                    ? "That code is not right. {$left} ".($left === 1 ? 'try' : 'tries').' left.'
-                    : 'Too many wrong codes. Please call the shop before handing the parcel over.',
+                    ? "That OTP is not right. {$left} ".Str::plural('try', $left).' left.'
+                    : 'Too many wrong OTPs. Please call the shop before handing the parcel over.',
             ]);
         }
 
@@ -130,6 +179,7 @@ class DeliveryShow extends Component
         return view('livewire.delivery.delivery-show', [
             'job' => $job,
             'attemptsLeft' => $deliveries->codeAttemptsLeft($this->number),
+            'pickupAttemptsLeft' => $deliveries->pickupAttemptsLeft($this->number),
             'reasons' => DeliveryFailureReason::options(),
             'needsNote' => DeliveryFailureReason::tryFrom($this->failureReason)?->needsNote() ?? false,
         ])->layout('layouts::delivery', [

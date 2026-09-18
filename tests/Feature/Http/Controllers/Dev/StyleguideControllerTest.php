@@ -68,3 +68,24 @@ it('only previews pages on this site in the phone frame', function (string $sour
         ->assertSee('src="'.url('/dev/ui').'"', false)
         ->assertDontSee('evil.example');
 })->with(['https://evil.example', '//evil.example']);
+
+it('prints one label per box with its package id and pickup code', function () {
+    $this->get('/dev/ui/print/label')
+        ->assertOk()
+        ->assertSee('Box 1 of 2')
+        ->assertSee('PKG-10245-1')
+        ->assertSee('Pickup code')
+        ->assertSee('731408')
+        ->assertSee('In this box');
+
+    $this->get('/dev/ui/print/label?box=2')
+        ->assertSee('Box 2 of 2')
+        ->assertSee('PKG-10245-2')
+        ->assertSee('559214')
+        ->assertDontSee('731408');
+});
+
+it('keeps the label inside the boxes that exist', function () {
+    $this->get('/dev/ui/print/label?box=9')->assertOk()->assertSee('Box 2 of 2');
+    $this->get('/dev/ui/print/label?box=0')->assertOk()->assertSee('Box 1 of 2');
+});

@@ -175,6 +175,7 @@ final class DemoOrders
             rejectionReason: $data['rejection_reason'] ?? null,
             failureReason: $data['failure_reason'] ?? null,
             invoiceNumber: $data['invoice_number'] ?? null,
+            packages: array_values((array) ($data['packages'] ?? [])),
         );
     }
 
@@ -204,6 +205,7 @@ final class DemoOrders
             [
                 'number' => 'ORD-10245', 'placed_at' => $at(95), 'status' => 'out_for_delivery', 'payment_method' => 'cod', 'payment_status' => 'cod_pending',
                 'items' => [$item('BB-LIP-1', 2), $item('MG-KK-2', 1), $item('DH-CND-1', 1)], 'address' => $home, 'delivery' => 0,
+                'packages' => [['id' => 'PKG-10245-1', 'picked_up' => true], ['id' => 'PKG-10245-2', 'picked_up' => true]],
                 'note' => 'Please call before arriving. Gate code 4411.', 'delivery_partner' => $rahul, 'delivery_code' => '482915',
                 'invoice_number' => 'INV/2026-27/00018',
                 'timeline' => ['placed' => $at(95), 'confirmed' => $at(85), 'packed' => $at(55), 'out_for_delivery' => $at(20)],
@@ -216,6 +218,7 @@ final class DemoOrders
             [
                 'number' => 'ORD-10249', 'placed_at' => $at(240), 'status' => 'packing', 'payment_method' => 'upi', 'payment_status' => 'verified',
                 'items' => [$item('MG-ASST-1', 60), $item('UG-HMP-1', 25)], 'address' => $shopfront, 'delivery' => 0, 'utr' => '414500011122',
+                'packages' => [['id' => 'PKG-10249-1', 'picked_up' => false], ['id' => 'PKG-10249-2', 'picked_up' => false], ['id' => 'PKG-10249-3', 'picked_up' => false]],
                 'note' => 'Bulk order for Diwali counter. GST invoice needed.', 'invoice_number' => 'INV/2026-27/00021',
                 'timeline' => ['placed' => $at(240), 'confirmed' => $at(210)],
             ],
@@ -233,12 +236,14 @@ final class DemoOrders
             [
                 'number' => 'ORD-10231', 'placed_at' => $at(4400), 'status' => 'delivered', 'payment_method' => 'upi', 'payment_status' => 'verified',
                 'items' => [$item('UG-DRY-1', 1), $item('KC-MUG-1', 2)], 'address' => $home, 'delivery' => 0, 'utr' => '398765432101',
+                'packages' => [['id' => 'PKG-10231-1', 'picked_up' => true], ['id' => 'PKG-10231-2', 'picked_up' => true]],
                 'delivery_partner' => $rahul, 'invoice_number' => 'INV/2026-27/00011',
                 'timeline' => ['placed' => $at(4400), 'confirmed' => $at(4380), 'packed' => $at(4300), 'out_for_delivery' => $at(4260), 'delivered' => $at(4200)],
             ],
             [
                 'number' => 'ORD-10198', 'placed_at' => $at(2900), 'status' => 'delivery_failed', 'payment_method' => 'cod', 'payment_status' => 'cod_pending',
                 'items' => [$item('MG-ML-2', 1)], 'address' => $home, 'delivery' => 4000,
+                'packages' => [['id' => 'PKG-10198-1', 'picked_up' => true]],
                 'delivery_partner' => $rahul, 'failure_reason' => 'Nobody was home. We will call you to arrange another time.',
                 'timeline' => ['placed' => $at(2900), 'confirmed' => $at(2880), 'packed' => $at(2800), 'out_for_delivery' => $at(2760), 'delivery_failed' => $at(2700)],
             ],

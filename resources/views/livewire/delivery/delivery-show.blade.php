@@ -78,6 +78,72 @@
         </x-ui.card>
     @endif
 
+    {{-- Pickup: one code per box, read off the label (ADR-021) --}}
+    @if ($job->step === DeliveryStep::Accepted)
+        <x-ui.card id="pickup" class="flex scroll-mt-20 flex-col gap-3">
+            <div class="flex items-center justify-between gap-2">
+                <h2 class="text-lg font-semibold">Collect {{ $job->packageCount() }} {{ \Illuminate\Support\Str::plural('box', $job->packageCount()) }}</h2>
+                <span class="figures text-sm text-ink-soft">{{ count($job->pickedUpPackages()) }} of {{ $job->packageCount() }} verified</span>
+            </div>
+            <p class="text-ink-soft">Enter the pickup code printed on each box label. The order goes out for delivery once every box is verified.</p>
+
+            <ul class="flex flex-col gap-3">
+                @foreach ($job->packages as $package)
+                    <li wire:key="pkg-{{ $package->id }}" @class([
+                        'rounded-card border p-3',
+                        'border-pistachio/40 bg-pistachio-tint/40' => $package->isPickedUp(),
+                        'border-line' => ! $package->isPickedUp(),
+                    ])>
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="font-semibold">{{ $package->label() }}</p>
+                                <p class="figures text-sm text-ink-soft">{{ $package->id }}</p>
+                            </div>
+                            @if ($package->isPickedUp())
+                                <span class="flex items-center gap-1.5 text-sm font-semibold text-pistachio">
+                                    <x-ui.icon name="circle-check" :size="18" /> Verified {{ $package->pickedUpTime() }}
+                                </span>
+                            @endif
+                        </div>
+                        <p class="mt-1 text-sm text-ink-soft">{{ $package->contents() }}</p>
+
+                        @unless ($package->isPickedUp())
+                            <form wire:submit="verifyPickup('{{ $package->id }}')" class="mt-3 flex items-end gap-2" novalidate>
+                                <x-ui.input
+                                    :label="'Pickup code for '.$package->label()"
+                                    :name="'pickupCodes.'.$package->id"
+                                    wire:model="pickupCodes.{{ $package->id }}"
+                                    inputmode="numeric"
+                                    maxlength="6"
+                                    required
+                                    class="grow"
+                                    input-class="figures text-center font-display text-xl tracking-[0.3em]"
+                                />
+                                <x-ui.button type="submit" loading="verifyPickup('{{ $package->id }}')" class="mb-[2px] shrink-0">Verify</x-ui.button>
+                            </form>
+                        @endunless
+                    </li>
+                @endforeach
+            </ul>
+
+            @if ($pickupAttemptsLeft < \App\Support\Demo\DemoDeliveries::MAX_PICKUP_ATTEMPTS)
+                <p class="text-sm text-ink-soft">
+                    {{ $pickupAttemptsLeft }} {{ \Illuminate\Support\Str::plural('try', $pickupAttemptsLeft) }} left before the shop has to check the boxes.
+                </p>
+            @endif
+        </x-ui.card>
+    @elseif ($job->packages !== [])
+        <x-ui.card class="flex items-center justify-between gap-3">
+            <span class="flex items-center gap-2 font-semibold">
+                <x-ui.icon name="boxes" :size="24" class="text-brand" />
+                {{ $job->packageCount() }} {{ \Illuminate\Support\Str::plural('box', $job->packageCount()) }}
+            </span>
+            <span class="text-sm text-ink-soft">
+                {{ $job->allPickedUp() ? 'All verified at pickup' : count($job->pickedUpPackages()).' of '.$job->packageCount().' picked up' }}
+            </span>
+        </x-ui.card>
+    @endif
+
     {{-- Items --}}
     <x-ui.card>
         <x-slot:header>
@@ -98,10 +164,10 @@
     @if ($job->step === DeliveryStep::Reached)
         <x-ui.card class="flex flex-col gap-3">
             <h2 class="text-lg font-semibold">Confirm with the customer</h2>
-            <p class="text-ink-soft">Ask for the 6-digit delivery code on their order page.</p>
+            <p class="text-ink-soft">Hand over the {{ $job->packageCount() }} {{ \Illuminate\Support\Str::plural('box', $job->packageCount()) }}, then ask for the 6-digit OTP on their order page.</p>
             <form wire:submit="confirmDelivery" id="confirm-form" class="flex flex-col gap-3" novalidate>
                 <x-ui.input
-                    label="Delivery code"
+                    label="Delivery OTP"
                     name="code"
                     wire:model="code"
                     inputmode="numeric"
@@ -140,6 +206,12 @@
     @elseif ($job->step === DeliveryStep::Failed)
         <x-ui.alert tone="danger" title="Could not deliver at {{ $job->timeFor(DeliveryStep::Failed) }}">
             {{ $job->failureReason?->label() }}@if ($job->failureNote): {{ $job->failureNote }}@endif
+
+            @if ($job->packagesToReturn() > 0)
+                <p class="mt-2 font-semibold">
+                    Take {{ $job->packagesToReturn() }} {{ \Illuminate\Support\Str::plural('box', $job->packagesToReturn()) }} back to the shop.
+                </p>
+            @endif
         </x-ui.alert>
     @endif
 
@@ -148,6 +220,10 @@
         <x-slot:action>
             @if ($job->step === DeliveryStep::Reached)
                 <x-ui.button type="submit" form="confirm-form" size="lg" block icon="check" loading="confirmDelivery">Confirm delivery</x-ui.button>
+            @elseif ($job->step === DeliveryStep::Accepted)
+                <x-ui.button href="#pickup" size="lg" block icon="boxes">
+                    {{ $job->step->nextAction() }} ({{ count($job->pickedUpPackages()) }}/{{ $job->packageCount() }})
+                </x-ui.button>
             @else
                 <x-ui.button wire:click="advance" loading="advance" size="lg" block icon="check">{{ $job->step->nextAction() }}</x-ui.button>
             @endif

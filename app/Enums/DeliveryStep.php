@@ -23,7 +23,7 @@ enum DeliveryStep: string
     {
         return match ($this) {
             self::Assigned => 'New',
-            self::Accepted => 'Accepted',
+            self::Accepted => 'To collect',
             self::PickedUp => 'On the way',
             self::Reached => 'At the address',
             self::Delivered => 'Delivered',
@@ -52,11 +52,20 @@ enum DeliveryStep: string
     {
         return match ($this) {
             self::Assigned => 'Accept this delivery',
-            self::Accepted => 'Picked up from the shop',
+            self::Accepted => 'Enter the pickup codes',
             self::PickedUp => 'I have reached the address',
             self::Reached => 'Confirm delivery',
             self::Delivered, self::Failed => null,
         };
+    }
+
+    /**
+     * Steps a delivery boy can reach with a single tap. Picking up needs the
+     * pickup code on every box, and delivering needs the customer's OTP (ADR-021).
+     */
+    public function isReachedByTapping(): bool
+    {
+        return $this === self::Accepted || $this === self::Reached;
     }
 
     public function next(): ?self
@@ -77,11 +86,11 @@ enum DeliveryStep: string
     {
         return match ($this) {
             self::Assigned => 'Accept it so the shop knows it is with you.',
-            self::Accepted => 'Collect the parcel from the shop counter.',
+            self::Accepted => 'At the counter, enter the pickup code printed on each box label.',
             self::PickedUp => 'Ride to the address. Call the customer if you cannot find it.',
-            self::Reached => 'Ask for the delivery code, collect the cash if it is a COD order, then confirm.',
+            self::Reached => 'Ask the customer for their 6-digit OTP, collect the cash if it is a COD order, then confirm.',
             self::Delivered => 'Done. Hand the cash over at the shop.',
-            self::Failed => 'The shop will call the customer and reassign the order.',
+            self::Failed => 'Take the boxes back to the shop. They will call the customer and reassign the order.',
         };
     }
 

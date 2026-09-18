@@ -83,10 +83,17 @@ Plus: Cancelled, Delivery failed (see client-questions.md). Every change is logg
 - Delivery panel (mobile web, ADR-020): its own sign-in, today's round, one delivery (customer, address, call
   and directions, items, payment and COD amount, instructions), cash to hand over, history of finished
   deliveries and a profile with sign out.
-- Flow: Assigned → Accept → Picked up → Reached → **delivery code** → Delivered. The delivery boy's steps are
-  separate from the order status: picking up sets the order to Out for delivery, delivering or failing ends it.
-- The delivery code is checked at the door, at most 3 tries per order. A delivery that cannot be completed is
-  recorded with a reason (and a note when needed) that the customer reads on their order.
+- Flow (ADR-021): the shop packs the order into boxes, each with a **package id and pickup code** on its label
+  → the delivery boy accepts → at the counter he enters the **pickup code of every box** → the order goes
+  `Out for delivery` → at the address he enters the customer's **6-digit OTP** and collects the full cash for a
+  COD order → `Delivered`, otherwise `Delivery failed`.
+- **Pickup code = the shop's confirmation** that the right boxes left the counter. **OTP = the customer's
+  confirmation** that the parcel reached them. Neither is ever shown in the delivery panel; both allow at most
+  3 tries per order.
+- The delivery boy's steps are separate from the order status: picking up every box sets the order to Out for
+  delivery, delivering or failing ends it.
+- A delivery that cannot be completed is recorded with a reason (and a note when needed) that the customer
+  reads on their order, and the panel says how many boxes to take back to the shop.
 - The COD amount collected is recorded at delivery, and cash handover is reconciled by the admin.
 
 ## 9. Admin dashboard

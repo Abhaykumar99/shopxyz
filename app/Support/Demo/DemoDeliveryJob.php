@@ -16,6 +16,7 @@ final readonly class DemoDeliveryJob
     /**
      * @param  list<array{name: string, variant: string, quantity: int}>  $items
      * @param  list<string>  $addressLines
+     * @param  list<DemoPackage>  $packages  the boxes this order was packed into (ADR-021)
      * @param  array<string, string>  $timeline  DeliveryStep value => ISO time
      */
     public function __construct(
@@ -27,6 +28,7 @@ final readonly class DemoDeliveryJob
         public string $area,
         public string $pincode,
         public array $items,
+        public array $packages,
         public PaymentMethod $paymentMethod,
         public int $totalPaise,
         public int $codPaise,
@@ -47,6 +49,51 @@ final readonly class DemoDeliveryJob
     public function itemCount(): int
     {
         return array_sum(array_column($this->items, 'quantity'));
+    }
+
+    public function packageCount(): int
+    {
+        return count($this->packages);
+    }
+
+    /**
+     * @return list<DemoPackage>
+     */
+    public function pickedUpPackages(): array
+    {
+        return array_values(array_filter($this->packages, fn (DemoPackage $package): bool => $package->isPickedUp()));
+    }
+
+    /**
+     * @return list<DemoPackage>
+     */
+    public function pendingPackages(): array
+    {
+        return array_values(array_filter($this->packages, fn (DemoPackage $package): bool => ! $package->isPickedUp()));
+    }
+
+    public function allPickedUp(): bool
+    {
+        return $this->packages !== [] && $this->pendingPackages() === [];
+    }
+
+    public function package(string $id): ?DemoPackage
+    {
+        foreach ($this->packages as $package) {
+            if ($package->id === $id) {
+                return $package;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Boxes the delivery boy is carrying and has to take back when a delivery fails.
+     */
+    public function packagesToReturn(): int
+    {
+        return $this->step === DeliveryStep::Failed ? count($this->pickedUpPackages()) : 0;
     }
 
     public function isFinished(): bool
