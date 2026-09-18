@@ -41,6 +41,17 @@ it('shows the wholesale page with price slabs and the navigation tab marked curr
         ->assertSee('Minimum 5');
 });
 
+it('keeps the quote form closed until it is asked for', function () {
+    $html = $this->get('/wholesale')->getContent();
+
+    expect($html)->toContain('id="modal-quote-title"')
+        ->and($html)->not->toContain('<dialog open')
+        ->and($html)->toContain('if ($event.detail === \'quote\') $el.showModal()');
+    $this->get('/wholesale')
+        ->assertSee("\$dispatch('open-modal', 'quote')", false)
+        ->assertSee('Request a quote');
+});
+
 it('links to wholesale from every shop page', function () {
     $this->get('/')->assertSee('href="'.route('wholesale.index').'"', false);
     $this->get('/cart')->assertSee('Wholesale and bulk orders');
@@ -97,7 +108,7 @@ it('removes a product from the enquiry', function () {
         ->call('addToEnquiry', 'MG-KK-3')
         ->call('removeFromEnquiry', 'MG-KK-3')
         ->assertSet('listQuantities', [])
-        ->assertSee('Add products from the price list.');
+        ->assertSee('Nothing added yet.');
 });
 
 it('ignores unknown products', function () {
