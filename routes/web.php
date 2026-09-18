@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\InfoPageController;
 use App\Http\Middleware\RequireDemoCustomer;
+use App\Http\Middleware\RequireDemoDeliveryBoy;
 use App\Livewire\Account\AddressBook;
 use App\Livewire\Account\OrderList;
 use App\Livewire\Account\OrderShow;
@@ -11,6 +12,12 @@ use App\Livewire\Cart\CartPage;
 use App\Livewire\Checkout\CheckoutPage;
 use App\Livewire\Checkout\OrderPlaced;
 use App\Livewire\Checkout\UpiPayment;
+use App\Livewire\Delivery\CashSummary;
+use App\Livewire\Delivery\DeliveryHistory;
+use App\Livewire\Delivery\DeliveryList;
+use App\Livewire\Delivery\DeliveryShow;
+use App\Livewire\Delivery\Profile as DeliveryProfile;
+use App\Livewire\Delivery\SignIn as DeliverySignIn;
 use App\Livewire\Shop\CategoryIndex;
 use App\Livewire\Shop\CategoryShow;
 use App\Livewire\Shop\Home;
@@ -48,6 +55,25 @@ Route::middleware(RequireDemoCustomer::class)->group(function () {
     Route::livewire('/account/orders', OrderList::class)->name('account.orders');
     Route::livewire('/account/orders/{order}', OrderShow::class)->name('account.order');
     Route::livewire('/account/addresses', AddressBook::class)->name('account.addresses');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Delivery panel (mobile web)
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('delivery')->name('delivery.')->group(function () {
+    Route::livewire('/login', DeliverySignIn::class)->name('login');
+
+    // Phase 3: demo sign-in guard. Phase 4: replaced by `auth` plus the delivery role.
+    Route::middleware(RequireDemoDeliveryBoy::class)->group(function () {
+        Route::livewire('/', DeliveryList::class)->name('index');
+        Route::livewire('/cash', CashSummary::class)->name('cash');
+        Route::livewire('/history', DeliveryHistory::class)->name('history');
+        Route::livewire('/profile', DeliveryProfile::class)->name('profile');
+        Route::livewire('/{order}', DeliveryShow::class)->name('order');
+    });
 });
 
 Route::get('/pages/{page}', InfoPageController::class)

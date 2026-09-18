@@ -110,6 +110,15 @@ snapshot: `product_name`, `variant_name`, `sku`, `mrp_paise`, `unit_price_paise`
 `line_total_paise`, `is_wholesale` bool (the line was priced at a slab, ADR-019), `tax_rate_bp` null ❓,
 `hsn_code` null ❓.
 
+### delivery_assignments (ADR-020)
+`order_id` FK (cascade), `user_id` FK (the delivery boy, restrict), `step` (`DeliveryStep`),
+`assigned_by` FK users null, `assigned_at`, `accepted_at` null, `picked_up_at` null, `reached_at` null,
+`delivered_at` null, `failed_at` null, `failure_reason` (`DeliveryFailureReason`) null, `failure_note` null,
+`delivery_code_hash` (the customer's 6-digit code, hashed), `code_attempts` unsigned tiny int default 0,
+`cash_collected_paise` unsigned int default 0, `cod_settlement_id` FK null.
+Indexes: (`user_id`, `step`), (`order_id`). Only the milestones write to `orders.status`: picked up →
+`out_for_delivery`, delivered → `delivered`, failed → `delivery_failed`.
+
 ### order_status_histories
 `order_id` FK (cascade), `from_status` null, `to_status`, `changed_by` FK users null, `note` null,
 `created_at`. Rows are only ever added, never edited.

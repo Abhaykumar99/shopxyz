@@ -2,6 +2,7 @@
 
 use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoCustomer;
+use App\Support\Demo\DemoDeliveryBoy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -54,4 +55,15 @@ function fillDemoCart(array $lines): DemoCart
     }
 
     return $cart;
+}
+
+/**
+ * Signs in the sample delivery boy (Phase 3 demo account).
+ */
+function signInDemoDeliveryBoy(): DemoDeliveryBoy
+{
+    $deliveryBoy = app(DemoDeliveryBoy::class);
+    $deliveryBoy->signIn();
+
+    return $deliveryBoy;
 }

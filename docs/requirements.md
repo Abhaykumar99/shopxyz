@@ -80,9 +80,13 @@ Plus: Cancelled, Delivery failed (see client-questions.md). Every change is logg
 
 - Admin manages delivery boys (name, phone, active/inactive), assigns orders, and sees assigned, pending and
   completed orders plus history per delivery boy.
-- Delivery panel (mobile web): assigned orders, customer and address details, order items, payment status,
-  COD amount, instructions.
-- Flow: Assigned → Accept → Picked up → Out for delivery → Reached → **OTP verification** → Delivered.
+- Delivery panel (mobile web, ADR-020): its own sign-in, today's round, one delivery (customer, address, call
+  and directions, items, payment and COD amount, instructions), cash to hand over, history of finished
+  deliveries and a profile with sign out.
+- Flow: Assigned → Accept → Picked up → Reached → **delivery code** → Delivered. The delivery boy's steps are
+  separate from the order status: picking up sets the order to Out for delivery, delivering or failing ends it.
+- The delivery code is checked at the door, at most 3 tries per order. A delivery that cannot be completed is
+  recorded with a reason (and a note when needed) that the customer reads on their order.
 - The COD amount collected is recorded at delivery, and cash handover is reconciled by the admin.
 
 ## 9. Admin dashboard

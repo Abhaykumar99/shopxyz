@@ -228,3 +228,28 @@ ADR-018 is gone: the bag is the only list a customer manages.
 Phase 2 keeps this in `App\Support\Demo\DemoWholesale` and `DemoCartLine` (ADR-016). Later phases add a
 `price_slabs` table on product variants (min quantity, unit price in paise), an `is_wholesale` flag on order
 items, and a `wholesale_enquiries` table with an admin screen.
+
+## ADR-020: Delivery steps are separate from the order status
+**Status:** Accepted, Phase 3 (owner decision)
+
+The delivery panel (`/delivery`, phone-first, its own sign-in) has more steps than the customer's timeline.
+
+- **Order status stays as it is**: Ready for delivery → Out for delivery → Delivered / Delivery failed. The
+  delivery boy's own steps live in `App\Enums\DeliveryStep` (assigned, accepted, picked_up, reached, delivered,
+  failed) as timestamps on the assignment. Only the milestones move the order: **picked up** makes it Out for
+  delivery, **delivered** and **failed** end it. Accepting and reaching the address change nothing the customer
+  sees, so their timeline stays short while the shop keeps the detail.
+- **Delivery is confirmed with the customer's 6-digit code**, at most 3 tries per order, after which the delivery
+  boy has to call the shop. For a COD order the cash collected is entered and must match the amount due; a
+  customer who cannot pay is a failed delivery, not a short payment (`DeliveryFailureReason::NoCash`).
+- **Failures carry a reason** (`App\Enums\DeliveryFailureReason`), each with wording written for the customer's
+  order page, and a note that is required when the reason alone is not enough (wrong address, rescheduled).
+- **Cash to hand over** is shown in the panel: collected today, already settled and what the boy is still
+  holding. The admin confirms the handover in Phase 9; the panel only reports.
+- Screens: sign-in, today's round, one delivery, cash to hand over, history of finished deliveries, profile with
+  sign out, plus a bottom navigation. The panel is phone-only (`max-w-lg`), with the one next action pinned
+  above the navigation in thumb reach.
+- Phase 3 keeps all of this in `App\Support\Demo\DemoDeliveries`, `DemoDeliveryJob` and `DemoDeliveryBoy`
+  (ADR-016), with `RequireDemoDeliveryBoy` standing in for auth. Phase 4 replaces the sign-in with a staff
+  account and the `delivery` role; Phase 9 replaces the data with `delivery_assignments` and the delivery
+  actions, and adds COD settlement. The screens and their tests carry over.
