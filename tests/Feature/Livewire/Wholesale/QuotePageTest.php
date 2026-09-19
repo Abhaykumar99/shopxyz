@@ -1,7 +1,7 @@
 <?php
 
 use App\Livewire\Wholesale\QuotePage;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoWholesale;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -60,7 +60,7 @@ it('sends a quote request and shows the reference', function () {
 });
 
 it('attaches the bag at its current prices and leaves it untouched', function () {
-    fillDemoCart(['MG-KK-3' => 20, 'BB-LIP-1' => 1]);
+    fillCart(['MG-KK-3' => 20, 'BB-LIP-1' => 1]);
 
     fillQuote(Livewire::test(QuotePage::class))
         ->assertSee('in my bag')
@@ -71,11 +71,11 @@ it('attaches the bag at its current prices and leaves it untouched', function ()
     $enquiry = app(DemoWholesale::class)->enquiry('WQ-5101');
     expect($enquiry['items'][0])->toMatchArray(['sku' => 'MG-KK-3', 'quantity' => 20, 'unit_paise' => 88000])
         ->and($enquiry['estimate'])->toBe(20 * 88000 + 34900)
-        ->and(app(DemoCart::class)->count())->toBe(21);
+        ->and(app(Bag::class)->count())->toBe(21);
 });
 
 it('can send a request without the bag', function () {
-    fillDemoCart(['MG-KK-3' => 20]);
+    fillCart(['MG-KK-3' => 20]);
 
     fillQuote(Livewire::test(QuotePage::class))
         ->set('attachBag', false)

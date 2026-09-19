@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Cart\Bag;
 use App\Support\Home\HomeContent;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\Config\Repository;
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
         // One per request, so the homepage reads its banners, blocks and rails
         // once however many times a render asks for them.
         $this->app->scoped(HomeContent::class);
+
+        // The bag is read several times in one render: the header count, the
+        // page, the summary.
+        $this->app->scoped(Bag::class);
     }
 
     /**

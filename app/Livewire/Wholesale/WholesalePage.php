@@ -4,9 +4,9 @@ namespace App\Livewire\Wholesale;
 
 use App\Livewire\Concerns\AddsToCart;
 use App\Models\Category;
+use App\Support\Cart\Bag;
 use App\Support\Catalog\WholesaleCatalog;
 use App\Support\Catalog\WholesaleItem;
-use App\Support\Demo\DemoCart;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
@@ -59,7 +59,7 @@ class WholesalePage extends Component
         $this->addToCart($sku, $quantity);
     }
 
-    public function render(DemoCart $cart): View
+    public function render(Bag $bag): View
     {
         $search = Str::limit(trim($this->search), 60, '');
         $items = WholesaleCatalog::query($this->category, $search);
@@ -69,9 +69,9 @@ class WholesalePage extends Component
             'featured' => WholesaleCatalog::featured(),
             'categories' => $this->categories(),
             'inBag' => WholesaleCatalog::query()
-                ->mapWithKeys(fn (WholesaleItem $item): array => [$item->sku() => $cart->quantityOf($item->sku())])
+                ->mapWithKeys(fn (WholesaleItem $item): array => [$item->sku() => $bag->quantityOf($item->sku())])
                 ->all(),
-            'bagCount' => $cart->count(),
+            'bagCount' => $bag->count(),
         ])->layout('layouts::shop', [
             'title' => 'Wholesale',
             'description' => 'Wholesale prices on sweets, gifts and cosmetics for shops, events and corporate gifting. Order online with COD or UPI.',

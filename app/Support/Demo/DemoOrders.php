@@ -6,6 +6,10 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Address;
+use App\Models\CartItem;
+use App\Models\ProductVariant;
+use App\Support\Cart\Bag;
+use App\Support\Catalog\WholesaleItem;
 use App\Support\ShopSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Session\Session;
@@ -50,23 +54,23 @@ final class DemoOrders
         return null;
     }
 
-    public function place(DemoCart $cart, Address $address, PaymentMethod $method, ?string $note = null): DemoOrder
+    public function place(Bag $bag, Address $address, PaymentMethod $method, ?string $note = null): DemoOrder
     {
-        $summary = $cart->summary($this->shop);
+        $summary = $bag->summary($this->shop);
         $number = 'ORD-'.(10300 + (int) $this->session->get(self::KEY.'.sequence', 0) + 1);
         $now = CarbonImmutable::now();
 
-        $items = array_map(fn (DemoCartLine $line): array => [
-            'name' => $line->product->name,
-            'variant' => $line->variant->name,
-            'sku' => $line->variant->sku,
-            'slug' => $line->product->slug,
-            'category' => $line->product->category,
+        $items = $bag->lines()->map(fn (CartItem $line): array => [
+            'name' => (string) $line->variant?->product?->name,
+            'variant' => (string) $line->variant?->name,
+            'sku' => $line->sku(),
+            'slug' => (string) $line->variant?->product?->slug,
+            'category' => (string) $line->variant?->product?->rootCategorySlug(),
             'quantity' => $line->quantity,
-            'mrp' => $line->variant->mrp ?? $line->variant->paise,
+            'mrp' => (int) ($line->variant->mrp_paise ?? $line->variant->price_paise),
             'paise' => $line->unitPrice(),
             'wholesale' => $line->isWholesale(),
-        ], $cart->lines());
+        ])->all();
 
         $data = [
             'number' => $number,
@@ -83,7 +87,7 @@ final class DemoOrders
 
         $this->session->put(self::KEY.'.placed.'.$number, $data);
         $this->session->put(self::KEY.'.sequence', (int) $this->session->get(self::KEY.'.sequence', 0) + 1);
-        $cart->clear();
+        $bag->clear();
 
         return $this->hydrate($data);
     }
@@ -263,19 +267,22 @@ final class DemoOrders
      */
     private function item(string $sku, int $quantity): array
     {
-        [$product, $variant] = DemoCatalog::findSku($sku) ?? throw new LogicException("Unknown demo SKU {$sku}");
-        $line = new DemoCartLine($product, $variant, $quantity);
+        $variant = ProductVariant::query()->where('sku', $sku)->with(['product.category.parent', 'priceSlabs'])->first()
+            ?? throw new LogicException("Unknown SKU {$sku}");
+        $product = $variant->product ?? throw new LogicException("SKU {$sku} has no product");
+        $wholesale = WholesaleItem::for($variant);
+        $isWholesale = $wholesale !== null && $quantity >= $wholesale->moq();
 
         return [
             'name' => $product->name,
             'variant' => $variant->name,
             'sku' => $sku,
             'slug' => $product->slug,
-            'category' => $product->category,
+            'category' => (string) $product->rootCategorySlug(),
             'quantity' => $quantity,
-            'mrp' => $variant->mrp ?? $variant->paise,
-            'paise' => $line->unitPrice(),
-            'wholesale' => $line->isWholesale(),
+            'mrp' => (int) ($variant->mrp_paise ?? $variant->price_paise),
+            'paise' => $isWholesale ? $wholesale->unitPriceFor($quantity) : $variant->price_paise,
+            'wholesale' => $isWholesale,
         ];
     }
 }

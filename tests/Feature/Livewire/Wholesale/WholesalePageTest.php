@@ -1,8 +1,8 @@
 <?php
 
 use App\Livewire\Wholesale\WholesalePage;
+use App\Support\Cart\Bag;
 use App\Support\Catalog\WholesaleCatalog;
-use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoWholesale;
 use Livewire\Livewire;
 
@@ -81,8 +81,8 @@ it('adds a bulk quantity to the bag at the slab price', function () {
         ->assertDispatched('toast', tone: 'success')
         ->assertSee('25 in your bag');
 
-    expect(app(DemoCart::class)->quantityOf('MG-KK-3'))->toBe(25);
-    expect(app(DemoCart::class)->lines()[0]->unitPrice())->toBe(88000);
+    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(25);
+    expect(app(Bag::class)->lines()[0]->unitPrice())->toBe(88000);
 });
 
 it('raises a quantity below the minimum to the minimum', function () {
@@ -92,7 +92,7 @@ it('raises a quantity below the minimum to the minimum', function () {
         ->assertSet('quantities.MG-KK-3', 5)
         ->assertDispatched('toast', tone: 'info');
 
-    expect(app(DemoCart::class)->quantityOf('MG-KK-3'))->toBe(5);
+    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(5);
 });
 
 it('never takes more than the largest order we handle', function () {
@@ -100,14 +100,14 @@ it('never takes more than the largest order we handle', function () {
         ->set('quantities.MG-KK-3', DemoWholesale::MAX_QUANTITY + 500)
         ->call('addBulkToCart', 'MG-KK-3');
 
-    expect(app(DemoCart::class)->quantityOf('MG-KK-3'))->toBe(DemoWholesale::MAX_QUANTITY);
+    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(DemoWholesale::MAX_QUANTITY);
 });
 
 it('ignores unknown products', function () {
     Livewire::test(WholesalePage::class)
         ->call('addBulkToCart', 'NOPE-1');
 
-    expect(app(DemoCart::class)->isEmpty())->toBeTrue();
+    expect(app(Bag::class)->isEmpty())->toBeTrue();
 });
 
 it('shows what the typed quantity costs and the next slab', function () {
@@ -119,7 +119,7 @@ it('shows what the typed quantity costs and the next slab', function () {
 });
 
 it('offers a link to the bag once something is in it', function () {
-    fillDemoCart(['MG-KK-3' => 20]);
+    fillCart(['MG-KK-3' => 20]);
 
     Livewire::test(WholesalePage::class)
         ->assertSee('Go to bag (20)')

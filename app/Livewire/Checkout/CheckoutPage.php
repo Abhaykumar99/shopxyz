@@ -9,7 +9,7 @@ use App\Livewire\Forms\AddressForm;
 use App\Livewire\Forms\PhoneForm;
 use App\Models\Address;
 use App\Models\User;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoOrders;
 use App\Support\IndianStates;
 use App\Support\Money;
@@ -37,13 +37,13 @@ class CheckoutPage extends Component
 
     public string $note = '';
 
-    public function mount(DemoCart $cart, ShopSettings $shop): mixed
+    public function mount(Bag $bag, ShopSettings $shop): mixed
     {
-        if ($cart->isEmpty()) {
+        if ($bag->isEmpty()) {
             return $this->redirectRoute('cart.show');
         }
 
-        if (! $cart->summary($shop)['cod_available']) {
+        if (! $bag->summary($shop)['cod_available']) {
             $this->paymentMethod = PaymentMethod::Upi->value;
         }
 
@@ -84,7 +84,7 @@ class CheckoutPage extends Component
         $this->dispatch('toast', message: 'Address saved.', tone: 'success');
     }
 
-    public function placeOrder(DemoCart $cart, DemoOrders $orders, ShopSettings $shop): mixed
+    public function placeOrder(Bag $bag, DemoOrders $orders, ShopSettings $shop): mixed
     {
         $this->note = trim($this->note);
 
@@ -112,8 +112,8 @@ class CheckoutPage extends Component
             throw ValidationException::withMessages(['addressId' => 'We don\'t deliver to this address yet. Choose or add another one.']);
         }
 
-        $summary = $cart->summary($shop);
-        if ($cart->isEmpty() || $cart->hasUnavailableLines() || ! $summary['meets_minimum']) {
+        $summary = $bag->summary($shop);
+        if ($bag->isEmpty() || $bag->hasUnavailableLines() || ! $summary['meets_minimum']) {
             session()->flash('toast', ['message' => 'Your bag changed. Please review it before placing the order.', 'tone' => 'warning']);
 
             return $this->redirectRoute('cart.show');
@@ -129,18 +129,18 @@ class CheckoutPage extends Component
             ]);
         }
 
-        $order = $orders->place($cart, $address, $method, $this->note);
+        $order = $orders->place($bag, $address, $method, $this->note);
 
         return $method === PaymentMethod::Upi
             ? $this->redirectRoute('orders.pay', $order->number)
             : $this->redirectRoute('orders.placed', $order->number);
     }
 
-    public function render(DemoCart $cart, ShopSettings $shop): View
+    public function render(Bag $bag, ShopSettings $shop): View
     {
         return view('livewire.checkout.checkout-page', [
-            'lines' => $cart->lines(),
-            'summary' => $cart->summary($shop),
+            'lines' => $bag->lines(),
+            'summary' => $bag->summary($shop),
             'customer' => $this->customer(),
             'addresses' => $this->addresses(),
             'states' => IndianStates::options(),

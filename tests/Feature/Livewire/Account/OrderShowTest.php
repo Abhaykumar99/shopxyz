@@ -2,7 +2,8 @@
 
 use App\Enums\OrderStatus;
 use App\Livewire\Account\OrderShow;
-use App\Support\Demo\DemoCart;
+use App\Models\CartItem;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoOrders;
 use Livewire\Livewire;
 
@@ -80,14 +81,14 @@ it('puts the items back in the bag with buy again', function () {
         ->call('buyAgain')
         ->assertRedirect(route('cart.show'));
 
-    expect(app(DemoCart::class))
+    expect(app(Bag::class))
         ->quantityOf('UG-DRY-1')->toBe(1)
         ->quantityOf('KC-MUG-1')->toBe(2);
 });
 
 it('warns when nothing can be bought again', function () {
     // RS-MASC-1 is a retail-only product, so the bag is full at the per-line limit.
-    app(DemoCart::class)->add('RS-MASC-1', DemoCart::MAX_PER_LINE);
+    app(Bag::class)->add(variantFor('RS-MASC-1'), CartItem::MAX_PER_LINE);
 
     Livewire::test(OrderShow::class, ['order' => 'ORD-10150'])
         ->call('buyAgain')

@@ -4,6 +4,7 @@ use App\Livewire\Account\OrderList;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    seedCatalog();
     signInCustomer();
 });
 

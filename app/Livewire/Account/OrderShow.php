@@ -2,7 +2,8 @@
 
 namespace App\Livewire\Account;
 
-use App\Support\Demo\DemoCart;
+use App\Models\ProductVariant;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoOrders;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
@@ -33,13 +34,21 @@ class OrderShow extends Component
         $this->dispatch('toast', message: 'This order is already being packed or on its way, so it can no longer be cancelled.', tone: 'warning');
     }
 
-    public function buyAgain(DemoOrders $orders, DemoCart $cart): mixed
+    public function buyAgain(DemoOrders $orders): mixed
     {
         $order = $orders->find($this->number) ?? abort(404);
         $added = 0;
 
         foreach ($order->items as $item) {
-            $added += $cart->add($item['sku'], $item['quantity']);
+            $variant = ProductVariant::query()
+                ->where('sku', $item['sku'])
+                ->where('is_active', true)
+                ->with('priceSlabs')
+                ->first();
+
+            if ($variant !== null) {
+                $added += app(Bag::class)->add($variant, $item['quantity']);
+            }
         }
 
         if ($added === 0) {

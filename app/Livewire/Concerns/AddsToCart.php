@@ -2,45 +2,49 @@
 
 namespace App\Livewire\Concerns;
 
-use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCartLine;
-use App\Support\Demo\DemoCatalog;
+use App\Models\ProductVariant;
+use App\Support\Cart\Bag;
 use App\Support\Money;
 
 /**
  * "Add to bag" for any page that lists products, retail or wholesale. A line
- * that reaches the product's minimum wholesale quantity is priced at its slab
+ * that reaches the product's minimum wholesale quantity is priced at its band
  * price, so the confirmation says so (ADR-019).
  */
 trait AddsToCart
 {
     public function addToCart(string $sku, int $quantity = 1): void
     {
-        $found = DemoCatalog::findSku($sku);
+        $variant = ProductVariant::query()
+            ->where('sku', $sku)
+            ->where('is_active', true)
+            ->with(['product', 'priceSlabs'])
+            ->first();
 
-        if ($found === null) {
+        if ($variant === null || ! $variant->product?->is_active) {
             return;
         }
 
-        [$product, $variant] = $found;
-        $cart = app(DemoCart::class);
+        $bag = app(Bag::class);
         $requested = max(1, $quantity);
-        $added = $cart->add($sku, $requested);
+        $added = $bag->add($variant, $requested);
 
         if ($added === 0) {
             $this->dispatch('toast', message: $variant->inStock()
-                ? "You already have the most we can sell of {$product->name}."
-                : "{$product->name} is out of stock.", tone: 'warning');
+                ? "You already have the most we can sell of {$variant->product->name}."
+                : "{$variant->product->name} is out of stock.", tone: 'warning');
 
             return;
         }
 
-        $line = new DemoCartLine($product, $variant, $cart->quantityOf($sku));
+        $line = $bag->lines()->firstWhere(fn ($line): bool => $line->sku() === $sku);
+        $name = $variant->product->name;
+
         $this->dispatch('cart-updated');
         $this->dispatch('toast', message: match (true) {
-            $line->isWholesale() => "{$product->name}: {$line->quantity} in your bag at ".Money::format($line->unitPrice()).' each (wholesale price).',
-            $added < $requested => "Added {$added}. That's all we have of {$product->name} right now.",
-            default => "Added {$product->name} to your bag (".Money::format($variant->paise * $added).').',
+            $line !== null && $line->isWholesale() => "{$name}: {$line->quantity} in your bag at ".Money::format($line->unitPrice()).' each (wholesale price).',
+            $added < $requested => "Added {$added}. That's all we have of {$name} right now.",
+            default => "Added {$name} to your bag (".Money::format($variant->price_paise * $added).').',
         }, tone: 'success');
     }
 }

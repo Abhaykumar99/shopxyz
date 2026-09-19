@@ -3,6 +3,10 @@
 use App\Livewire\Account\Profile;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('greets the customer with their Google details', function () {
     signInCustomer()->forceFill([
         'name' => 'Priya Sharma',
@@ -52,7 +56,7 @@ it('rejects an invalid mobile number and keeps the old one', function () {
 
 it('signs out and empties the bag', function () {
     signInCustomer();
-    fillDemoCart(['MG-KK-1' => 1]);
+    fillCart(['MG-KK-1' => 1]);
 
     $this->post('/logout')->assertRedirect(route('shop.home'));
 

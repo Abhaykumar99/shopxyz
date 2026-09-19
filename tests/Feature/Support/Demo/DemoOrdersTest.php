@@ -3,7 +3,7 @@
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoOrders;
 
 beforeEach(function () {
@@ -12,7 +12,7 @@ beforeEach(function () {
 
 it('places an order from the bag and empties the bag', function () {
     $customer = signInCustomerWithAddress();
-    $cart = fillDemoCart(['MG-KK-2' => 2]);
+    $cart = fillCart(['MG-KK-2' => 2]);
 
     $order = app(DemoOrders::class)->place($cart, $customer->addresses()->sole(), PaymentMethod::Upi, 'Ring the bell');
 
@@ -21,7 +21,7 @@ it('places an order from the bag and empties the bag', function () {
         ->and($order->paymentStatus)->toBe(PaymentStatus::AwaitingProof)
         ->and($order->total())->toBe(104000)
         ->and($order->note)->toBe('Ring the bell')
-        ->and(app(DemoCart::class)->isEmpty())->toBeTrue()
+        ->and(app(Bag::class)->isEmpty())->toBeTrue()
         ->and(app(DemoOrders::class)->find('ORD-10301'))->not->toBeNull();
 });
 

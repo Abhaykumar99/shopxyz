@@ -2,13 +2,14 @@
 
 namespace App\Livewire\Cart;
 
-use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCartLine;
-use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoWholesale;
+use App\Models\CartItem;
+use App\Models\ProductVariant;
+use App\Support\Cart\Bag;
+use App\Support\Catalog\WholesaleItem;
 use App\Support\Money;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class CartPage extends Component
@@ -16,61 +17,77 @@ class CartPage extends Component
     /** @var array<string, int> */
     public array $quantities = [];
 
-    public function mount(DemoCart $cart): void
+    public function mount(Bag $bag): void
     {
-        $this->syncQuantities($cart);
+        $this->syncQuantities($bag);
     }
 
     public function updatedQuantities(mixed $value, string $sku): void
     {
-        $cart = app(DemoCart::class);
-        $previous = $cart->quantityOf($sku);
+        $bag = app(Bag::class);
+        $previous = $bag->quantityOf($sku);
 
+        // Typing a quantity never adds a line that was not already in the bag.
         if ($previous === 0) {
-            $this->syncQuantities($cart);
+            $this->syncQuantities($bag);
+
+            return;
+        }
+
+        $variant = $this->variant($sku);
+
+        if ($variant === null) {
+            $this->syncQuantities($bag);
 
             return;
         }
 
         $requested = max(1, (int) $value);
-        $stored = $cart->setQuantity($sku, $requested);
-        $wholesale = DemoWholesale::item($sku);
+        $stored = $bag->setQuantity($variant, $requested);
+        $wholesale = WholesaleItem::for($variant);
 
         if ($stored < $requested) {
             $this->dispatch('toast', message: $wholesale !== null
                 ? "The most we take in one order is {$stored}. Ask us for a quote for anything larger."
                 : "We can only sell {$stored} of this item right now.", tone: 'warning');
         } elseif ($wholesale !== null && $previous >= $wholesale->moq() && $stored < $wholesale->moq()) {
-            $this->dispatch('toast', message: "Below {$wholesale->moq()}, this line goes back to the retail price of ".Money::format($wholesale->variant->paise).'.', tone: 'info');
+            $this->dispatch('toast', message: "Below {$wholesale->moq()}, this line goes back to the retail price of ".Money::format($variant->price_paise).'.', tone: 'info');
         }
 
-        $this->syncQuantities($cart);
+        $this->syncQuantities($bag);
         $this->dispatch('cart-updated');
     }
 
     public function remove(string $sku): void
     {
-        $cart = app(DemoCart::class);
-        $found = DemoCatalog::findSku($sku);
+        $bag = app(Bag::class);
 
-        if ($cart->quantityOf($sku) === 0) {
+        if ($bag->quantityOf($sku) === 0) {
             return;
         }
 
-        $cart->remove($sku);
-        $this->syncQuantities($cart);
+        $variant = $this->variant($sku);
+
+        if ($variant === null) {
+            return;
+        }
+
+        $name = $variant->product->name;
+
+        $bag->remove($variant);
+        $this->syncQuantities($bag);
         $this->dispatch('cart-updated');
-        $this->dispatch('toast', message: ($found ? $found[0]->name : 'Item').' removed from your bag.', tone: 'info');
+        $this->dispatch('toast', message: $name.' removed from your bag.', tone: 'info');
     }
 
-    public function render(DemoCart $cart, ShopSettings $shop): View
+    public function render(Bag $bag, ShopSettings $shop): View
     {
-        $lines = $cart->lines();
+        $lines = $bag->lines();
 
         return view('livewire.cart.cart-page', [
             'lines' => $lines,
-            'summary' => $cart->summary($shop),
-            'blocked' => $cart->hasUnavailableLines(),
+            'summary' => $bag->summary($shop),
+            'blocked' => $bag->hasUnavailableLines(),
             'freeDeliveryProgress' => $this->freeDeliveryProgress($lines, $shop),
         ])->layout('layouts::shop', [
             'title' => 'Your bag',
@@ -79,23 +96,33 @@ class CartPage extends Component
         ]);
     }
 
-    private function syncQuantities(DemoCart $cart): void
+    /**
+     * The variant behind a SKU the browser sent, resolved through the bag so a
+     * SKU that is not in it cannot be acted on.
+     */
+    private function variant(string $sku): ?ProductVariant
     {
-        $this->quantities = collect($cart->lines())
-            ->mapWithKeys(fn (DemoCartLine $line): array => [$line->variant->sku => $line->quantity])
+        return app(Bag::class)->lines()
+            ->first(fn (CartItem $line): bool => $line->sku() === $sku)?->variant;
+    }
+
+    private function syncQuantities(Bag $bag): void
+    {
+        $this->quantities = $bag->lines()
+            ->mapWithKeys(fn (CartItem $line): array => [$line->sku() => $line->quantity])
             ->all();
     }
 
     /**
-     * @param  list<DemoCartLine>  $lines
+     * @param  Collection<int, CartItem>  $lines
      */
-    private function freeDeliveryProgress(array $lines, ShopSettings $shop): int
+    private function freeDeliveryProgress(Collection $lines, ShopSettings $shop): int
     {
         if ($shop->freeDeliveryAbovePaise <= 0) {
             return 100;
         }
 
-        $subtotal = array_sum(array_map(fn (DemoCartLine $line): int => $line->total(), $lines));
+        $subtotal = (int) $lines->sum(fn (CartItem $line): int => $line->total());
 
         return (int) min(100, floor($subtotal * 100 / $shop->freeDeliveryAbovePaise));
     }

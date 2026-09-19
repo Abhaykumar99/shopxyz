@@ -1,8 +1,9 @@
 <?php
 
 use App\Models\Address;
+use App\Models\ProductVariant;
 use App\Models\User;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use Database\Seeders\CatalogSeeder;
 use Database\Seeders\HomepageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,19 +83,32 @@ function signInCustomerWithAddress(?string $phone = '9830012345'): User
 }
 
 /**
- * Puts SKUs in the bag: ['MG-KK-2' => 1].
+ * Puts SKUs in the bag: ['MG-KK-2' => 1]. The catalogue has to be seeded first,
+ * because the bag now holds real variants.
  *
  * @param  array<string, int>  $lines
  */
-function fillDemoCart(array $lines): DemoCart
+function fillCart(array $lines): Bag
 {
-    $cart = app(DemoCart::class);
+    $bag = app(Bag::class);
 
     foreach ($lines as $sku => $quantity) {
-        $cart->add($sku, $quantity);
+        $variant = ProductVariant::query()->where('sku', $sku)->with('priceSlabs')->first();
+
+        if ($variant !== null) {
+            $bag->add($variant, $quantity);
+        }
     }
 
-    return $cart;
+    return $bag;
+}
+
+/**
+ * The variant behind a SKU, for tests that need to act on one directly.
+ */
+function variantFor(string $sku): ProductVariant
+{
+    return ProductVariant::query()->where('sku', $sku)->with('priceSlabs')->sole();
 }
 
 /**

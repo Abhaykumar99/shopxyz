@@ -65,7 +65,7 @@
                     <x-ui.input label="Delivery city" name="form.city" wire:model="form.city" autocomplete="address-level2" maxlength="60" required />
                     <x-ui.input label="Delivery pincode" name="form.pincode" wire:model="form.pincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" required />
 
-                    @if ($lines !== [])
+                    @if ($lines->isNotEmpty())
                         <x-ui.checkbox
                             label="Attach what's in my bag"
                             name="attachBag"
@@ -103,7 +103,7 @@
                     </ul>
                 </section>
 
-                @if ($lines !== [])
+                @if ($lines->isNotEmpty())
                     <section aria-labelledby="bag-title" class="flex flex-col gap-3 rounded-sheet border border-line bg-surface p-5">
                         <div class="flex items-center justify-between gap-3">
                             <h2 id="bag-title" class="text-xl">In your bag</h2>
@@ -112,7 +112,7 @@
                         <ul class="flex flex-col gap-2">
                             @foreach ($lines as $line)
                                 <li wire:key="quote-bag-{{ $line->variant->sku }}" class="flex items-baseline justify-between gap-3">
-                                    <span class="min-w-0 truncate">{{ $line->product->name }}</span>
+                                    <span class="min-w-0 truncate">{{ $line->variant->product->name }}</span>
                                     <span class="figures shrink-0 text-sm text-ink-soft">{{ $line->quantity }} × {{ Money::format($line->unitPrice()) }}</span>
                                 </li>
                             @endforeach

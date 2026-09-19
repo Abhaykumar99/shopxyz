@@ -3,7 +3,7 @@
 use App\Livewire\Checkout\CheckoutPage;
 use App\Models\Address;
 use App\Models\User;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoOrders;
 use Livewire\Livewire;
 
@@ -14,7 +14,7 @@ beforeEach(function () {
 it('sends guests to sign in and back to checkout afterwards', function () {
     // The developer shortcut signs in whichever customer the seeders made.
     User::factory()->googleCustomer()->create();
-    fillDemoCart(['MG-KK-1' => 1]);
+    fillCart(['MG-KK-1' => 1]);
 
     $this->get('/checkout')->assertRedirect(route('auth.login'));
     $this->get('/login')->assertSee('Sign in to place your order');
@@ -29,7 +29,7 @@ it('sends an empty bag back to the bag page', function () {
 
 it('preselects the default address and cash on delivery', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->assertSet('addressId', $customer->addresses()->sole()->id)
@@ -40,7 +40,7 @@ it('preselects the default address and cash on delivery', function () {
 
 it('asks for a mobile number before placing the order', function () {
     signInCustomerWithAddress(phone: null);
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->assertSet('editingPhone', true)
@@ -48,12 +48,12 @@ it('asks for a mobile number before placing the order', function () {
         ->assertHasErrors(['phoneForm.phone'])
         ->assertNoRedirect();
 
-    expect(app(DemoCart::class)->isEmpty())->toBeFalse();
+    expect(app(Bag::class)->isEmpty())->toBeFalse();
 });
 
 it('validates and saves the mobile number', function (string $input, ?string $error) {
     signInCustomer(phone: null);
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     $test = Livewire::test(CheckoutPage::class)
         ->set('phoneForm.phone', $input)
@@ -73,7 +73,7 @@ it('validates and saves the mobile number', function (string $input, ?string $er
 
 it('requires a delivery address', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->set('addressId', null)
@@ -88,7 +88,7 @@ it('refuses an address outside the delivery area', function () {
         'label' => 'Other', 'line1' => '12 MG Road',
         'city' => 'Delhi', 'state' => 'Delhi', 'pincode' => '110001',
     ]);
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->set('addressId', $outside->id)
@@ -98,7 +98,7 @@ it('refuses an address outside the delivery area', function () {
 
 it('rejects an unknown payment method', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->set('paymentMethod', 'card')
@@ -108,7 +108,7 @@ it('rejects an unknown payment method', function () {
 
 it('places a cash on delivery order and shows the confirmation', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->set('note', '  Call before arriving  ')
@@ -120,7 +120,7 @@ it('places a cash on delivery order and shows the confirmation', function () {
     expect($order->total())->toBe(52000)
         ->and($order->note)->toBe('Call before arriving')
         ->and($order->address->id)->toBe((string) $customer->addresses()->sole()->id)
-        ->and(app(DemoCart::class)->isEmpty())->toBeTrue();
+        ->and(app(Bag::class)->isEmpty())->toBeTrue();
 
     $this->get(route('orders.placed', 'ORD-10301'))
         ->assertSee('Thank you, your order is placed')
@@ -129,7 +129,7 @@ it('places a cash on delivery order and shows the confirmation', function () {
 
 it('sends UPI orders to the payment page', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->set('paymentMethod', 'upi')
@@ -139,9 +139,13 @@ it('sends UPI orders to the payment page', function () {
 
 it('sends the customer back to the bag when the bag changed', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['GL-VITC-1' => 1]);
+    variantFor('GL-VITC-1')->forceFill(['stock_quantity' => 9])->save();
+    fillCart(['GL-VITC-1' => 9]);
     $test = Livewire::test(CheckoutPage::class);
-    session()->put('demo.cart', ['GL-VITC-1' => 9]);
+
+    // The shelf runs down while the customer is on the checkout page.
+    variantFor('GL-VITC-1')->forceFill(['stock_quantity' => 1])->save();
+    app()->forgetScopedInstances();
 
     $test->call('placeOrder')->assertRedirect(route('cart.show'));
 
@@ -150,7 +154,7 @@ it('sends the customer back to the bag when the bag changed', function () {
 
 it('adds a new address during checkout and selects it', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->call('newAddress')
@@ -167,7 +171,7 @@ it('adds a new address during checkout and selects it', function () {
 
 it('checks the pincode as soon as it is entered', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-2' => 1]);
+    fillCart(['MG-KK-2' => 1]);
 
     Livewire::test(CheckoutPage::class)
         ->call('newAddress')
@@ -178,7 +182,7 @@ it('checks the pincode as soon as it is entered', function () {
 
 it('places a bulk order at slab prices through the ordinary checkout', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-3' => 20]);
+    fillCart(['MG-KK-3' => 20]);
 
     Livewire::test(CheckoutPage::class)
         ->assertSee('Wholesale price')
@@ -194,7 +198,7 @@ it('places a bulk order at slab prices through the ordinary checkout', function 
 
 it('offers only UPI above the cash on delivery ceiling', function () {
     $customer = signInCustomerWithAddress();
-    fillDemoCart(['MG-KK-3' => 25]);
+    fillCart(['MG-KK-3' => 25]);
 
     Livewire::test(CheckoutPage::class)
         ->assertSet('paymentMethod', 'upi')
@@ -205,5 +209,5 @@ it('offers only UPI above the cash on delivery ceiling', function () {
         ->assertHasErrors(['paymentMethod'])
         ->assertSet('paymentMethod', 'upi');
 
-    expect(app(DemoCart::class)->isEmpty())->toBeFalse();
+    expect(app(Bag::class)->isEmpty())->toBeFalse();
 });

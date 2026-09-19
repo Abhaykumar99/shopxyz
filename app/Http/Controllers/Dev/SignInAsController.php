@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Dev;
 
+use App\Actions\Cart\MergeGuestCart;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,11 +19,11 @@ use Illuminate\Support\Facades\Auth;
  */
 final class SignInAsController extends Controller
 {
-    public function __invoke(Request $request, DemoCart $cart, string $role): RedirectResponse
+    public function __invoke(Request $request, Bag $bag, string $role): RedirectResponse
     {
         if ($role === 'guest') {
             Auth::logout();
-            $cart->clear();
+            $bag->clear();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
@@ -38,8 +39,14 @@ final class SignInAsController extends Controller
             ]);
         }
 
+        $guestSession = $request->session()->getId();
+
         Auth::login($user);
         $request->session()->regenerate();
+
+        if ($role !== 'delivery') {
+            app(MergeGuestCart::class)->handle($user, $guestSession);
+        }
 
         $home = $role === 'delivery' ? route('delivery.index') : route('account.profile');
 

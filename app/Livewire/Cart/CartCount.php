@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Cart;
 
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -22,8 +22,8 @@ class CartCount extends Component
         // Re-renders with the latest count.
     }
 
-    public function render(DemoCart $cart): View
+    public function render(Bag $bag): View
     {
-        return view('livewire.cart.cart-count', ['count' => $cart->count()]);
+        return view('livewire.cart.cart-count', ['count' => $bag->count()]);
     }
 }

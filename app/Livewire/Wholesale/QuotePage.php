@@ -3,10 +3,11 @@
 namespace App\Livewire\Wholesale;
 
 use App\Livewire\Forms\WholesaleEnquiryForm;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use App\Support\Demo\DemoWholesale;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Locked;
@@ -37,7 +38,7 @@ class QuotePage extends Component
         }
     }
 
-    public function submit(DemoWholesale $wholesale, DemoCart $cart): void
+    public function submit(DemoWholesale $wholesale, Bag $bag): void
     {
         $key = 'wholesale-enquiry:'.session()->getId();
 
@@ -50,7 +51,7 @@ class QuotePage extends Component
         $details = $this->form->payload();
         RateLimiter::hit($key, 600);
 
-        $this->submittedReference = $wholesale->submit($details, $this->attachBag ? $cart->lines() : []);
+        $this->submittedReference = $wholesale->submit($details, $this->attachBag ? $bag->lines() : new Collection);
         $this->dispatch('quote-submitted');
     }
 
@@ -60,12 +61,12 @@ class QuotePage extends Component
         $this->form->reset('message', 'neededBy');
     }
 
-    public function render(DemoWholesale $wholesale, DemoCart $cart, ShopSettings $shop): View
+    public function render(DemoWholesale $wholesale, Bag $bag, ShopSettings $shop): View
     {
         return view('livewire.wholesale.quote-page', [
             'businessTypes' => DemoWholesale::BUSINESS_TYPES,
-            'lines' => $cart->lines(),
-            'estimate' => $cart->summary($shop)['subtotal'],
+            'lines' => $bag->lines(),
+            'estimate' => $bag->summary($shop)['subtotal'],
             'submitted' => $this->submittedReference ? $wholesale->enquiry($this->submittedReference) : null,
         ])->layout('layouts::shop', [
             'title' => 'Request a wholesale quote',

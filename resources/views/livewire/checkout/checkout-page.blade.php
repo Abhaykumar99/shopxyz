@@ -149,9 +149,9 @@
                     <ul class="flex flex-col divide-y divide-line">
                         @foreach ($lines as $line)
                             <li wire:key="review-{{ $line->variant->sku }}" class="flex items-center gap-3 py-3">
-                                <x-shop.product-image :category="$line->product->category" :alt="$line->product->name" class="size-14 shrink-0 rounded-field" />
+                                <x-shop.product-image :category="$line->variant->product->rootCategorySlug()" :alt="$line->variant->product->name" class="size-14 shrink-0 rounded-field" />
                                 <div class="min-w-0 grow">
-                                    <p class="truncate font-medium">{{ $line->product->name }}</p>
+                                    <p class="truncate font-medium">{{ $line->variant->product->name }}</p>
                                     <p class="figures text-sm text-ink-soft">{{ $line->variant->name }}, qty {{ $line->quantity }} &times; {{ Money::format($line->unitPrice()) }}</p>
                                     @if ($line->isWholesale())
                                         <x-ui.badge tone="brand" icon="boxes" class="mt-1">Wholesale price</x-ui.badge>

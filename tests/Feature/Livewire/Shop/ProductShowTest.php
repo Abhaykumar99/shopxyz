@@ -1,7 +1,7 @@
 <?php
 
 use App\Livewire\Shop\ProductShow;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -49,7 +49,7 @@ it('adds the chosen quantity of the chosen shade to the bag', function () {
         ->call('add')
         ->assertDispatched('cart-updated');
 
-    expect(app(DemoCart::class)->quantityOf('BB-LIP-2'))->toBe(3);
+    expect(app(Bag::class)->quantityOf('BB-LIP-2'))->toBe(3);
 });
 
 it('caps the quantity at the stock left', function () {
@@ -58,7 +58,7 @@ it('caps the quantity at the stock left', function () {
         ->set('quantity', 9)
         ->call('add');
 
-    expect(app(DemoCart::class)->quantityOf('BB-LIP-5'))->toBe(2);
+    expect(app(Bag::class)->quantityOf('BB-LIP-5'))->toBe(2);
 });
 
 it('offers no purchase for an out of stock shade', function () {
@@ -69,7 +69,7 @@ it('offers no purchase for an out of stock shade', function () {
         ->call('buyNow')
         ->assertNoRedirect();
 
-    expect(app(DemoCart::class)->isEmpty())->toBeTrue();
+    expect(app(Bag::class)->isEmpty())->toBeTrue();
 });
 
 it('goes straight to the bag with buy now', function () {
@@ -77,7 +77,7 @@ it('goes straight to the bag with buy now', function () {
         ->call('buyNow')
         ->assertRedirect(route('cart.show'));
 
-    expect(app(DemoCart::class)->quantityOf('MG-KK-1'))->toBe(1);
+    expect(app(Bag::class)->quantityOf('MG-KK-1'))->toBe(1);
 });
 
 it('shows bulk prices on a product that has wholesale slabs', function () {
@@ -100,5 +100,5 @@ it('adds the wholesale minimum from the product page', function () {
         ->call('addWholesaleMinimum')
         ->assertDispatched('cart-updated');
 
-    expect(app(DemoCart::class)->quantityOf('MG-KK-3'))->toBe(5);
+    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(5);
 });

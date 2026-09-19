@@ -49,7 +49,7 @@ it('points at the next cheaper slab until the best one is reached', function () 
 });
 
 it('keeps a record of a quote request with the attached bag', function () {
-    $cart = fillDemoCart(['MG-KK-3' => 20]);
+    $cart = fillCart(['MG-KK-3' => 20]);
 
     $reference = app(DemoWholesale::class)->submit(['business_name' => 'Sharma Sweets'], $cart->lines());
 

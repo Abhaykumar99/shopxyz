@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Support\Demo\DemoCart;
+use App\Support\Cart\Bag;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,13 +31,12 @@ final class SessionController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, DemoCart $cart): RedirectResponse
+    public function destroy(Request $request, Bag $bag): RedirectResponse
     {
         Auth::logout();
 
-        // The bag still lives in the session until Phase 7, so signing out has
-        // to empty it: on a shared phone the next person must not inherit it.
-        $cart->clear();
+        // On a shared phone the next person must not inherit the bag.
+        $bag->clear();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

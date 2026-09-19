@@ -3,12 +3,12 @@
 namespace App\Livewire\Shop;
 
 use App\Livewire\Concerns\AddsToCart;
+use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Support\Catalog\WholesaleCatalog;
+use App\Support\Cart\Bag;
 use App\Support\Catalog\WholesaleItem;
-use App\Support\Demo\DemoCart;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -76,9 +76,14 @@ class ProductShow extends Component
             return null;
         }
 
-        $cart = app(DemoCart::class);
-        if ($cart->quantityOf($variant->sku) < $this->clampedQuantity()) {
-            $cart->setQuantity($variant->sku, $this->clampedQuantity());
+        $bag = app(Bag::class);
+        $wanted = $this->clampedQuantity();
+        $shortfall = $wanted - $bag->quantityOf($variant->sku);
+
+        // Adding rather than setting, because changing a quantity never creates
+        // a line that is not in the bag yet.
+        if ($shortfall > 0) {
+            $bag->add($variant, $shortfall);
         }
 
         return $this->redirectRoute('cart.show', navigate: false);
@@ -93,7 +98,7 @@ class ProductShow extends Component
             'product' => $product,
             'variant' => $variant,
             'maxQuantity' => $this->ceiling($variant),
-            'inBag' => app(DemoCart::class)->quantityOf($variant->sku),
+            'inBag' => app(Bag::class)->quantityOf($variant->sku),
             'wholesale' => WholesaleItem::for($variant),
             'similar' => $this->similar($product),
             'breadcrumb' => $this->breadcrumb($product),
@@ -194,16 +199,11 @@ class ProductShow extends Component
     }
 
     /**
-     * The most of this variant a customer may put in the bag: the retail
-     * per-line cap, or the wholesale ceiling for a variant with price bands.
-     * Mirrors DemoCart::ceilingFor(), which still speaks the sample catalogue's
-     * types until the bag moves onto the database in the next stage.
+     * The most of this variant a customer may put in the bag.
      */
     private function ceiling(ProductVariant $variant): int
     {
-        return WholesaleItem::for($variant) !== null
-            ? WholesaleCatalog::MAX_QUANTITY
-            : max(1, min(DemoCart::MAX_PER_LINE, $variant->stock_quantity));
+        return CartItem::ceilingFor($variant);
     }
 
     private function clampedQuantity(): int

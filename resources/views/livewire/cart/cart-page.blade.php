@@ -13,7 +13,7 @@
         @endif
     </div>
 
-    @if ($lines === [])
+    @if ($lines->isEmpty())
         <x-ui.card>
             <x-ui.empty-state icon="shopping-bag" title="Your bag is empty">
                 Browse fresh sweets, beauty favourites and ready-to-give hampers.
@@ -52,16 +52,16 @@
                         <x-shop.cart-line
                             wire:key="line-{{ $line->variant->sku }}"
                             :sku="$line->variant->sku"
-                            :name="$line->product->name"
-                            :url="route('shop.product', ['product' => $line->product->slug, 'option' => $line->product->hasChoices() ? $line->variant->sku : null])"
-                            :category="$line->product->category"
-                            :variant="$line->product->hasChoices() || $line->variant->name !== 'Standard' ? $line->variant->name : null"
+                            :name="$line->variant->product->name"
+                            :url="route('shop.product', ['product' => $line->variant->product->slug, 'option' => $line->variant->product->hasChoices() ? $line->variant->sku : null])"
+                            :category="$line->variant->product->rootCategorySlug()"
+                            :variant="$line->variant->product->hasChoices() || $line->variant->name !== 'Standard' ? $line->variant->name : null"
                             :paise="$line->unitPrice()"
-                            :mrp="$line->variant->mrp"
+                            :mrp="$line->variant->mrp_paise"
                             :quantity="$line->quantity"
                             :max="$line->maxQuantity()"
                             :available="$line->isAvailable()"
-                            :stock="$line->variant->stock"
+                            :stock="$line->variant->stock_quantity"
                             :wholesale="$line->isWholesale()"
                             :slab="$line->slabLabel()"
                             :next-slab-units="$next ? $next['min'] - $line->quantity : 0"

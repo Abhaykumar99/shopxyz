@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Actions\Auth\FindOrCreateGoogleCustomer;
 use App\Actions\Auth\GoogleSignInDenied;
+use App\Actions\Cart\MergeGuestCart;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +37,7 @@ final class GoogleController extends Controller
         return $google->redirect();
     }
 
-    public function callback(Request $request, FindOrCreateGoogleCustomer $findOrCreate): RedirectResponse
+    public function callback(Request $request, FindOrCreateGoogleCustomer $findOrCreate, MergeGuestCart $mergeGuestCart): RedirectResponse
     {
         abort_unless(self::isConfigured(), 404);
 
@@ -60,8 +61,14 @@ final class GoogleController extends Controller
                 ->with('toast', ['message' => 'We could not complete the sign-in. Please try again.', 'tone' => 'warning']);
         }
 
+        // Read before regenerating: the bag this visitor filled as a guest is
+        // keyed on the session id they had a moment ago.
+        $guestSession = $request->session()->getId();
+
         Auth::login($customer, remember: true);
         $request->session()->regenerate();
+
+        $mergeGuestCart->handle($customer, $guestSession);
 
         return redirect()->intended(route('account.profile'));
     }

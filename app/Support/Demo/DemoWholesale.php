@@ -2,6 +2,7 @@
 
 namespace App\Support\Demo;
 
+use App\Models\CartItem;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Support\Collection;
@@ -106,9 +107,9 @@ final class DemoWholesale
      * Records the request and returns its reference.
      *
      * @param  array<string, mixed>  $details
-     * @param  list<DemoCartLine>  $lines  bag contents the customer chose to attach
+     * @param  Collection<int, CartItem>  $lines  bag contents the customer chose to attach
      */
-    public function submit(array $details, array $lines = []): string
+    public function submit(array $details, Collection $lines = new Collection): string
     {
         $sequence = (int) $this->session->get(self::KEY.'.sequence', 0) + 1;
         $reference = 'WQ-'.(5100 + $sequence);
@@ -117,13 +118,13 @@ final class DemoWholesale
             'reference' => $reference,
             'submitted_at' => CarbonImmutable::now()->toIso8601String(),
             'details' => $details,
-            'items' => array_map(fn (DemoCartLine $line): array => [
-                'sku' => $line->variant->sku,
-                'name' => $line->product->name,
+            'items' => $lines->map(fn (CartItem $line): array => [
+                'sku' => $line->sku(),
+                'name' => (string) $line->variant?->product?->name,
                 'quantity' => $line->quantity,
                 'unit_paise' => $line->unitPrice(),
-            ], $lines),
-            'estimate' => array_sum(array_map(fn (DemoCartLine $line): int => $line->total(), $lines)),
+            ])->all(),
+            'estimate' => (int) $lines->sum(fn (CartItem $line): int => $line->total()),
         ]);
         $this->session->put(self::KEY.'.sequence', $sequence);
 
