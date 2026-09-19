@@ -68,6 +68,11 @@ jobs:
           key: composer-${{ hashFiles('composer.lock') }}
           restore-keys: composer-
 
+      # Catches a composer.json that has drifted from composer.lock, which
+      # `composer install` would otherwise happily ignore.
+      - name: Validate Composer files
+        run: composer validate --strict
+
       - name: Install PHP dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 

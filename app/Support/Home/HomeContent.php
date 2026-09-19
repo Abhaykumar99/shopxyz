@@ -94,15 +94,25 @@ final class HomeContent
     }
 
     /**
+     * Memoised for the request rather than cached across requests, the same way
+     * `App\Support\Shop\Navigation` does it.
+     *
+     * Two reasons not to reach for `Cache` here. `config/cache.php` sets
+     * `serializable_classes => false`, so Laravel refuses to deserialise objects
+     * out of the cache at all — a deliberate hardening default worth keeping. And
+     * `live()` is a function of `now()`, so a banner scheduled for this evening
+     * must be able to appear on its own. What this removes is the repeated query
+     * inside one render, which is where the cost actually was.
+     *
      * @return Collection<int, Banner>
      */
     private function banners(BannerPlacement $placement): Collection
     {
-        return Banner::query()
+        return once(fn (): Collection => Banner::query()
             ->live()
             ->placement($placement)
             ->orderBy('sort_order')
-            ->get();
+            ->get());
     }
 
     /**

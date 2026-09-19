@@ -412,3 +412,39 @@ ADR-004 settled *who* signs in how. This records the four choices made while bui
 `DeliveryAssignmentPolicy`, `CodSettlementPolicy` and `InvoicePolicy` wait: their only readers today are
 Filament screens already behind `canAccessPanel()`, so a policy would guard nothing and go untested.
 They arrive with the delivery panel in Phase 10.
+
+## ADR-026: The shop's clock, its response headers, and what may go in the cache
+**Status:** Accepted, hardening pass before Phase 7
+
+Three decisions made while getting the project closer to production.
+
+- **The application runs on `Asia/Kolkata`, not UTC** (`APP_TIMEZONE`, defaulting in
+  `config/app.php`). The shop trades in one city, so one clock end to end is simpler and correct:
+  the business day begins at midnight where the shop is. Under the UTC default it began at 05:30
+  IST, which put an order taken at 9pm and one taken at 2am on different business days and made
+  the dashboard's "orders today" the wrong twenty-four hours. Storing UTC and converting per view
+  is the right answer for a business spanning timezones and is only overhead for this one. The
+  change was made while the data was still samples, because Laravel writes datetimes in the
+  application timezone and a later change would re-interpret real orders by five and a half hours.
+  The test suite pins the timezone so a result never depends on a developer's own `.env.testing`.
+
+- **Every response carries baseline security headers**, set by `App\Http\Middleware\SecurityHeaders`
+  on the `web` group *and* named again in the Filament panel, which builds its own middleware stack
+  and was otherwise framable by any origin. `X-Frame-Options` is `SAMEORIGIN` rather than `DENY`
+  because the local phone preview frames the site itself and same-origin framing is not the attack.
+  HSTS is sent only when the request already arrived over HTTPS, so a plain-HTTP dev server cannot
+  pin a developer's browser for a year.
+
+  The **Content-Security-Policy is report-only, deliberately**. Livewire injects inline scripts and
+  Alpine's `x-data` expressions need `unsafe-eval`, so a policy this codebase could enforce today
+  would have to permit exactly what a CSP exists to forbid. A throttled endpoint logs violations so
+  the enforcing policy can be written from what the site actually loads. It becomes enforceable with
+  Alpine's CSP build, which is a Phase 11 job.
+
+- **Only plain data goes in the cache.** `config/cache.php` sets `serializable_classes => false`, so
+  Laravel refuses to deserialise objects out of the cache at all; a cached Eloquent collection comes
+  back as `__PHP_Incomplete_Class`. That default stays. Caching therefore covers things like the
+  settings map, which is an array, while model reads that are merely repeated within one render —
+  the homepage banners, the navigation categories — are memoised per request with `once()` instead.
+  Content with a schedule, such as a banner's `starts_at`, must not be cached across requests
+  anyway, or it can never begin on its own.
