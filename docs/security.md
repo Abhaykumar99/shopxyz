@@ -48,7 +48,7 @@ Each item names the phase in which it is implemented, using the phase numbers in
 - [ ] UFW: allow 22, 80, 443 only. MySQL bound to 127.0.0.1
 - [ ] Fail2ban for SSH (and Nginx auth, optional)
 - [ ] HTTPS with Let's Encrypt, HTTP redirects to HTTPS, HSTS
-- [ ] Security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, basic CSP
+- [x] (P6) Security headers on every response: `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, HSTS over HTTPS, and a **report-only** CSP with a logging endpoint. An enforcing CSP waits for the Alpine CSP build, because Livewire's inline scripts and Alpine's `x-data` need `unsafe-inline`/`unsafe-eval` today
 - [ ] Nginx web root = `public/` only. Block dotfiles
 - [ ] Automatic security updates (`unattended-upgrades`)
 - [ ] GitHub **read-only deploy key** on the VPS

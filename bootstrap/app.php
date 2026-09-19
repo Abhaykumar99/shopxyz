@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Every response carries the baseline security headers (docs/security.md).
+        $middleware->web(append: [App\Http\Middleware\SecurityHeaders::class]);
+
         $middleware->alias([
             'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
             'delivery' => App\Http\Middleware\EnsureUserIsDeliveryPartner::class,

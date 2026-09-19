@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\InfoPageController;
 use App\Http\Controllers\SitemapController;
 use App\Livewire\Account\AddressBook;
@@ -27,6 +28,7 @@ use App\Livewire\Shop\ProductShow;
 use App\Livewire\Shop\Search;
 use App\Livewire\Wholesale\QuotePage;
 use App\Livewire\Wholesale\WholesalePage;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -101,6 +103,14 @@ Route::middleware(['auth', 'admin'])
     ->name('admin.payment-proof');
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+
+// Where browsers post Content-Security-Policy violations while the policy is
+// report-only. Unauthenticated by nature, so it is throttled like the OAuth
+// callback and answers with nothing.
+Route::post('/csp-report', CspReportController::class)
+    ->middleware('throttle:30,1')
+    ->withoutMiddleware([PreventRequestForgery::class])
+    ->name('csp.report');
 
 Route::get('/pages/{page}', InfoPageController::class)
     ->whereIn('page', array_keys(InfoPageController::PAGES))
