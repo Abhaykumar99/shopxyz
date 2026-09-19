@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\HomeSection;
 use App\Models\HomeSectionItem;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -11,14 +13,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class HomeSectionItemFactory extends Factory
 {
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            //
+            'home_section_id' => HomeSection::factory(),
+            'product_id' => Product::factory(),
+            'category_id' => null,
+            'sort_order' => 0,
         ];
     }
 }
