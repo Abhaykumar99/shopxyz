@@ -2,29 +2,39 @@
 
 namespace App\Livewire\Account;
 
+use App\Actions\Account\DeleteAddress;
+use App\Actions\Account\SaveAddress;
+use App\Actions\Account\SetDefaultAddress;
 use App\Livewire\Forms\AddressForm;
-use App\Support\Demo\DemoCustomer;
+use App\Models\Address;
+use App\Models\User;
 use App\Support\IndianStates;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class AddressBook extends Component
 {
     public AddressForm $addressForm;
 
-    public ?string $deletingId = null;
+    /**
+     * Only ever set by `confirmDelete()` after the address has been resolved
+     * through the signed-in customer, so the browser cannot choose it freely.
+     */
+    #[Locked]
+    public ?int $deletingId = null;
 
-    public function create(DemoCustomer $customer, ShopSettings $shop): void
+    public function create(ShopSettings $shop): void
     {
-        $profile = $customer->profile();
-        $this->addressForm->start($profile['name'], $profile['phone'], $shop->deliveryArea);
+        $customer = $this->customer();
+        $this->addressForm->start($customer->name, $customer->phone, $shop->deliveryArea);
         $this->dispatch('open-modal', 'address-form');
     }
 
-    public function edit(string $id, DemoCustomer $customer): void
+    public function edit(int $id): void
     {
-        $address = $customer->address($id);
+        $address = $this->find($id);
 
         if ($address === null) {
             return;
@@ -39,18 +49,19 @@ class AddressBook extends Component
         $this->validateOnly('addressForm.pincode');
     }
 
-    public function save(DemoCustomer $customer): void
+    public function save(SaveAddress $saveAddress): void
     {
-        $editing = $this->addressForm->id !== null && $customer->address($this->addressForm->id) !== null;
-        $customer->saveAddress($this->addressForm->payload(), $editing ? $this->addressForm->id : null);
+        $editing = $this->addressForm->id !== null ? $this->find($this->addressForm->id) : null;
+
+        $saveAddress->handle($this->customer(), $this->addressForm->payload(), $editing);
 
         $this->dispatch('close-modal', 'address-form');
-        $this->dispatch('toast', message: $editing ? 'Address updated.' : 'Address added.', tone: 'success');
+        $this->dispatch('toast', message: $editing !== null ? 'Address updated.' : 'Address added.', tone: 'success');
     }
 
-    public function confirmDelete(string $id, DemoCustomer $customer): void
+    public function confirmDelete(int $id): void
     {
-        if ($customer->address($id) === null) {
+        if ($this->find($id) === null) {
             return;
         }
 
@@ -58,10 +69,12 @@ class AddressBook extends Component
         $this->dispatch('open-modal', 'delete-address');
     }
 
-    public function delete(DemoCustomer $customer): void
+    public function delete(DeleteAddress $deleteAddress): void
     {
-        if ($this->deletingId !== null && $customer->address($this->deletingId) !== null) {
-            $customer->deleteAddress($this->deletingId);
+        $address = $this->deletingId !== null ? $this->find($this->deletingId) : null;
+
+        if ($address !== null) {
+            $deleteAddress->handle($this->customer(), $address);
             $this->dispatch('toast', message: 'Address deleted.', tone: 'info');
         }
 
@@ -69,24 +82,42 @@ class AddressBook extends Component
         $this->dispatch('close-modal', 'delete-address');
     }
 
-    public function makeDefault(string $id, DemoCustomer $customer): void
+    public function makeDefault(int $id, SetDefaultAddress $setDefault): void
     {
-        if ($customer->address($id) !== null) {
-            $customer->setDefaultAddress($id);
+        $address = $this->find($id);
+
+        if ($address !== null) {
+            $setDefault->handle($this->customer(), $address);
             $this->dispatch('toast', message: 'Default address updated.', tone: 'success');
         }
     }
 
-    public function render(DemoCustomer $customer): View
+    public function render(): View
     {
+        $customer = $this->customer();
+
         return view('livewire.account.address-book', [
-            'addresses' => $customer->addresses(),
-            'deleting' => $this->deletingId ? $customer->address($this->deletingId) : null,
+            'addresses' => $customer->addresses()->orderByDesc('is_default')->orderBy('id')->get(),
+            'deleting' => $this->deletingId !== null ? $this->find($this->deletingId) : null,
             'states' => IndianStates::options(),
             'labels' => AddressForm::LABELS,
         ])->layout('layouts::account', [
             'title' => 'Saved addresses',
             'tab' => 'addresses',
         ]);
+    }
+
+    private function customer(): User
+    {
+        return auth()->user() ?? abort(403);
+    }
+
+    /**
+     * Every id arriving from the browser is looked up through the signed-in
+     * customer's own addresses, so another customer's row can never be reached.
+     */
+    private function find(int $id): ?Address
+    {
+        return $this->customer()->addresses()->find($id);
     }
 }

@@ -44,7 +44,9 @@ class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()
                     ->recoverable()
                     ->regenerableRecoveryCodes(),
-            ], isRequired: false)
+                // Required in production (ADR-004); optional locally so a demo
+                // account can be reviewed without enrolling an authenticator.
+            ], isRequired: app()->isProduction())
             ->brandName(config('shop.name'))
             ->colors([
                 'primary' => [

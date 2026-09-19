@@ -6,7 +6,7 @@
             <span aria-hidden="true" class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand font-display text-2xl font-bold text-white">{{ $customer->initials() }}</span>
             <div class="min-w-0">
                 <h1 class="truncate text-2xl font-bold sm:text-3xl">Hello, {{ $customer->firstName() }}</h1>
-                <p class="truncate text-ink-soft">{{ $profile['email'] }}</p>
+                <p class="truncate text-ink-soft">{{ $customer->email }}</p>
             </div>
         </div>
 
@@ -21,11 +21,11 @@
             <dl class="flex flex-col divide-y divide-line">
                 <div class="flex flex-col gap-1 py-3 sm:flex-row sm:gap-4">
                     <dt class="w-40 shrink-0 text-ink-soft">Name</dt>
-                    <dd class="font-medium">{{ $profile['name'] }}</dd>
+                    <dd class="font-medium">{{ $customer->name }}</dd>
                 </div>
                 <div class="flex flex-col gap-1 py-3 sm:flex-row sm:gap-4">
                     <dt class="w-40 shrink-0 text-ink-soft">Email</dt>
-                    <dd class="min-w-0 font-medium break-all">{{ $profile['email'] }}</dd>
+                    <dd class="min-w-0 font-medium break-all">{{ $customer->email }}</dd>
                 </div>
                 <div class="flex flex-col gap-2 py-3 sm:flex-row sm:gap-4">
                     <dt class="w-40 shrink-0 text-ink-soft sm:pt-2">Mobile number</dt>
@@ -54,7 +54,7 @@
                             </form>
                         @else
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="figures font-medium sm:pt-2">{{ IndianPhone::format($profile['phone']) }}</span>
+                                <span class="figures font-medium sm:pt-2">{{ IndianPhone::format($customer->phone) }}</span>
                                 <x-ui.button variant="ghost" size="sm" icon="pencil" wire:click="$set('editingPhone', true)">Change</x-ui.button>
                             </div>
                         @endif

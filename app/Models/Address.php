@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\IndianPhone;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,6 +66,26 @@ class Address extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Address lines for display, without the pincode.
+     *
+     * @return list<string>
+     */
+    public function lines(): array
+    {
+        return array_values(array_filter([
+            $this->line1,
+            $this->line2,
+            $this->landmark ? "Near {$this->landmark}" : null,
+            "{$this->city}, {$this->state}",
+        ]));
+    }
+
+    public function formattedPhone(): string
+    {
+        return IndianPhone::format($this->phone);
     }
 
     /**

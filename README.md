@@ -112,7 +112,19 @@ docs/                    project documentation
 ```
 
 ## Status
+
+Phases run in the order set out in [docs/requirements.md](docs/requirements.md) §13, and each one
+starts only after the owner approves it.
+
 - **Phase 0 (foundation):** complete.
 - **Phase 1 (design system):** complete, see [docs/design-system.md](docs/design-system.md).
-- **Phase 2 (customer UI with dummy data):** complete, waiting for review before merging.
-- **Phase 3 (delivery panel UI with dummy data):** starts after approval.
+- **Phase 2 (customer UI with dummy data):** complete.
+- **Phase 3 (delivery panel UI with dummy data):** complete.
+- **Phase 4 (database schema, models, factories, seeders):** complete, see [docs/erd.md](docs/erd.md).
+- **Phase 5 (Filament admin panel and the managed homepage):** complete (ADR-023, ADR-024).
+- **Phase 6 (auth: Google sign-in, staff accounts, roles and policies):** in progress.
+- **Phases 7–11:** the storefront, orders, invoices and the delivery round move onto the database,
+  then hardening and launch.
+
+The storefront and the delivery panel still read the temporary demo layer described in ADR-016.
+Each area swaps to Eloquent in the phase named in the table.

@@ -7,7 +7,7 @@ use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyExceptio
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoDeliveryBoy();
+    signInDeliveryPartner();
 });
 
 it('shows the boxes, customer, address, items and the cash to collect', function () {

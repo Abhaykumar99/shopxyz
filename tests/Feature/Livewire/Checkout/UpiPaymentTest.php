@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoCustomer();
+    signInCustomer();
 });
 
 it('shows the amount, UPI ID and a pay-in-app link', function () {

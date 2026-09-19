@@ -9,11 +9,11 @@ use App\Livewire\Delivery\DeliveryList;
 use App\Livewire\Delivery\Profile;
 use App\Support\Demo\DemoCash;
 use App\Support\Demo\DemoDeliveries;
-use App\Support\Demo\DemoDeliveryBoy;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoDeliveryBoy();
+    $this->partner = signInDeliveryPartner();
+    $this->partner->forceFill(['name' => 'Rahul Kumar', 'phone' => '9000011111'])->save();
 });
 
 it('opens the round grouped into to pick up, picked up, out for delivery and delivered', function () {
@@ -169,7 +169,6 @@ it('shows the delivery boy their own details and today’s summary', function ()
     Livewire::test(Profile::class)
         ->assertSee('Rahul Kumar')
         ->assertSee('+91 90000 11111')
-        ->assertSee('Boring Road and Bakerganj')
         ->assertSee('Cash with you');
 });
 
@@ -178,5 +177,5 @@ it('signs out and returns to the sign-in screen', function () {
         ->call('signOut')
         ->assertRedirect(route('delivery.login'));
 
-    expect(app(DemoDeliveryBoy::class)->isSignedIn())->toBeFalse();
+    expect(auth()->check())->toBeFalse();
 });

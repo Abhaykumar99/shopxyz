@@ -4,7 +4,7 @@ use App\Livewire\Account\OrderList;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoCustomer();
+    signInCustomer();
 });
 
 it('shows orders in progress first, newest first', function () {

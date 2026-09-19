@@ -1,4 +1,4 @@
-{{-- Customer sign-in (ADR-004). Google sign-in is connected in Phase 4. --}}
+{{-- Customer sign-in: Google only (ADR-004). --}}
 <x-layouts::auth title="Sign in" class="flex flex-col gap-6 text-center">
     <div class="flex flex-col gap-2">
         <h1 class="text-2xl font-bold">
@@ -11,12 +11,16 @@
 
     @if ($googleUrl)
         <x-shop.google-button :href="$googleUrl" />
-        <p class="rounded-field bg-accent-tint px-3 py-2 text-sm text-accent-ink">
-            Preview: this signs you in as a sample customer.
-        </p>
     @else
         <x-shop.google-button href="#" aria-disabled="true" />
         <p class="text-sm text-ink-soft">Sign-in opens soon.</p>
+    @endif
+
+    @if ($developerUrl)
+        <div class="flex flex-col gap-2 rounded-field bg-accent-tint px-3 py-2 text-sm text-accent-ink">
+            <span>Developer shortcut: this machine has no Google client configured.</span>
+            <a href="{{ $developerUrl }}" class="font-semibold underline">Continue as a sample customer</a>
+        </div>
     @endif
 
     <ul class="flex flex-col gap-2 text-start text-sm text-ink-soft">

@@ -2,17 +2,20 @@
 
 namespace App\Livewire\Checkout;
 
+use App\Actions\Account\SaveAddress;
+use App\Actions\Account\UpdatePhone;
 use App\Enums\PaymentMethod;
 use App\Livewire\Forms\AddressForm;
 use App\Livewire\Forms\PhoneForm;
-use App\Support\Demo\DemoAddress;
+use App\Models\Address;
+use App\Models\User;
 use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCustomer;
 use App\Support\Demo\DemoOrders;
 use App\Support\IndianStates;
 use App\Support\Money;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
@@ -28,13 +31,13 @@ class CheckoutPage extends Component
 
     public bool $editingPhone = false;
 
-    public ?string $addressId = null;
+    public ?int $addressId = null;
 
     public string $paymentMethod = 'cod';
 
     public string $note = '';
 
-    public function mount(DemoCart $cart, DemoCustomer $customer, ShopSettings $shop): mixed
+    public function mount(DemoCart $cart, ShopSettings $shop): mixed
     {
         if ($cart->isEmpty()) {
             return $this->redirectRoute('cart.show');
@@ -44,26 +47,27 @@ class CheckoutPage extends Component
             $this->paymentMethod = PaymentMethod::Upi->value;
         }
 
+        $customer = $this->customer();
         $this->editingPhone = ! $customer->hasPhone();
-        $this->phoneForm->phone = (string) $customer->profile()['phone'];
+        $this->phoneForm->phone = (string) $customer->phone;
 
-        $default = collect($customer->addresses())->first(fn (DemoAddress $address): bool => $shop->servesPincode($address->pincode));
+        $default = $this->addresses()->first(fn (Address $address): bool => $shop->servesPincode($address->pincode));
         $this->addressId = $default?->id;
 
         return null;
     }
 
-    public function savePhone(DemoCustomer $customer): void
+    public function savePhone(UpdatePhone $updatePhone): void
     {
-        $customer->updatePhone($this->phoneForm->validated());
+        $updatePhone->handle($this->customer(), $this->phoneForm->validated());
         $this->editingPhone = false;
         $this->dispatch('toast', message: 'Mobile number saved.', tone: 'success');
     }
 
-    public function newAddress(DemoCustomer $customer, ShopSettings $shop): void
+    public function newAddress(ShopSettings $shop): void
     {
-        $profile = $customer->profile();
-        $this->addressForm->start($profile['name'], $profile['phone'], $shop->deliveryArea);
+        $customer = $this->customer();
+        $this->addressForm->start($customer->name, $customer->phone, $shop->deliveryArea);
         $this->dispatch('open-modal', 'checkout-address');
     }
 
@@ -72,34 +76,38 @@ class CheckoutPage extends Component
         $this->validateOnly('addressForm.pincode');
     }
 
-    public function saveAddress(DemoCustomer $customer): void
+    public function saveAddress(SaveAddress $saveAddress): void
     {
-        $address = $customer->saveAddress($this->addressForm->payload());
+        $address = $saveAddress->handle($this->customer(), $this->addressForm->payload());
         $this->addressId = $address->id;
         $this->dispatch('close-modal', 'checkout-address');
         $this->dispatch('toast', message: 'Address saved.', tone: 'success');
     }
 
-    public function placeOrder(DemoCart $cart, DemoCustomer $customer, DemoOrders $orders, ShopSettings $shop): mixed
+    public function placeOrder(DemoCart $cart, DemoOrders $orders, ShopSettings $shop): mixed
     {
         $this->note = trim($this->note);
 
         $this->validate([
             'paymentMethod' => ['required', Rule::enum(PaymentMethod::class)],
             'note' => ['nullable', 'string', 'max:200'],
-            'addressId' => ['required', 'string'],
+            'addressId' => ['required', 'integer'],
         ], [
             'addressId.required' => 'Choose where we should deliver.',
             'paymentMethod.required' => 'Choose how you want to pay.',
             'note.max' => 'Keep the note under 200 characters.',
         ]);
 
+        $customer = $this->customer();
+
         if (! $customer->hasPhone()) {
             $this->editingPhone = true;
             throw ValidationException::withMessages(['phoneForm.phone' => 'Add your mobile number so the delivery partner can reach you.']);
         }
 
-        $address = $customer->address($this->addressId);
+        // Resolved through the customer's own addresses, so a tampered id can
+        // never point at someone else's.
+        $address = $customer->addresses()->find($this->addressId);
         if ($address === null || ! $shop->servesPincode($address->pincode)) {
             throw ValidationException::withMessages(['addressId' => 'We don\'t deliver to this address yet. Choose or add another one.']);
         }
@@ -128,13 +136,13 @@ class CheckoutPage extends Component
             : $this->redirectRoute('orders.placed', $order->number);
     }
 
-    public function render(DemoCart $cart, DemoCustomer $customer, ShopSettings $shop): View
+    public function render(DemoCart $cart, ShopSettings $shop): View
     {
         return view('livewire.checkout.checkout-page', [
             'lines' => $cart->lines(),
             'summary' => $cart->summary($shop),
-            'profile' => $customer->profile(),
-            'addresses' => $customer->addresses(),
+            'customer' => $this->customer(),
+            'addresses' => $this->addresses(),
             'states' => IndianStates::options(),
             'labels' => AddressForm::LABELS,
         ])->layout('layouts::shop', [
@@ -142,5 +150,18 @@ class CheckoutPage extends Component
             'active' => 'cart',
             'noindex' => true,
         ]);
+    }
+
+    private function customer(): User
+    {
+        return auth()->user() ?? abort(403);
+    }
+
+    /**
+     * @return Collection<int, Address>
+     */
+    private function addresses(): Collection
+    {
+        return $this->customer()->addresses()->orderByDesc('is_default')->orderBy('id')->get();
     }
 }

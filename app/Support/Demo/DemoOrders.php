@@ -5,6 +5,7 @@ namespace App\Support\Demo;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Models\Address;
 use App\Support\ShopSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Session\Session;
@@ -49,7 +50,7 @@ final class DemoOrders
         return null;
     }
 
-    public function place(DemoCart $cart, DemoAddress $address, PaymentMethod $method, ?string $note = null): DemoOrder
+    public function place(DemoCart $cart, Address $address, PaymentMethod $method, ?string $note = null): DemoOrder
     {
         $summary = $cart->summary($this->shop);
         $number = 'ORD-'.(10300 + (int) $this->session->get(self::KEY.'.sequence', 0) + 1);
@@ -74,7 +75,7 @@ final class DemoOrders
             'payment_method' => $method->value,
             'payment_status' => $method->initialPaymentStatus()->value,
             'items' => $items,
-            'address' => $address->toArray(),
+            'address' => DemoAddress::fromModel($address)->toArray(),
             'delivery' => $summary['delivery'],
             'note' => $note ?: null,
             'timeline' => [OrderStatus::Placed->value => $now->toIso8601String()],

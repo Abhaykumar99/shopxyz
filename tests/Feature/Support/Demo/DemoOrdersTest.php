@@ -7,10 +7,10 @@ use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoOrders;
 
 it('places an order from the bag and empties the bag', function () {
-    $customer = signInDemoCustomer();
+    $customer = signInCustomerWithAddress();
     $cart = fillDemoCart(['MG-KK-2' => 2]);
 
-    $order = app(DemoOrders::class)->place($cart, $customer->defaultAddress(), PaymentMethod::Upi, 'Ring the bell');
+    $order = app(DemoOrders::class)->place($cart, $customer->addresses()->sole(), PaymentMethod::Upi, 'Ring the bell');
 
     expect($order->number)->toBe('ORD-10301')
         ->and($order->status)->toBe(OrderStatus::Placed)

@@ -48,10 +48,12 @@
             </p>
         </x-ui.card>
 
-        @if (app()->environment('local'))
+        {{-- Local only: the seeded partner's credentials, so the panel can be
+             reviewed without asking the shop for a real account. --}}
+        @if (app()->environment('local') && $seededPartner)
             <x-ui.alert tone="info" title="Preview account">
-                <span class="figures">{{ \App\Support\IndianPhone::format(\App\Support\Demo\DemoDeliveryBoy::PHONE) }}</span>
-                with the password <span class="figures font-semibold">{{ \App\Support\Demo\DemoDeliveryBoy::PASSWORD }}</span>.
+                <span class="figures">{{ \App\Support\IndianPhone::format($seededPartner) }}</span>
+                with the password <span class="figures font-semibold">{{ \Database\Seeders\UserSeeder::DELIVERY_PASSWORD }}</span>.
             </x-ui.alert>
         @endif
 

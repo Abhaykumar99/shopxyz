@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\Address;
 use App\Rules\IndianMobile;
 use App\Rules\ServedPincode;
-use App\Support\Demo\DemoAddress;
 use App\Support\IndianPhone;
 use App\Support\IndianStates;
 use App\Support\ShopSettings;
@@ -15,7 +15,7 @@ class AddressForm extends Form
 {
     public const LABELS = ['Home', 'Work', 'Other'];
 
-    public ?string $id = null;
+    public ?int $id = null;
 
     public string $label = 'Home';
 
@@ -82,12 +82,12 @@ class AddressForm extends Form
         $this->city = (string) $city;
     }
 
-    public function fillFrom(DemoAddress $address): void
+    public function fillFrom(Address $address): void
     {
         $this->resetValidation();
         $this->id = $address->id;
         $this->label = $address->label;
-        $this->name = $address->name;
+        $this->name = $address->recipient_name;
         $this->phone = $address->phone;
         $this->line1 = $address->line1;
         $this->line2 = (string) $address->line2;
@@ -95,13 +95,13 @@ class AddressForm extends Form
         $this->city = $address->city;
         $this->state = $address->state;
         $this->pincode = $address->pincode;
-        $this->isDefault = $address->isDefault;
+        $this->isDefault = $address->is_default;
     }
 
     /**
      * Validates and returns the data to store.
      *
-     * @return array{label: string, name: string, phone: string, line1: string, line2: string|null, landmark: string|null, city: string, state: string, pincode: string, is_default: bool}
+     * @return array{label: string, recipient_name: string, phone: string, line1: string, line2: string|null, landmark: string|null, city: string, state: string, pincode: string, is_default: bool}
      */
     public function payload(): array
     {
@@ -113,7 +113,7 @@ class AddressForm extends Form
 
         return [
             'label' => $this->label,
-            'name' => $this->name,
+            'recipient_name' => $this->name,
             'phone' => IndianPhone::normalize($this->phone),
             'line1' => $this->line1,
             'line2' => $this->line2 !== '' ? $this->line2 : null,

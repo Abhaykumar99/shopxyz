@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 /**
  * Customers sign in with Google and have no password; admins and delivery
@@ -89,6 +90,36 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public function isCustomer(): bool
     {
         return $this->role === UserRole::Customer;
+    }
+
+    /**
+     * Google gives us no phone number, and the delivery partner needs one, so it
+     * is asked for before the first order (ADR-004).
+     */
+    public function hasPhone(): bool
+    {
+        return filled($this->phone);
+    }
+
+    /**
+     * How the shop greets this person: "Hello, Priya".
+     */
+    public function firstName(): string
+    {
+        return Str::before(trim($this->name), ' ') ?: $this->name;
+    }
+
+    /**
+     * Up to two initials for the avatar circle when there is no Google picture.
+     */
+    public function initials(): string
+    {
+        $words = array_slice(preg_split('/\s+/', trim($this->name)) ?: [], 0, 2);
+
+        return mb_strtoupper(implode('', array_map(
+            fn (string $word): string => mb_substr($word, 0, 1),
+            array_filter($words),
+        )));
     }
 
     /**

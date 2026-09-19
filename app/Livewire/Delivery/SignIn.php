@@ -2,16 +2,21 @@
 
 namespace App\Livewire\Delivery;
 
+use App\Enums\UserRole;
+use App\Models\User;
 use App\Rules\IndianMobile;
-use App\Support\Demo\DemoDeliveryBoy;
+use App\Support\IndianPhone;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 /**
- * Delivery panel sign-in (Phase 3, demo credentials).
- * Phase 4 replaces this with the staff guard; the screen and its rate limit stay.
+ * Delivery panel sign-in: the mobile number the admin put on the account, plus
+ * the password they were given (ADR-004, client question 6). Staff never sign
+ * in with Google.
  */
 class SignIn extends Component
 {
@@ -21,12 +26,14 @@ class SignIn extends Component
 
     public bool $showPassword = false;
 
-    public function mount(DemoDeliveryBoy $deliveryBoy): mixed
+    public function mount(): mixed
     {
-        return $deliveryBoy->isSignedIn() ? $this->redirectIntended(route('delivery.index')) : null;
+        return auth()->user()?->isDeliveryPartner()
+            ? $this->redirectIntended(route('delivery.index'))
+            : null;
     }
 
-    public function submit(DemoDeliveryBoy $deliveryBoy): mixed
+    public function submit(): mixed
     {
         $this->validate([
             'phone' => ['required', 'string', new IndianMobile],
@@ -45,22 +52,48 @@ class SignIn extends Component
             ]);
         }
 
-        if (! $deliveryBoy->credentialsMatch($this->phone, $this->password)) {
+        $partner = $this->partnerFor($this->phone);
+
+        if ($partner === null || ! Hash::check($this->password, (string) $partner->password)) {
             RateLimiter::hit($key, 900);
             $this->reset('password');
 
+            // One message for every failure, so the form never reveals which
+            // numbers belong to an account.
             throw ValidationException::withMessages(['phone' => 'That number and password do not match. Please try again.']);
         }
 
         RateLimiter::clear($key);
-        $deliveryBoy->signIn();
+
+        Auth::login($partner);
+        session()->regenerate();
+        $partner->forceFill(['last_login_at' => now()])->save();
 
         return $this->redirectIntended(route('delivery.index'), navigate: false);
     }
 
+    /**
+     * Only an active delivery partner can sign in here. A customer or an admin
+     * with the same number is not a match.
+     */
+    private function partnerFor(string $phone): ?User
+    {
+        return User::query()
+            ->where('phone', IndianPhone::normalize($phone))
+            ->where('role', UserRole::Delivery)
+            ->where('is_active', true)
+            ->whereNotNull('password')
+            ->first();
+    }
+
     public function render(): View
     {
-        return view('livewire.delivery.sign-in')->layout('layouts::app', [
+        return view('livewire.delivery.sign-in', [
+            // Shown only on a developer machine, by the view.
+            'seededPartner' => app()->environment('local')
+                ? User::where('role', UserRole::Delivery)->where('is_active', true)->oldest('id')->value('phone')
+                : null,
+        ])->layout('layouts::app', [
             'title' => 'Delivery sign in',
             'noindex' => true,
         ]);

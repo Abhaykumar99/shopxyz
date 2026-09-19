@@ -42,8 +42,8 @@
                         </div>
                     @else
                         <p class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                            <span class="figures font-semibold">{{ IndianPhone::format($profile['phone']) }}</span>
-                            <span class="text-sm text-ink-soft">Signed in as {{ $profile['email'] }}</span>
+                            <span class="figures font-semibold">{{ IndianPhone::format($customer->phone) }}</span>
+                            <span class="text-sm text-ink-soft">Signed in as {{ $customer->email }}</span>
                         </p>
                     @endif
                 </x-ui.card>
@@ -77,7 +77,7 @@
                                     name="addressId"
                                     :value="$address->id"
                                     :id="'address-'.$address->id"
-                                    :title="$address->name"
+                                    :title="$address->recipient_name"
                                     wire:model.live="addressId"
                                     :disabled="! $served"
                                     :class="$served ? '' : 'opacity-60'"
@@ -89,7 +89,7 @@
                                         :phone="$address->formattedPhone()"
                                         :lines="$address->lines()"
                                         :pincode="$address->pincode"
-                                        :is-default="$address->isDefault"
+                                        :is-default="$address->is_default"
                                     />
                                     @unless ($served)
                                         <span class="mt-2 text-sm font-medium text-danger">We don't deliver to this pincode yet.</span>

@@ -1,11 +1,24 @@
 <?php
 
 use App\Livewire\Account\AddressBook;
-use App\Support\Demo\DemoCustomer;
+use App\Models\Address;
+use App\Models\User;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoCustomer();
+    $this->customer = signInCustomer();
+
+    $this->home = Address::factory()->default()->for($this->customer)->create([
+        'label' => 'Home',
+        'line1' => 'Flat 3B, Shanti Apartments',
+        'pincode' => '800001',
+    ]);
+
+    $this->work = Address::factory()->for($this->customer)->create([
+        'label' => 'Work',
+        'line1' => '2nd floor, Lalit Bhawan',
+        'pincode' => '800001',
+    ]);
 });
 
 it('lists saved addresses with the default first', function () {
@@ -27,7 +40,7 @@ it('adds a new address', function () {
         ->assertSee('Sita Niwas, Road 4')
         ->assertSee('Near Hanuman temple');
 
-    expect(app(DemoCustomer::class)->addresses())->toHaveCount(3);
+    expect($this->customer->addresses()->count())->toBe(3);
 });
 
 it('reports every missing required field', function () {
@@ -47,7 +60,7 @@ it('reports every missing required field', function () {
         ->assertSee('Enter the name of the person receiving the order.')
         ->assertSee('Enter the house or flat number and building.');
 
-    expect(app(DemoCustomer::class)->addresses())->toHaveCount(2);
+    expect($this->customer->addresses()->count())->toBe(2);
 });
 
 it('rejects values outside the allowed lists', function (string $field, string $value) {
@@ -67,40 +80,58 @@ it('rejects values outside the allowed lists', function (string $field, string $
 
 it('edits an address', function () {
     Livewire::test(AddressBook::class)
-        ->call('edit', 'addr_work')
+        ->call('edit', $this->work->id)
         ->assertSet('addressForm.line1', '2nd floor, Lalit Bhawan')
         ->set('addressForm.line1', '3rd floor, Lalit Bhawan')
         ->call('save')
         ->assertHasNoErrors();
 
-    expect(app(DemoCustomer::class)->address('addr_work')->line1)->toBe('3rd floor, Lalit Bhawan')
-        ->and(app(DemoCustomer::class)->addresses())->toHaveCount(2);
+    expect($this->work->fresh()->line1)->toBe('3rd floor, Lalit Bhawan')
+        ->and($this->customer->addresses()->count())->toBe(2);
 });
 
-it('makes another address the default', function () {
-    Livewire::test(AddressBook::class)->call('makeDefault', 'addr_work');
+it('makes another address the default, and only one at a time', function () {
+    Livewire::test(AddressBook::class)->call('makeDefault', $this->work->id);
 
-    expect(app(DemoCustomer::class)->defaultAddress()->id)->toBe('addr_work');
+    expect($this->work->fresh()->is_default)->toBeTrue()
+        ->and($this->home->fresh()->is_default)->toBeFalse();
 });
 
 it('deletes an address after confirmation and moves the default', function () {
     Livewire::test(AddressBook::class)
-        ->call('confirmDelete', 'addr_home')
-        ->assertSet('deletingId', 'addr_home')
+        ->call('confirmDelete', $this->home->id)
+        ->assertSet('deletingId', $this->home->id)
         ->assertDispatched('open-modal', 'delete-address')
         ->call('delete')
         ->assertDispatched('close-modal', 'delete-address');
 
-    expect(app(DemoCustomer::class)->addresses())->toHaveCount(1)
-        ->and(app(DemoCustomer::class)->defaultAddress()->id)->toBe('addr_work');
+    expect($this->customer->addresses()->count())->toBe(1)
+        ->and($this->work->fresh()->is_default)->toBeTrue();
 });
 
-it('ignores addresses that do not belong to the customer', function () {
-    Livewire::test(AddressBook::class)
-        ->call('confirmDelete', 'addr_someone_else')
-        ->assertSet('deletingId', null)
-        ->set('deletingId', 'addr_someone_else')
-        ->call('delete');
+it('never reaches another customer\'s address', function () {
+    $stranger = Address::factory()->default()->for(User::factory()->googleCustomer())->create();
 
-    expect(app(DemoCustomer::class)->addresses())->toHaveCount(2);
+    Livewire::test(AddressBook::class)
+        ->call('confirmDelete', $stranger->id)
+        ->assertSet('deletingId', null)
+        ->call('edit', $stranger->id)
+        ->assertSet('addressForm.id', null)
+        ->call('makeDefault', $stranger->id);
+
+    expect(Address::find($stranger->id))->not->toBeNull()
+        ->and($this->customer->addresses()->count())->toBe(2);
+});
+
+it('makes the first address the default automatically', function () {
+    $fresh = signInCustomer();
+
+    Livewire::test(AddressBook::class)
+        ->call('create')
+        ->set('addressForm.line1', 'First address')
+        ->set('addressForm.pincode', '800001')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect($fresh->addresses()->sole()->is_default)->toBeTrue();
 });

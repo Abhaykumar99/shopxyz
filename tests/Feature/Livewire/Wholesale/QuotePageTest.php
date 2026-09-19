@@ -128,7 +128,7 @@ it('limits how often requests can be sent', function () {
 });
 
 it('prefills contact details for a signed-in customer', function () {
-    signInDemoCustomer();
+    signInCustomerWithAddress();
 
     Livewire::test(QuotePage::class)
         ->assertSet('form.contactName', 'Priya Sharma')

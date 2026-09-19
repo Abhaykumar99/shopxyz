@@ -4,7 +4,6 @@ namespace App\Livewire\Wholesale;
 
 use App\Livewire\Forms\WholesaleEnquiryForm;
 use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCustomer;
 use App\Support\Demo\DemoWholesale;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
@@ -27,13 +26,14 @@ class QuotePage extends Component
     #[Locked]
     public ?string $submittedReference = null;
 
-    public function mount(DemoCustomer $customer): void
+    public function mount(): void
     {
-        if ($customer->isSignedIn()) {
-            $profile = $customer->profile();
-            $this->form->contactName = $profile['name'];
-            $this->form->email = $profile['email'];
-            $this->form->phone = (string) $profile['phone'];
+        $customer = auth()->user();
+
+        if ($customer !== null) {
+            $this->form->contactName = $customer->name;
+            $this->form->email = $customer->email;
+            $this->form->phone = (string) $customer->phone;
         }
     }
 

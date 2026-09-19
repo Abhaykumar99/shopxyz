@@ -7,7 +7,7 @@ use App\Support\Demo\DemoOrders;
 use Livewire\Livewire;
 
 beforeEach(function () {
-    signInDemoCustomer();
+    signInCustomer();
 });
 
 it('shows an order on its way with the delivery OTP, boxes and partner', function () {
