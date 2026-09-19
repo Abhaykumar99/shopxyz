@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CodSettlements\Tables;
 
 use App\Enums\CashSettlementStatus;
+use App\Filament\Resources\CodSettlements\Pages\ListCodSettlements;
 use App\Filament\Resources\Orders\Tables\OrdersTable;
 use App\Models\CodSettlement;
 use App\Support\Money;
@@ -105,8 +106,17 @@ class CodSettlementsTable
                             ->send();
                     }),
             ])
-            ->emptyStateHeading('No cash handed in yet')
-            ->emptyStateDescription('Handovers appear here when a delivery partner gives the cash to the shop.');
+            ->emptyStateHeading(fn (ListCodSettlements $livewire): string => match ($livewire->activeTab ?? 'to_count') {
+                'to_count' => 'Nothing left to count',
+                'short' => 'Nothing came up short',
+                'settled' => 'Nothing settled yet',
+                default => 'No cash handed in yet',
+            })
+            ->emptyStateDescription(fn (ListCodSettlements $livewire): string => match ($livewire->activeTab ?? 'to_count') {
+                'to_count' => 'Every handover has been counted and closed.',
+                'short' => 'Every handover matched the cash the partner collected.',
+                default => 'Handovers appear here when a delivery partner gives the cash to the shop.',
+            });
     }
 
     /**

@@ -22,14 +22,19 @@ final class PrintController extends Controller
     public function label(Request $request, Order $order, ShopSettings $shop): View
     {
         $order->load(['packages.items.item', 'items']);
-        $boxes = $order->packages->count();
-        $box = max(1, min($boxes ?: 1, (int) $request->query('box', '1')));
 
-        return view('pdf.label', [
+        $data = [
             'format' => $this->format($request, PrintDocument::Label, $shop),
             'order' => $this->payload($order),
-            'box' => $box - 1,
-        ]);
+        ];
+
+        // Every box by default, one label per page; `?box=2` reprints just that one.
+        if ($request->filled('box')) {
+            $boxes = max(1, $order->packages->count());
+            $data['box'] = max(1, min($boxes, (int) $request->query('box'))) - 1;
+        }
+
+        return view('pdf.label', $data);
     }
 
     public function invoice(Request $request, Order $order, ShopSettings $shop): View
@@ -43,13 +48,28 @@ final class PrintController extends Controller
     }
 
     /**
-     * Streams a payment screenshot from the private disk to the admin.
+     * Streams a payment screenshot from the private disk to the admin. The
+     * content type is pinned to a real image type and sniffing is switched off,
+     * so a file that only claims to be an image cannot run in the admin's tab.
      */
     public function proof(Payment $payment): StreamedResponse
     {
         abort_unless($payment->proof_path && Storage::disk('local')->exists($payment->proof_path), 404);
 
-        return Storage::disk('local')->response($payment->proof_path);
+        $disk = Storage::disk('local');
+        $mime = $disk->mimeType($payment->proof_path) ?: '';
+        $isImage = in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true);
+
+        return $disk->response(
+            $payment->proof_path,
+            'payment-proof-'.$payment->getKey(),
+            [
+                'Content-Type' => $isImage ? $mime : 'application/octet-stream',
+                'X-Content-Type-Options' => 'nosniff',
+                'Content-Security-Policy' => "default-src 'none'; img-src 'self'",
+            ],
+            $isImage ? 'inline' : 'attachment',
+        );
     }
 
     /**

@@ -11,6 +11,9 @@ MySQL 8.4, Composer 2, Node 24 LTS (build only), Git, Certbot, Supervisor (queue
 4. Generate an SSH key for `deploy` and add it to GitHub as a **read-only deploy key**.
 5. `git clone git@github.com:<org>/<repo>.git /var/www/shop` (branch `main`).
 6. Create `.env` from `.env.example` with production values, `chmod 600 .env`, then `php artisan key:generate`.
+   The production values that must differ from the example: `APP_ENV=production`, `APP_DEBUG=false`,
+   `APP_URL=https://<domain>`, `LOG_LEVEL=warning` and `SESSION_SECURE_COOKIE=true`. The seeders that carry demo
+   passwords and sample orders refuse to run when `APP_ENV=production`.
 7. Nginx server block with root `/var/www/shop/public`, then Certbot SSL.
 8. `storage/` and `bootstrap/cache/` writable by the PHP-FPM user.
 9. Cron: `* * * * * cd /var/www/shop && php artisan schedule:run >> /dev/null 2>&1`

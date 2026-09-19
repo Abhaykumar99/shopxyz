@@ -32,18 +32,23 @@ class VariantsRelationManager extends RelationManager
             TextInput::make('sku')->label('SKU')->required()->maxLength(32)->unique(ignoreRecord: true),
             TextInput::make('mrp_paise')
                 ->label('MRP in paise')
-                ->numeric()
+                ->integer()
+                ->minValue(0)
+                ->maxValue(100000000)
+                ->gte('price_paise')
                 ->helperText('₹499 is 49900. Leave empty if there is no MRP.'),
             TextInput::make('price_paise')
                 ->label('Selling price in paise')
-                ->numeric()
+                ->integer()
+                ->minValue(1)
+                ->maxValue(100000000)
                 ->required(),
-            TextInput::make('stock_quantity')->label('In stock')->numeric()->default(0)->required(),
-            TextInput::make('low_stock_threshold')->label('Warn below')->numeric()->default(5)->required(),
-            TextInput::make('weight_grams')->label('Weight in grams')->numeric(),
+            TextInput::make('stock_quantity')->label('In stock')->integer()->minValue(0)->maxValue(1000000)->default(0)->required(),
+            TextInput::make('low_stock_threshold')->label('Warn below')->integer()->minValue(0)->maxValue(1000000)->default(5)->required(),
+            TextInput::make('weight_grams')->label('Weight in grams')->integer()->minValue(0)->maxValue(1000000),
             ColorPicker::make('swatch_hex')->label('Shade colour'),
             Toggle::make('is_active')->label('Available')->default(true),
-            TextInput::make('sort_order')->label('Order')->numeric()->default(0),
+            TextInput::make('sort_order')->label('Order')->integer()->minValue(0)->maxValue(9999)->default(0),
         ]);
     }
 

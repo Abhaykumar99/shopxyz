@@ -67,7 +67,9 @@ class ProductForm
                         TextInput::make('hsn_code')->label('HSN code')->maxLength(8),
                         TextInput::make('tax_rate_bp')
                             ->label('Tax rate (basis points)')
-                            ->numeric()
+                            ->integer()
+                            ->minValue(0)
+                            ->maxValue(10000)
                             ->helperText('1800 means 18%.'),
                     ]),
 

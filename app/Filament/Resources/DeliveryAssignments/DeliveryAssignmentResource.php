@@ -3,12 +3,10 @@
 namespace App\Filament\Resources\DeliveryAssignments;
 
 use App\Filament\Resources\DeliveryAssignments\Pages\ListDeliveryAssignments;
-use App\Filament\Resources\DeliveryAssignments\Schemas\DeliveryAssignmentForm;
 use App\Filament\Resources\DeliveryAssignments\Tables\DeliveryAssignmentsTable;
 use App\Models\DeliveryAssignment;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -28,11 +26,6 @@ class DeliveryAssignmentResource extends Resource
     protected static ?string $modelLabel = 'delivery';
 
     protected static ?string $recordTitleAttribute = 'id';
-
-    public static function form(Schema $schema): Schema
-    {
-        return DeliveryAssignmentForm::configure($schema);
-    }
 
     public static function table(Table $table): Table
     {

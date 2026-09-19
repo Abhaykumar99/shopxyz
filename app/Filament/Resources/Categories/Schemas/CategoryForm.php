@@ -26,7 +26,7 @@ class CategoryForm
                 ->options(fn (): array => Category::whereNull('parent_id')->orderBy('name')->pluck('name', 'id')->all())
                 ->placeholder('Top level')
                 ->searchable(),
-            TextInput::make('sort_order')->label('Order')->numeric()->default(0),
+            TextInput::make('sort_order')->label('Order')->integer()->minValue(0)->maxValue(9999)->default(0),
             TextInput::make('description')->maxLength(255)->columnSpanFull(),
             FileUpload::make('image_path')->label('Picture')->image()->directory('categories')->visibility('public'),
             Toggle::make('is_active')->label('Show in the shop')->default(true),

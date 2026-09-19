@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\InfoPageController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Middleware\RequireDemoCustomer;
 use App\Http\Middleware\RequireDemoDeliveryBoy;
 use App\Livewire\Account\AddressBook;
@@ -94,6 +95,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin/print')->name('admin.print.'
 Route::middleware(['auth', 'admin'])
     ->get('/admin/payments/{payment}/proof', [PrintController::class, 'proof'])
     ->name('admin.payment-proof');
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/pages/{page}', InfoPageController::class)
     ->whereIn('page', array_keys(InfoPageController::PAGES))

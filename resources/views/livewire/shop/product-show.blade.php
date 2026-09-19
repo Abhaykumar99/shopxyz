@@ -7,6 +7,8 @@
 <div class="flex flex-col gap-10 pb-20 lg:pb-0">
     <x-ui.breadcrumb :items="$breadcrumb" class="-mb-6" />
 
+    <x-shop.product-schema :product="$product" :variant="$variant" />
+
     <div class="grid gap-6 lg:grid-cols-2 lg:gap-12">
         {{-- Gallery --}}
         <div class="flex flex-col gap-3 lg:sticky lg:top-32 lg:self-start">
@@ -14,7 +16,9 @@
                 <x-shop.product-image :category="$product->category" :alt="$product->name.', '.$variant->name" class="aspect-square w-full" />
                 <x-shop.price-tag offer :paise="$variant->paise" :mrp="$variant->mrp" class="absolute top-4 left-0" />
             </div>
-            <p class="text-center text-sm text-ink-soft">Product photos arrive when the shop adds them.</p>
+            @unless (app()->isProduction())
+                <p class="text-center text-sm text-ink-soft">Product photos arrive when the shop adds them.</p>
+            @endunless
         </div>
 
         {{-- Details --}}

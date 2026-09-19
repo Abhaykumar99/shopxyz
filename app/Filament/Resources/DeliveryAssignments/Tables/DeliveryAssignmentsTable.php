@@ -76,6 +76,13 @@ class DeliveryAssignmentsTable
                 SelectFilter::make('user_id')
                     ->label('Delivery partner')
                     ->relationship('deliveryPartner', 'name'),
+                Filter::make('cash_with_partner')
+                    ->label('Cash still with the partner')
+                    ->query(fn (Builder $query): Builder => $query
+                        ->where('cash_collected_paise', '>', 0)
+                        ->whereNull('cod_settlement_id'))
+                    ->toggle(),
+
                 Filter::make('on_the_road')
                     ->label('On the road now')
                     ->query(fn (Builder $query): Builder => $query->whereIn('step', [

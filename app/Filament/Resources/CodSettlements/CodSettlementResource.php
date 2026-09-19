@@ -3,12 +3,10 @@
 namespace App\Filament\Resources\CodSettlements;
 
 use App\Filament\Resources\CodSettlements\Pages\ListCodSettlements;
-use App\Filament\Resources\CodSettlements\Schemas\CodSettlementForm;
 use App\Filament\Resources\CodSettlements\Tables\CodSettlementsTable;
 use App\Models\CodSettlement;
 use BackedEnum;
 use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use UnitEnum;
@@ -29,9 +27,16 @@ class CodSettlementResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'reference';
 
-    public static function form(Schema $schema): Schema
+    public static function getNavigationBadge(): ?string
     {
-        return CodSettlementForm::configure($schema);
+        $open = CodSettlementsTable::openCount();
+
+        return $open > 0 ? (string) $open : null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'warning';
     }
 
     public static function table(Table $table): Table

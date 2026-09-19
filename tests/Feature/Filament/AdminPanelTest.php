@@ -55,9 +55,11 @@ it('shows one order', function () {
 });
 
 it('lists homepage banners in order', function () {
+    seedHomepage();
+
     $this->actingAs(admin())
         ->get('/admin/banners')
         ->assertOk()
         ->assertSee('Sweets, beauty and gifts, delivered today.')
         ->assertSee('Desktop hero slide');
-})->skip(fn (): bool => App\Models\Banner::count() === 0, 'Homepage is seeded per environment');
+});

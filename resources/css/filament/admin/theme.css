@@ -80,7 +80,8 @@
     font-weight: 600;
 }
 
-/* "None" placeholders in a record's details still have to be readable. */
-.fi-in-placeholder {
+/* "None" placeholders in a record's details and in tables stay readable. */
+.fi-in-placeholder,
+.fi-ta-placeholder {
     color: var(--gray-500);
 }

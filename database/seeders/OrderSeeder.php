@@ -48,6 +48,10 @@ class OrderSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->isProduction()) {
+            return;
+        }
+
         $this->now = CarbonImmutable::now();
         $this->customers = User::where('role', UserRole::Customer)->get();
         $this->partners = User::where('role', UserRole::Delivery)->get();
@@ -104,6 +108,10 @@ class OrderSeeder extends Seeder
         $address = $customer->addresses()->first();
         $lines = $this->lines($wholesale);
 
+        // The flag follows the lines: an order is only wholesale if a line reached
+        // a price band, whatever was asked for.
+        $hasWholesaleLines = in_array(true, array_column($lines, 'is_wholesale'), true);
+
         $subtotal = array_sum(array_column($lines, 'line_total_paise'));
         $mrpTotal = array_sum(array_map(fn (array $line): int => $line['mrp_paise'] * $line['quantity'], $lines));
         $delivery = $subtotal >= (int) config('shop.delivery.free_above_paise') ? 0 : (int) config('shop.delivery.charge_paise');
@@ -131,7 +139,7 @@ class OrderSeeder extends Seeder
             'discount_paise' => max(0, $mrpTotal - $subtotal),
             'delivery_charge_paise' => $delivery,
             'total_paise' => $subtotal + $delivery,
-            'has_wholesale_items' => $wholesale,
+            'has_wholesale_items' => $hasWholesaleLines,
             'customer_note' => random_int(0, 4) === 0 ? 'Please call before arriving.' : null,
             'placed_at' => $placedAt,
             'confirmed_at' => $status->position() >= OrderStatus::Confirmed->position() ? $placedAt->addMinutes(12) : null,
@@ -180,7 +188,11 @@ class OrderSeeder extends Seeder
     private function lines(bool $wholesale): array
     {
         $lines = [];
-        $picked = $this->variants->random(random_int(1, 3));
+        $pool = $wholesale
+            ? $this->variants->filter(fn (ProductVariant $variant): bool => $variant->minimumWholesaleQuantity() !== null)
+            : $this->variants;
+        $pool = $pool->isEmpty() ? $this->variants : $pool;
+        $picked = $pool->random(min($pool->count(), random_int(1, 3)));
 
         foreach ($picked as $variant) {
             $minimum = $variant->minimumWholesaleQuantity();

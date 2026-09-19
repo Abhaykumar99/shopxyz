@@ -33,13 +33,17 @@ class PriceSlabsRelationManager extends RelationManager
                 ->required(),
             TextInput::make('min_quantity')
                 ->label('From this many')
-                ->numeric()
+                ->integer()
                 ->required()
-                ->minValue(2),
+                ->minValue(2)
+                ->maxValue(100000),
             TextInput::make('unit_price_paise')
                 ->label('Price each, in paise')
-                ->numeric()
-                ->required(),
+                ->integer()
+                ->required()
+                ->minValue(1)
+                ->maxValue(100000000)
+                ->helperText('Keep this below the retail price of that option.'),
             Toggle::make('is_active')->label('In use')->default(true),
         ]);
     }

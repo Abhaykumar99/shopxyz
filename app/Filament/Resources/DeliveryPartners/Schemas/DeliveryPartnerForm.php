@@ -24,6 +24,7 @@ class DeliveryPartnerForm
                 ->required()
                 ->maxLength(15)
                 ->rule(new IndianMobile)
+                ->unique(ignoreRecord: true)
                 ->helperText('This is how they sign in to the delivery panel.'),
 
             TextInput::make('email')

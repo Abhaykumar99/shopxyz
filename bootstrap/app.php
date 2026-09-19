@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
         ]);
+
+        // There is no route named `login`: staff sign in on the Filament panel
+        // and customers sign in with Google (ADR-004).
+        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('admin/*') || $request->is('admin')
+            ? route('filament.admin.auth.login')
+            : route('auth.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

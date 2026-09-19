@@ -7,6 +7,7 @@
     'title',
     'document',
     'format',
+    'sheets' => 1,
 ])
 
 @php
@@ -31,6 +32,8 @@
         @media print {
             html, body { background: #fff; }
             .print-sheet { box-shadow: none; margin: 0; height: {{ $height }}mm; overflow: hidden; }
+            /* One sheet per page, with nothing spilling onto the next. */
+            .print-sheet + .print-sheet { break-before: page; }
         }
     </style>
 </head>
@@ -44,7 +47,10 @@
             @endforeach
             <div class="me-auto flex flex-col">
                 <h1 class="text-lg font-bold">{{ $title }}</h1>
-                <p class="text-sm text-ink-soft">{{ $document->label() }} on {{ $format->label() }}</p>
+                <p class="text-sm text-ink-soft">
+                    {{ $sheets > 1 ? $sheets.' '.\Illuminate\Support\Str::plural($document->label(), $sheets) : $document->label() }}
+                    on {{ $format->label() }}{{ $sheets > 1 ? ', one per page' : '' }}
+                </p>
             </div>
             <x-ui.select
                 name="format"
@@ -61,11 +67,8 @@
     </header>
 
     {{-- Focusable so keyboard users can scroll a sheet wider than the screen. --}}
-    <main tabindex="0" aria-label="Print preview" class="flex justify-center overflow-x-auto p-4 sm:p-8 print:block print:p-0">
-
-        <div {{ $attributes->class('print-sheet mx-auto shrink-0 bg-white text-black shadow-overlay') }}>
-            {{ $slot }}
-        </div>
+    <main tabindex="0" aria-label="Print preview" class="flex flex-col items-center gap-6 overflow-x-auto p-4 sm:p-8 print:block print:gap-0 print:p-0">
+        {{ $slot }}
     </main>
 </body>
 </html>

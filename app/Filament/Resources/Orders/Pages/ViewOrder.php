@@ -17,6 +17,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -26,6 +27,17 @@ use Illuminate\Support\Facades\DB;
 class ViewOrder extends ViewRecord
 {
     protected static string $resource = OrderResource::class;
+
+    /**
+     * Everything the screen shows, loaded up front rather than row by row.
+     */
+    protected function resolveRecord(int|string $key): Model
+    {
+        return parent::resolveRecord($key)->load([
+            'customer', 'items', 'packages.items.item', 'payments', 'statusHistories.changedBy',
+            'activeAssignment.deliveryPartner', 'invoice',
+        ]);
+    }
 
     public function getTitle(): string
     {

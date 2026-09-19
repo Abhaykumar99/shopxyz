@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 /**
  * The people the shop works with: one admin, two delivery partners and a handful
@@ -22,6 +23,12 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
+        if (app()->isProduction()) {
+            Log::warning('UserSeeder holds demo passwords and is skipped in production.');
+
+            return;
+        }
+
         User::factory()->admin()->create([
             'name' => 'Shop owner',
             'email' => self::ADMIN_EMAIL,
