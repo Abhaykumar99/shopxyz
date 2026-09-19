@@ -28,6 +28,7 @@
             <x-shop.product-card
                 class="w-full"
                 :name="$product->name"
+                :image="$product->cardImageUrl()"
                 :url="route('shop.product', $product->slug)"
                 :category="$product->rootCategorySlug()"
                 :brand="$product->brand"

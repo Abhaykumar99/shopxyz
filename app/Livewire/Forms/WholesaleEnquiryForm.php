@@ -3,7 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Rules\IndianMobile;
-use App\Support\Demo\DemoWholesale;
+use App\Support\Demo\DemoEnquiries;
 use App\Support\IndianPhone;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -42,7 +42,7 @@ class WholesaleEnquiryForm extends Form
             'phone' => ['required', 'string', 'max:20', new IndianMobile],
             'email' => ['nullable', 'email:rfc', 'max:120'],
             'gstin' => ['nullable', 'string', 'regex:/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/'],
-            'businessType' => ['required', Rule::in(array_keys(DemoWholesale::BUSINESS_TYPES))],
+            'businessType' => ['required', Rule::in(array_keys(DemoEnquiries::BUSINESS_TYPES))],
             'city' => ['required', 'string', 'max:60'],
             'pincode' => ['required', 'string', 'regex:/^[1-9]\d{5}$/'],
             'neededBy' => ['nullable', 'date_format:Y-m-d', 'after:today'],

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Products\RelationManagers;
 
+use App\Enums\InventoryMovementType;
+use App\Models\InventoryMovement;
 use App\Models\ProductVariant;
 use App\Support\Money;
 use Filament\Actions\CreateAction;
@@ -43,7 +45,19 @@ class VariantsRelationManager extends RelationManager
                 ->minValue(1)
                 ->maxValue(100000000)
                 ->required(),
-            TextInput::make('stock_quantity')->label('In stock')->integer()->minValue(0)->maxValue(1000000)->default(0)->required(),
+            TextInput::make('stock_quantity')
+                ->label('Opening stock')
+                ->integer()
+                ->minValue(0)
+                ->maxValue(1000000)
+                ->default(0)
+                ->required()
+                // Stock only moves through the Inventory screen after this, so
+                // that every change leaves a trail in inventory_movements.
+                ->disabledOn('edit')
+                ->helperText(fn (string $operation): string => $operation === 'edit'
+                    ? 'Change stock from Inventory, so the movement is recorded.'
+                    : 'Counted once now; after that it moves from Inventory.'),
             TextInput::make('low_stock_threshold')->label('Warn below')->integer()->minValue(0)->maxValue(1000000)->default(5)->required(),
             TextInput::make('weight_grams')->label('Weight in grams')->integer()->minValue(0)->maxValue(1000000),
             ColorPicker::make('swatch_hex')->label('Shade colour'),
@@ -81,7 +95,22 @@ class VariantsRelationManager extends RelationManager
                     ->counts('priceSlabs')
                     ->alignCenter(),
             ])
-            ->headerActions([CreateAction::make()])
+            ->headerActions([
+                CreateAction::make()
+                    // The first count is a stock movement like any other.
+                    ->after(function (ProductVariant $record): void {
+                        if ($record->stock_quantity > 0) {
+                            InventoryMovement::create([
+                                'product_variant_id' => $record->getKey(),
+                                'user_id' => auth()->id(),
+                                'type' => InventoryMovementType::Restock,
+                                'quantity_change' => $record->stock_quantity,
+                                'stock_after' => $record->stock_quantity,
+                                'note' => 'Opening stock',
+                            ]);
+                        }
+                    }),
+            ])
             ->recordActions([EditAction::make(), DeleteAction::make()]);
     }
 }

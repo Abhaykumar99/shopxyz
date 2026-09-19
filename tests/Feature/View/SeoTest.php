@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Category;
-use App\Support\Demo\DemoCatalog;
+use App\Models\Product;
 
 beforeEach(function () {
     seedCatalog();
@@ -12,8 +12,8 @@ beforeEach(function () {
  * the categories the admin manages (ADR-024), never from a hardcoded list.
  */
 it('describes a product with structured data a search result can use', function () {
-    $product = DemoCatalog::products()[0];
-    $variant = $product->defaultVariant();
+    $product = Product::query()->active()->inStock()->with('variants')->firstOrFail();
+    $variant = $product->firstVariant();
 
     $response = $this->get(route('shop.product', $product->slug))->assertOk();
 
@@ -28,7 +28,7 @@ it('describes a product with structured data a search result can use', function 
         'sku' => $variant->sku,
     ])
         ->and($schema['offers']['priceCurrency'])->toBe('INR')
-        ->and($schema['offers']['price'])->toBe(number_format($variant->paise / 100, 2, '.', ''))
+        ->and($schema['offers']['price'])->toBe(number_format($variant->price_paise / 100, 2, '.', ''))
         ->and($schema['offers']['availability'])->toBe('https://schema.org/InStock');
 });
 

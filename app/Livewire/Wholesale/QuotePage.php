@@ -4,7 +4,7 @@ namespace App\Livewire\Wholesale;
 
 use App\Livewire\Forms\WholesaleEnquiryForm;
 use App\Support\Cart\Bag;
-use App\Support\Demo\DemoWholesale;
+use App\Support\Demo\DemoEnquiries;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
@@ -38,7 +38,7 @@ class QuotePage extends Component
         }
     }
 
-    public function submit(DemoWholesale $wholesale, Bag $bag): void
+    public function submit(DemoEnquiries $wholesale, Bag $bag): void
     {
         $key = 'wholesale-enquiry:'.session()->getId();
 
@@ -61,10 +61,10 @@ class QuotePage extends Component
         $this->form->reset('message', 'neededBy');
     }
 
-    public function render(DemoWholesale $wholesale, Bag $bag, ShopSettings $shop): View
+    public function render(DemoEnquiries $wholesale, Bag $bag, ShopSettings $shop): View
     {
         return view('livewire.wholesale.quote-page', [
-            'businessTypes' => DemoWholesale::BUSINESS_TYPES,
+            'businessTypes' => DemoEnquiries::BUSINESS_TYPES,
             'lines' => $bag->lines(),
             'estimate' => $bag->summary($shop)['subtotal'],
             'submitted' => $this->submittedReference ? $wholesale->enquiry($this->submittedReference) : null,

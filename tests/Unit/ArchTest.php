@@ -13,7 +13,7 @@ arch('actions are final, single-purpose classes')
     ->classes()
     ->toBeFinal();
 
-arch('temporary demo data stays out of domain code so it is easy to remove in Phases 7–10')
+arch('temporary demo data stays out of domain code so it is easy to remove in Phases 8–10')
     ->expect('App\Support\Demo')
     ->toOnlyBeUsedIn([
         'App\Support\Demo',

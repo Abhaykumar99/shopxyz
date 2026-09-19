@@ -122,9 +122,10 @@ starts only after the owner approves it.
 - **Phase 3 (delivery panel UI with dummy data):** complete.
 - **Phase 4 (database schema, models, factories, seeders):** complete, see [docs/erd.md](docs/erd.md).
 - **Phase 5 (Filament admin panel and the managed homepage):** complete (ADR-023, ADR-024).
-- **Phase 6 (auth: Google sign-in, staff accounts, roles and policies):** in progress.
-- **Phases 7–11:** the storefront, orders, invoices and the delivery round move onto the database,
-  then hardening and launch.
+- **Phase 6 (auth: Google sign-in, staff accounts, roles and policies):** complete (ADR-025).
+- **Phase 7 (catalogue, bag and stock on the database):** complete (ADR-027).
+- **Phases 8–11:** orders, payments, invoices and the delivery round move onto the database, then
+  hardening and launch.
 
-The storefront and the delivery panel still read the temporary demo layer described in ADR-016.
-Each area swaps to Eloquent in the phase named in the table.
+The order flow and the delivery panel still read the temporary demo layer described in ADR-016; the
+catalogue, the bag and stock are on the database from Phase 7.

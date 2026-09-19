@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Products\RelationManagers;
 
+use App\Models\PriceSlab;
+use App\Models\Product;
 use App\Support\Money;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -29,8 +31,15 @@ class PriceSlabsRelationManager extends RelationManager
         return $schema->columns(2)->components([
             Select::make('product_variant_id')
                 ->label('Option')
-                ->relationship('variant', 'name')
-                ->required(),
+                ->options(function (RelationManager $livewire): array {
+                    $product = $livewire->getOwnerRecord();
+
+                    return $product instanceof Product
+                        ? $product->variants()->orderBy('sort_order')->pluck('name', 'id')->all()
+                        : [];
+                })
+                ->required()
+                ->exists('product_variants', 'id'),
             TextInput::make('min_quantity')
                 ->label('From this many')
                 ->integer()
@@ -64,7 +73,9 @@ class PriceSlabsRelationManager extends RelationManager
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Yes' : 'No')
                     ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             ])
-            ->headerActions([CreateAction::make()])
+            ->headerActions([
+                CreateAction::make()->using(fn (array $data): PriceSlab => PriceSlab::create($data)),
+            ])
             ->recordActions([EditAction::make(), DeleteAction::make()])
             ->emptyStateHeading('Retail only')
             ->emptyStateDescription('Add a band to offer this product at wholesale prices.');

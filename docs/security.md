@@ -22,7 +22,7 @@ Each item names the phase in which it is implemented, using the phase numbers in
 
 ## Money, stock and orders
 - [ ] (P8) Amounts computed server-side from database prices. Client-sent prices are ignored
-- [ ] (P7) Stock changes inside a DB transaction with `lockForUpdate()`
+- [x] (P7) Stock changes inside a DB transaction with `lockForUpdate()` (`App\Actions\Inventory\AdjustStock`, the only path that writes stock)
 - [ ] (P8) Status changes only via Actions that check `canTransitionTo()` and write history
 - [ ] (P8) UTR unique constraint, and the admin sees a duplicate-UTR warning
 - [ ] (P8) Audit log (activitylog) for payment verification, status changes, price and stock edits

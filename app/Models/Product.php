@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
@@ -91,6 +92,17 @@ class Product extends Model
     }
 
     /**
+     * Every wholesale band across this product's options. The bands belong to a
+     * variant; this is the product-level view the admin screen lists (ADR-019).
+     *
+     * @return HasManyThrough<PriceSlab, ProductVariant, $this>
+     */
+    public function priceSlabs(): HasManyThrough
+    {
+        return $this->hasManyThrough(PriceSlab::class, ProductVariant::class);
+    }
+
+    /**
      * @return HasMany<ProductImage, $this>
      */
     public function images(): HasMany
@@ -158,6 +170,24 @@ class Product extends Model
     }
 
     /**
+     * The photo a card and the product page lead with, or null when the shop
+     * has not added one yet and the category-tinted placeholder stands in.
+     */
+    public function primaryImage(): ?ProductImage
+    {
+        if ($this->relationLoaded('images')) {
+            return $this->images->sortBy('sort_order')->first();
+        }
+
+        return $this->images()->orderBy('sort_order')->orderBy('id')->first();
+    }
+
+    public function cardImageUrl(): ?string
+    {
+        return $this->primaryImage()?->thumbnailUrl();
+    }
+
+    /**
      * The shop tints a product's placeholder image by its top-level category.
      */
     public function rootCategorySlug(): ?string
@@ -196,6 +226,7 @@ class Product extends Model
         return $query
             ->with([
                 'category.parent',
+                'images',
                 'variants' => fn ($variants) => $variants->where('is_active', true)->orderBy('sort_order')->orderBy('id'),
             ])
             ->withCount('variants');

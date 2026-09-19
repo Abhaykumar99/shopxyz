@@ -3,7 +3,6 @@
 use App\Livewire\Wholesale\WholesalePage;
 use App\Support\Cart\Bag;
 use App\Support\Catalog\WholesaleCatalog;
-use App\Support\Demo\DemoWholesale;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -97,10 +96,10 @@ it('raises a quantity below the minimum to the minimum', function () {
 
 it('never takes more than the largest order we handle', function () {
     Livewire::test(WholesalePage::class)
-        ->set('quantities.MG-KK-3', DemoWholesale::MAX_QUANTITY + 500)
+        ->set('quantities.MG-KK-3', WholesaleCatalog::MAX_QUANTITY + 500)
         ->call('addBulkToCart', 'MG-KK-3');
 
-    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(DemoWholesale::MAX_QUANTITY);
+    expect(app(Bag::class)->quantityOf('MG-KK-3'))->toBe(WholesaleCatalog::MAX_QUANTITY);
 });
 
 it('ignores unknown products', function () {

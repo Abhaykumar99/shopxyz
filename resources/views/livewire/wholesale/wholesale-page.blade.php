@@ -181,7 +181,7 @@
                                         type="number"
                                         inputmode="numeric"
                                         min="{{ $item->moq() }}"
-                                        max="{{ \App\Support\Demo\DemoWholesale::MAX_QUANTITY }}"
+                                        max="{{ \App\Support\Catalog\WholesaleCatalog::MAX_QUANTITY }}"
                                         step="1"
                                         wire:model.live.debounce.500ms="quantities.{{ $sku }}"
                                         class="figures h-11 w-24 shrink-0 rounded-field border border-line-strong bg-surface px-3 text-base"

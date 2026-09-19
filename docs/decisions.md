@@ -143,7 +143,7 @@ invoices, labels and emails.
 - Every text pairing still meets WCAG AA (table in `docs/design-system.md`).
 
 ## ADR-016: Clickable prototype on a temporary demo layer (Phase 2)
-**Status:** Accepted, Phase 2. To be removed step by step in Phases 4–6.
+**Status:** Accepted, Phase 2. Removed step by step in Phases 6–10; the catalogue and bag went in Phase 7.
 
 - The customer site is built as real Livewire pages, routes and form validation on top of
   `App\Support\Demo\*`: a fixed sample catalogue (33 products), and a session-backed bag, customer
@@ -153,9 +153,13 @@ invoices, labels and emails.
 - `RequireDemoCustomer` stands in for `auth` until Google sign-in (Phase 4). The local-only
   `/dev/ui/as/{guest|customer}` switch lets reviewers preview both states. The sign-in page's Google button uses
   it on developer machines.
-- Replacement plan: Phase 4 swaps customers and addresses for models and Socialite, Phase 5 swaps the catalogue and bag,
-  Phase 6 swaps orders and payments (including storing re-encoded payment screenshots). The page components keep their public
-  behaviour, so the Phase 2 tests carry over with new setup helpers.
+- Replacement plan, in the numbering ADR-023 settled on: **Phase 6** swapped customers and addresses for models and
+  Socialite, **Phase 7** swapped the catalogue and the bag, **Phase 8** swaps orders and payments (including storing
+  re-encoded payment screenshots) and **Phase 10** the delivery round. The page components keep their public behaviour,
+  so the Phase 2 tests carry over with new setup helpers — which is how it has gone so far.
+- What is left after Phase 7: `DemoOrders`/`DemoOrder` and `DemoAddress` (the snapshot on a sample order), `DemoCash`,
+  `DemoCashSettlement`, `DemoDeliveries`, `DemoDeliveryJob`, `DemoPackage`, `DemoEnquiries` (quote requests), and
+  `DemoData`, which is sample content for the local style guide rather than the shop.
 - `OrderStatus`, `PaymentStatus` and `PaymentMethod` enums were created now (ADR-006) because the screens need
   their labels, colours and rules.
 - Phase 2 defaults for open client questions are recorded in `docs/client-questions.md` and live in `config/shop.php`.
@@ -448,3 +452,35 @@ Three decisions made while getting the project closer to production.
   the homepage banners, the navigation categories — are memoised per request with `once()` instead.
   Content with a schedule, such as a banner's `starts_at`, must not be cached across requests
   anyway, or it can never begin on its own.
+
+## ADR-027: What the catalogue query decides, and what it refuses to guess
+**Status:** Accepted, Phase 7 (catalogue, bag and stock on the database)
+
+The storefront reads the database now. Four choices are worth recording, because each one had a plausible
+alternative that would have quietly changed what a customer sees.
+
+- **Search matches substrings, not whole words.** `products` carries a `fullText(['name','brand'])` index and it
+  would have been natural to use it. Measured against the real catalogue, `MATCH ... AGAINST ('lip')` returns one
+  product where the shop's search has always returned three, because MySQL and MariaDB match whole words there.
+  Adopting the index would have changed what customers find without anyone deciding to. With a catalogue this size
+  `LIKE` across name, brand, short description and category name is both correct and fast. The index stays; if the
+  catalogue ever outgrows `LIKE`, changing search semantics is a decision for the shop, not a refactor.
+
+- **"Most popular" and the bestsellers rail are a measurement.** They count units actually sold in the last ninety
+  days, ignoring cancelled orders, and fall back to featured and then name. The sample catalogue had an invented
+  `rank` and a `bestseller` tag that the seeder had always dropped; deriving it from `order_items` means the shop
+  cannot drift from what it is really selling.
+
+- **Product photos are resized on the way in, to two sizes.** A card gets a 600px copy and the product page a
+  1200px one, written with GD, which PHP already has. A category page shows twenty-four cards, so serving one
+  full-size photo everywhere would have cost a phone several megabytes. Resizing in the browser was the cheaper
+  option and was rejected: the shop should decide what it stores.
+
+- **Three display columns were added** — `products.variant_label` ("Choose shade"), `products.highlights` and
+  `product_variants.unit` (the wholesale "per box"). All three are copy the shop has always shown and the schema
+  had nowhere to keep, so the seeder had been silently discarding them.
+
+**Stock has one way in.** `App\Actions\Inventory\AdjustStock` takes a row lock, writes the new total and appends
+to `inventory_movements`, and it is the only path that changes stock: the variant form offers an opening count on
+create and is read-only afterwards, pointing the admin at the Inventory screen. Without that, two people counting
+the same shelf could both read the old number and one of their changes would vanish.

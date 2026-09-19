@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ProductVariants\Tables;
 
+use App\Actions\Inventory\AdjustStock;
 use App\Enums\InventoryMovementType;
-use App\Models\InventoryMovement;
 use App\Models\ProductVariant;
 use App\Support\Money;
 use Filament\Actions\Action;
@@ -16,7 +16,6 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Stock, one line per option, with every change written to the movements log.
@@ -112,27 +111,11 @@ class ProductVariantsTable
     }
 
     /**
-     * Phase 5 moves this into an AdjustStock action that locks the row; the
-     * screen keeps calling the same thing.
+     * Kept as the one entry point the admin screens call; the rules and the row
+     * lock live in the action.
      */
     public static function adjust(ProductVariant $variant, int $change, InventoryMovementType $type, ?string $note): int
     {
-        return DB::transaction(function () use ($variant, $change, $type, $note): int {
-            $variant->refresh();
-            $after = max(0, $variant->stock_quantity + $change);
-
-            $variant->update(['stock_quantity' => $after]);
-
-            InventoryMovement::create([
-                'product_variant_id' => $variant->id,
-                'user_id' => auth()->id(),
-                'type' => $type,
-                'quantity_change' => $change,
-                'stock_after' => $after,
-                'note' => $note ?: null,
-            ]);
-
-            return $after;
-        });
+        return app(AdjustStock::class)->handle($variant, $change, $type, $note);
     }
 }

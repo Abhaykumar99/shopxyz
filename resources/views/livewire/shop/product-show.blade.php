@@ -13,10 +13,10 @@
         {{-- Gallery --}}
         <div class="flex flex-col gap-3 lg:sticky lg:top-32 lg:self-start">
             <div class="relative overflow-hidden rounded-sheet border border-line">
-                <x-shop.product-image :category="$product->rootCategorySlug()" :alt="$product->name.', '.$variant->name" class="aspect-square w-full" />
+                <x-shop.product-image :src="$product->primaryImage()?->url()" :category="$product->rootCategorySlug()" :alt="$product->name.', '.$variant->name" class="aspect-square w-full" />
                 <x-shop.price-tag offer :paise="$variant->price_paise" :mrp="$variant->mrp_paise" class="absolute top-4 left-0" />
             </div>
-            @unless (app()->isProduction())
+            @unless ($product->primaryImage())
                 <p class="text-center text-sm text-ink-soft">Product photos arrive when the shop adds them.</p>
             @endunless
         </div>

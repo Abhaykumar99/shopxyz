@@ -8,137 +8,125 @@ use App\Models\InventoryMovement;
 use App\Models\PriceSlab;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoCategory;
-use App\Support\Demo\DemoProduct;
-use App\Support\Demo\DemoVariant;
-use App\Support\Demo\DemoWholesale;
-use App\Support\Demo\DemoWholesaleItem;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
 /**
- * Turns the prototype's sample catalogue (ADR-016) into real rows, so the admin
- * panel and the shop show the same products they always have. Both this seeder
- * and `App\Support\Demo` disappear together once the shop reads from the
- * database (Phase 5).
+ * The shop's opening catalogue, read from `data/catalog.php`.
+ *
+ * This is the stock a new install starts with, not a fixture: from here the
+ * admin panel is what adds, edits and retires products. Every variant gets an
+ * opening stock movement, so the running total in `inventory_movements` is
+ * complete from the first day.
  */
 class CatalogSeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = $this->seedCategories();
-        $this->seedProducts($categories);
-        $this->seedWholesaleSlabs();
+        /** @var array{categories: list<array<string, mixed>>, products: list<array<string, mixed>>} $catalog */
+        $catalog = require __DIR__.'/data/catalog.php';
+
+        $categories = $this->seedCategories($catalog['categories']);
+        $this->seedProducts($catalog['products'], $categories);
     }
 
     /**
+     * @param  list<array<string, mixed>>  $rows
      * @return array<string, Category>
      */
-    private function seedCategories(): array
+    private function seedCategories(array $rows): array
     {
         $saved = [];
-        $sort = 0;
 
-        foreach (DemoCatalog::categories() as $parent) {
-            $saved[$parent->slug] = Category::create([
-                'name' => $parent->name,
-                'slug' => $parent->slug,
-                'description' => $parent->description,
-                'sort_order' => $sort += 10,
+        // Parents are listed before their children, so a child always finds its
+        // parent already saved.
+        foreach ($rows as $row) {
+            $saved[$row['slug']] = Category::create([
+                'parent_id' => $row['parent'] === null ? null : $saved[$row['parent']]->id,
+                'name' => $row['name'],
+                'slug' => $row['slug'],
+                'description' => $row['description'],
+                'sort_order' => $row['sort_order'],
                 'is_active' => true,
             ]);
-
-            $childSort = 0;
-
-            foreach ($parent->children as $child) {
-                /** @var DemoCategory $child */
-                $saved[$child->slug] = Category::create([
-                    'parent_id' => $saved[$parent->slug]->id,
-                    'name' => $child->name,
-                    'slug' => $child->slug,
-                    'description' => $child->description,
-                    'sort_order' => $childSort += 10,
-                    'is_active' => true,
-                ]);
-            }
         }
 
         return $saved;
     }
 
     /**
+     * @param  list<array<string, mixed>>  $rows
      * @param  array<string, Category>  $categories
      */
-    private function seedProducts(array $categories): void
+    private function seedProducts(array $rows, array $categories): void
     {
-        foreach (DemoCatalog::products() as $demo) {
-            /** @var DemoProduct $demo */
-            $category = $categories[$demo->subcategory] ?? $categories[$demo->category];
+        foreach ($rows as $row) {
+            $addedAt = now()->subDays($row['added_days_ago']);
 
             $product = Product::create([
-                'category_id' => $category->id,
-                'name' => $demo->name,
-                'slug' => $demo->slug,
-                'brand' => $demo->brand,
-                'variant_label' => $demo->variantLabel,
-                'highlights' => $demo->highlights,
-                'short_description' => $demo->summary,
-                'description' => $demo->description,
+                'category_id' => $categories[$row['category']]->id,
+                'name' => $row['name'],
+                'slug' => $row['slug'],
+                'brand' => $row['brand'],
+                'variant_label' => $row['variant_label'],
+                'short_description' => $row['short_description'],
+                'description' => $row['description'],
+                'highlights' => $row['highlights'],
                 'is_active' => true,
-                'is_featured' => in_array('featured', $demo->tags, true),
-                'created_at' => now()->subDays($demo->addedDaysAgo),
+                'is_featured' => $row['is_featured'],
+                'created_at' => $addedAt,
             ]);
 
-            foreach ($demo->variants as $index => $demoVariant) {
-                /** @var DemoVariant $demoVariant */
-                $variant = $product->variants()->create([
-                    'sku' => $demoVariant->sku,
-                    'name' => $demoVariant->name,
-                    'mrp_paise' => $demoVariant->mrp,
-                    'price_paise' => $demoVariant->paise,
-                    'stock_quantity' => $demoVariant->stock,
-                    'low_stock_threshold' => 5,
-                    'swatch_hex' => $demoVariant->swatch,
-                    'is_active' => true,
-                    'sort_order' => $index * 10,
-                ]);
-
-                InventoryMovement::create([
-                    'product_variant_id' => $variant->id,
-                    'type' => InventoryMovementType::Restock,
-                    'quantity_change' => $demoVariant->stock,
-                    'stock_after' => $demoVariant->stock,
-                    'note' => 'Opening stock',
-                    'created_at' => now()->subDays($demo->addedDaysAgo),
-                ]);
+            foreach ($row['variants'] as $variantRow) {
+                $this->seedVariant($product, $variantRow, $addedAt);
             }
         }
     }
 
     /**
-     * Wholesale price bands for the twelve bulk-ready products (ADR-019).
+     * @param  array<string, mixed>  $row
      */
-    private function seedWholesaleSlabs(): void
+    private function seedVariant(Product $product, array $row, Carbon $addedAt): void
     {
-        foreach (DemoWholesale::items() as $item) {
-            /** @var DemoWholesaleItem $item */
-            $variant = ProductVariant::where('sku', $item->sku())->first();
+        $variant = $product->variants()->create([
+            'sku' => $row['sku'],
+            'name' => $row['name'],
+            'unit' => $row['unit'],
+            'mrp_paise' => $row['mrp_paise'],
+            'price_paise' => $row['price_paise'],
+            'stock_quantity' => $row['stock_quantity'],
+            'low_stock_threshold' => 5,
+            'swatch_hex' => $row['swatch_hex'],
+            'is_active' => true,
+            'sort_order' => $row['sort_order'],
+        ]);
 
-            if ($variant === null) {
-                continue;
-            }
+        InventoryMovement::create([
+            'product_variant_id' => $variant->id,
+            'type' => InventoryMovementType::Restock,
+            'quantity_change' => $variant->stock_quantity,
+            'stock_after' => $variant->stock_quantity,
+            'note' => 'Opening stock',
+            'created_at' => $addedAt,
+        ]);
 
-            // What the wholesale bands are counted in: "box", "kg", "piece".
-            $variant->forceFill(['unit' => $item->unit])->save();
+        $this->seedSlabs($variant, $row['slabs']);
+    }
 
-            foreach ($item->slabs as $slab) {
-                PriceSlab::create([
-                    'product_variant_id' => $variant->id,
-                    'min_quantity' => $slab['min'],
-                    'unit_price_paise' => $slab['paise'],
-                    'is_active' => true,
-                ]);
-            }
+    /**
+     * Wholesale price bands (ADR-019).
+     *
+     * @param  list<array{min: int, paise: int}>  $slabs
+     */
+    private function seedSlabs(ProductVariant $variant, array $slabs): void
+    {
+        foreach ($slabs as $slab) {
+            PriceSlab::create([
+                'product_variant_id' => $variant->id,
+                'min_quantity' => $slab['min'],
+                'unit_price_paise' => $slab['paise'],
+                'is_active' => true,
+            ]);
         }
     }
 }

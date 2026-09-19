@@ -2,7 +2,7 @@
 
 use App\Livewire\Wholesale\QuotePage;
 use App\Support\Cart\Bag;
-use App\Support\Demo\DemoWholesale;
+use App\Support\Demo\DemoEnquiries;
 use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
@@ -54,7 +54,7 @@ it('sends a quote request and shows the reference', function () {
         ->assertSee('WQ-5101')
         ->assertSee('+91 98300 11111');
 
-    $enquiry = app(DemoWholesale::class)->enquiry('WQ-5101');
+    $enquiry = app(DemoEnquiries::class)->enquiry('WQ-5101');
     expect($enquiry['details'])->toMatchArray(['gstin' => '10ABCDE1234F1Z5', 'phone' => '9830011111'])
         ->and($enquiry['items'])->toBe([]);
 });
@@ -68,7 +68,7 @@ it('attaches the bag at its current prices and leaves it untouched', function ()
         ->call('submit')
         ->assertHasNoErrors();
 
-    $enquiry = app(DemoWholesale::class)->enquiry('WQ-5101');
+    $enquiry = app(DemoEnquiries::class)->enquiry('WQ-5101');
     expect($enquiry['items'][0])->toMatchArray(['sku' => 'MG-KK-3', 'quantity' => 20, 'unit_paise' => 88000])
         ->and($enquiry['estimate'])->toBe(20 * 88000 + 34900)
         ->and(app(Bag::class)->count())->toBe(21);
@@ -82,7 +82,7 @@ it('can send a request without the bag', function () {
         ->call('submit')
         ->assertHasNoErrors();
 
-    expect(app(DemoWholesale::class)->enquiry('WQ-5101')['items'])->toBe([]);
+    expect(app(DemoEnquiries::class)->enquiry('WQ-5101')['items'])->toBe([]);
 });
 
 it('always needs to know what the buyer is asking for', function () {

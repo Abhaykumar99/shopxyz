@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Category;
+use App\Models\Product;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -81,12 +82,18 @@ class ProductForm
                             ->image()
                             ->multiple()
                             ->reorderable()
+                            ->disk('public')
                             ->directory('products')
                             ->visibility('public')
                             ->maxFiles(6)
                             ->maxSize(3072)
-                            ->helperText('Square photos look best. The first one is used in listings.')
-                            ->dehydrated(false),
+                            ->helperText('Square photos look best. The first one is the one listings show.')
+                            // Saved by StoreProductImages, which also writes the
+                            // card-sized copy, so it is not a column on products.
+                            ->dehydrated(false)
+                            ->afterStateHydrated(fn (FileUpload $component, ?Product $record) => $component->state(
+                                $record?->images()->orderBy('sort_order')->orderBy('id')->pluck('path')->all() ?? [],
+                            )),
                     ]),
             ]);
     }

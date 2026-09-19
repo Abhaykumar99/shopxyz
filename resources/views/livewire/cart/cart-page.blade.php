@@ -53,6 +53,7 @@
                             wire:key="line-{{ $line->variant->sku }}"
                             :sku="$line->variant->sku"
                             :name="$line->variant->product->name"
+                            :image="$line->variant->product->cardImageUrl()"
                             :url="route('shop.product', ['product' => $line->variant->product->slug, 'option' => $line->variant->product->hasChoices() ? $line->variant->sku : null])"
                             :category="$line->variant->product->rootCategorySlug()"
                             :variant="$line->variant->product->hasChoices() || $line->variant->name !== 'Standard' ? $line->variant->name : null"
