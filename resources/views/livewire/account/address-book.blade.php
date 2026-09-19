@@ -19,12 +19,12 @@
                 <li wire:key="address-{{ $address->id }}">
                     <x-ui.card class="flex h-full flex-col gap-4" padding="lg">
                         <x-shop.address-card
-                            :name="$address->name"
+                            :name="$address->recipient_name"
                             :label="$address->label"
                             :phone="$address->formattedPhone()"
                             :lines="$address->lines()"
                             :pincode="$address->pincode"
-                            :is-default="$address->isDefault"
+                            :is-default="$address->is_default"
                             class="grow"
                         />
                         @unless ($shop->servesPincode($address->pincode))
@@ -33,7 +33,7 @@
                         <div class="flex flex-wrap gap-2 border-t border-line pt-3">
                             <x-ui.button variant="ghost" size="sm" icon="pencil" wire:click="edit('{{ $address->id }}')" aria-label="Edit {{ $address->label }} address">Edit</x-ui.button>
                             <x-ui.button variant="ghost" size="sm" icon="trash" wire:click="confirmDelete('{{ $address->id }}')" aria-label="Delete {{ $address->label }} address">Delete</x-ui.button>
-                            @unless ($address->isDefault)
+                            @unless ($address->is_default)
                                 <x-ui.button variant="ghost" size="sm" icon="check" wire:click="makeDefault('{{ $address->id }}')" loading="makeDefault('{{ $address->id }}')" class="ms-auto">Make default</x-ui.button>
                             @endunless
                         </div>
@@ -55,8 +55,8 @@
 
     <x-ui.modal name="delete-address" title="Delete this address?" max-width="sm">
         @if ($deleting)
-            <x-shop.address-card :name="$deleting->name" :label="$deleting->label" :phone="$deleting->formattedPhone()" :lines="$deleting->lines()" :pincode="$deleting->pincode" />
-            @if ($deleting->isDefault && count($addresses) > 1)
+            <x-shop.address-card :name="$deleting->recipient_name" :label="$deleting->label" :phone="$deleting->formattedPhone()" :lines="$deleting->lines()" :pincode="$deleting->pincode" />
+            @if ($deleting->is_default && count($addresses) > 1)
                 <p class="mt-3 text-sm text-ink-soft">This is your default address. Your next saved address becomes the default.</p>
             @endif
         @endif

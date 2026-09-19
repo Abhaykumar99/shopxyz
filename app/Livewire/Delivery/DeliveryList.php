@@ -5,7 +5,6 @@ namespace App\Livewire\Delivery;
 use App\Enums\DeliveryStep;
 use App\Support\Demo\DemoCash;
 use App\Support\Demo\DemoDeliveries;
-use App\Support\Demo\DemoDeliveryBoy;
 use App\Support\Demo\DemoDeliveryJob;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Url;
@@ -34,7 +33,7 @@ class DeliveryList extends Component
         }
     }
 
-    public function render(DemoDeliveries $deliveries, DemoCash $cash, DemoDeliveryBoy $deliveryBoy): View
+    public function render(DemoDeliveries $deliveries, DemoCash $cash): View
     {
         $groups = $deliveries->grouped();
         $filter = array_key_exists($this->filter, $groups) ? $this->filter : '';
@@ -45,7 +44,7 @@ class DeliveryList extends Component
             'filter' => $filter,
             'summary' => $deliveries->summary(),
             'cashWithYou' => $cash->withYouTotal(),
-            'firstName' => $deliveryBoy->firstName(),
+            'firstName' => auth()->user()?->firstName() ?? '',
             'nextJob' => collect($deliveries->today())->first(fn (DemoDeliveryJob $job): bool => ! $job->isFinished()),
         ])->layout('layouts::delivery', [
             'title' => 'My deliveries',

@@ -14,13 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin' => App\Http\Middleware\EnsureUserIsAdmin::class,
+            'delivery' => App\Http\Middleware\EnsureUserIsDeliveryPartner::class,
+            'active' => App\Http\Middleware\EnsureUserIsActive::class,
         ]);
 
-        // There is no route named `login`: staff sign in on the Filament panel
-        // and customers sign in with Google (ADR-004).
-        $middleware->redirectGuestsTo(fn (Request $request): string => $request->is('admin/*') || $request->is('admin')
-            ? route('filament.admin.auth.login')
-            : route('auth.login'));
+        // There is no route named `login`: each audience has its own way in
+        // (ADR-004), so a guest is sent to the one that belongs to the page.
+        $middleware->redirectGuestsTo(fn (Request $request): string => match (true) {
+            $request->is('admin', 'admin/*') => route('filament.admin.auth.login'),
+            $request->is('delivery', 'delivery/*') => route('delivery.login'),
+            default => route('auth.login'),
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

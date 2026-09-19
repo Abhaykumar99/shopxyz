@@ -2,8 +2,9 @@
 
 namespace App\Livewire\Account;
 
+use App\Actions\Account\UpdatePhone;
 use App\Livewire\Forms\PhoneForm;
-use App\Support\Demo\DemoCustomer;
+use App\Models\User;
 use App\Support\Demo\DemoOrder;
 use App\Support\Demo\DemoOrders;
 use Illuminate\Contracts\View\View;
@@ -15,39 +16,50 @@ class Profile extends Component
 
     public bool $editingPhone = false;
 
-    public function mount(DemoCustomer $customer): void
+    public function mount(): void
     {
-        $this->phoneForm->phone = (string) $customer->profile()['phone'];
+        $customer = $this->customer();
+        $this->phoneForm->phone = (string) $customer->phone;
         $this->editingPhone = ! $customer->hasPhone();
     }
 
-    public function savePhone(DemoCustomer $customer): void
+    public function savePhone(UpdatePhone $updatePhone): void
     {
-        $customer->updatePhone($this->phoneForm->validated());
+        $updatePhone->handle($this->customer(), $this->phoneForm->validated());
         $this->editingPhone = false;
         $this->dispatch('toast', message: 'Mobile number saved.', tone: 'success');
     }
 
-    public function cancelPhoneEdit(DemoCustomer $customer): void
+    public function cancelPhoneEdit(): void
     {
-        $this->phoneForm->phone = (string) $customer->profile()['phone'];
+        $customer = $this->customer();
+        $this->phoneForm->phone = (string) $customer->phone;
         $this->phoneForm->resetValidation();
         $this->editingPhone = ! $customer->hasPhone();
     }
 
-    public function render(DemoCustomer $customer, DemoOrders $orders): View
+    /**
+     * The order history is still the sample one until orders move onto the
+     * database (ADR-016, Phase 8).
+     */
+    public function render(DemoOrders $orders): View
     {
+        $customer = $this->customer();
         $all = $orders->all();
 
         return view('livewire.account.profile', [
             'customer' => $customer,
-            'profile' => $customer->profile(),
             'activeOrders' => count(array_filter($all, fn (DemoOrder $order): bool => $order->isActive())),
-            'addressCount' => count($customer->addresses()),
+            'addressCount' => $customer->addresses()->count(),
         ])->layout('layouts::account', [
             'title' => 'Your account',
             'heading' => false,
             'tab' => 'profile',
         ]);
+    }
+
+    private function customer(): User
+    {
+        return auth()->user() ?? abort(403);
     }
 }

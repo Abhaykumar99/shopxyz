@@ -1,11 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\PrintController;
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\InfoPageController;
 use App\Http\Controllers\SitemapController;
-use App\Http\Middleware\RequireDemoCustomer;
-use App\Http\Middleware\RequireDemoDeliveryBoy;
 use App\Livewire\Account\AddressBook;
 use App\Livewire\Account\OrderList;
 use App\Livewire\Account\OrderShow;
@@ -48,8 +47,14 @@ Route::livewire('/wholesale/quote', QuotePage::class)->name('wholesale.quote');
 Route::get('/login', [SessionController::class, 'create'])->name('auth.login');
 Route::post('/logout', [SessionController::class, 'destroy'])->name('auth.logout');
 
-// Phase 2: demo sign-in guard. Phase 4: replaced by `auth` (Google sign-in).
-Route::middleware(RequireDemoCustomer::class)->group(function () {
+// Google sign-in (ADR-004). Throttled because the callback is the one auth
+// endpoint anyone on the internet can reach without an account.
+Route::middleware('throttle:10,1')->group(function () {
+    Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('auth.google.callback');
+});
+
+Route::middleware(['auth', 'active'])->group(function () {
     Route::livewire('/checkout', CheckoutPage::class)->name('checkout.show');
     Route::livewire('/orders/{order}/pay', UpiPayment::class)->name('orders.pay');
     Route::livewire('/orders/{order}/placed', OrderPlaced::class)->name('orders.placed');
@@ -69,8 +74,7 @@ Route::middleware(RequireDemoCustomer::class)->group(function () {
 Route::prefix('delivery')->name('delivery.')->group(function () {
     Route::livewire('/login', DeliverySignIn::class)->name('login');
 
-    // Phase 3: demo sign-in guard. Phase 4: replaced by `auth` plus the delivery role.
-    Route::middleware(RequireDemoDeliveryBoy::class)->group(function () {
+    Route::middleware(['auth', 'active', 'delivery'])->group(function () {
         Route::livewire('/', DeliveryList::class)->name('index');
         Route::livewire('/cash', CashSummary::class)->name('cash');
         Route::livewire('/cash/history', CashHistory::class)->name('cash.history');

@@ -14,6 +14,17 @@ return [
     |
     */
 
+    /*
+     * Google sign-in for customers, through Laravel Socialite (ADR-004). Leave
+     * these blank locally: the sign-in page then offers the developer shortcut
+     * instead of the Google button.
+     */
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

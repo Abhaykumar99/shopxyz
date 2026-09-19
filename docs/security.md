@@ -1,16 +1,17 @@
 # Security Checklist
 
-Each item names the phase in which it is implemented. Tick items off in PRs as they land.
+Each item names the phase in which it is implemented, using the phase numbers in
+[requirements.md](requirements.md) §13 as renumbered by ADR-023. Tick items off in PRs as they land.
 
 ## Authentication & access
-- [ ] (P4) Customers: Google sign-in only, stateful OAuth `state` check, verified email only, match on `google_id`
-- [ ] (P4) Staff (admin / delivery) cannot authenticate through Google, and customers cannot log in with a password
-- [ ] (P4) Inactive users (`is_active = false`) are blocked at login and on every request
-- [ ] (P4) `UserRole` enum + middleware + policies. Every route, Livewire action and Filament resource is authorized
-- [ ] (P7) Filament `canAccessPanel()` allows admin only. Admin 2FA (MFA) required
-- [ ] (P9) Delivery boy can only view and update **their own active** assignments (policy + scoped queries)
-- [ ] (P4) Customer can only see their own orders, addresses and payment proofs (policy + scoped queries)
-- [ ] (P4) Session regenerated on login, invalidated on logout. Secure, HttpOnly, SameSite=Lax cookies in production
+- [x] (P6) Customers: Google sign-in only, stateful OAuth `state` check, verified email only, match on `google_id`
+- [x] (P6) Staff (admin / delivery) cannot authenticate through Google, and customers cannot log in with a password
+- [x] (P6) Inactive users (`is_active = false`) are blocked at login and on every request
+- [ ] (P6) `UserRole` enum + middleware + policies. Every route, Livewire action and Filament resource is authorized
+- [x] (P5/P6) Filament `canAccessPanel()` allows admin only. Admin 2FA (MFA) required in production
+- [ ] (P10) Delivery boy can only view and update **their own active** assignments (policy + scoped queries)
+- [ ] (P6) Customer can only see their own orders, addresses and payment proofs (policy + scoped queries)
+- [x] (P6) Session regenerated on login, invalidated on logout. Secure, HttpOnly, SameSite=Lax cookies in production
 
 ## Input & output
 - [ ] Validate all input server-side (Form Requests / Livewire `#[Validate]`)
@@ -20,27 +21,27 @@ Each item names the phase in which it is implemented. Tick items off in PRs as t
 - [ ] Livewire: sensitive public properties are `#[Locked]`, and models are re-authorized in each action
 
 ## Money, stock and orders
-- [ ] (P6) Amounts computed server-side from database prices. Client-sent prices are ignored
-- [ ] (P6) Stock changes inside a DB transaction with `lockForUpdate()`
-- [ ] (P6) Status changes only via Actions that check `canTransitionTo()` and write history
-- [ ] (P6) UTR unique constraint, and the admin sees a duplicate-UTR warning
-- [ ] (P6) Audit log (activitylog) for payment verification, status changes, price and stock edits
+- [ ] (P8) Amounts computed server-side from database prices. Client-sent prices are ignored
+- [ ] (P7) Stock changes inside a DB transaction with `lockForUpdate()`
+- [ ] (P8) Status changes only via Actions that check `canTransitionTo()` and write history
+- [ ] (P8) UTR unique constraint, and the admin sees a duplicate-UTR warning
+- [ ] (P8) Audit log (activitylog) for payment verification, status changes, price and stock edits
 
 ## File uploads (payment proofs, product images)
-- [ ] (P6) MIME check (jpg/png/webp), max 4 MB, random filename, re-encode image (strips metadata and payloads)
-- [ ] (P6) Payment proofs on the private disk (`serve => false`), streamed only via a policy-checked controller
+- [ ] (P8) MIME check (jpg/png/webp), max 4 MB, random filename, re-encode image (strips metadata and payloads)
+- [ ] (P8) Payment proofs on the private disk (`serve => false`), streamed only via a policy-checked controller
 - [ ] (P7) Product images on the public disk, validated and resized
 
 ## Abuse protection
-- [ ] (P4) Rate limits: Google callback, staff login (5/min), checkout, proof upload, OTP verify (5 attempts per OTP)
-- [ ] (P9) OTP: random 6 digits, stored hashed, 15-minute expiry, single use
+- [x] (P6) Rate limits: Google callback and staff login (5/min). Checkout, proof upload and OTP verify follow in P8 and P10
+- [ ] (P10) OTP: random 6 digits, stored encrypted and compared with `hash_equals` (ADR-021 as corrected in ADR-024), with an attempt limit
 
 ## Secrets & configuration
 - [x] (P0) `.env`, `.env.testing`, `.env.production` gitignored
 - [x] (P0) App uses its own DB user (`shop_app`), not root
-- [ ] (P10) Production: `APP_ENV=production`, `APP_DEBUG=false`, strong `APP_KEY`, `SESSION_SECURE_COOKIE=true`
-- [ ] (P10) `.env` permissions `600`, owned by the deploy user
-- [ ] (P4) Google OAuth client secret only in `.env`, with production and local clients kept separate
+- [ ] (P11) Production: `APP_ENV=production`, `APP_DEBUG=false`, strong `APP_KEY`, `SESSION_SECURE_COOKIE=true`
+- [ ] (P11) `.env` permissions `600`, owned by the deploy user
+- [x] (P6) Google OAuth client secret only in `.env`, with production and local clients kept separate
 
 ## Server (Phase 10)
 - [ ] SSH: key-only, `PermitRootLogin no`, dedicated `deploy` user with sudo limited as needed

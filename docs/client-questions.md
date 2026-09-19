@@ -10,7 +10,7 @@ update [erd.md](erd.md) / [decisions.md](decisions.md).
 | 3 | Which **pincodes / areas** are served? | Checkout validation | Default in Phase 2: demo list of Patna pincodes (`config/shop.php`) |
 | 4 | **Delivery charge** rules: flat, by distance, free above an amount? **Minimum order value**? | Checkout totals | Default in Phase 2: ₹40 delivery, free from ₹499, minimum order ₹99 |
 | 5 | Can customers browse and add to cart **without signing in** (sign in only at checkout)? | Guest cart logic | Default in Phase 2: yes, guests browse and fill the bag; Google sign-in at checkout |
-| 6 | Delivery boy login ID: **phone number or email**? | Staff auth | |
+| 6 | Delivery boy login ID: **phone number or email**? | Staff auth | Mobile number (owner, Phase 6). The admin still records an email on the account, but the delivery panel signs in with the phone |
 | 7 | Can the customer **cancel** an order? Until which stage? | Status rules, stock restore | Default in Phase 2: customers can cancel until the order is packed |
 | 8 | **Failed delivery** (customer not available or refuses): reattempt, reassign, or return to shop? | Delivery statuses | |
 | 9 | **Rejected UPI payment**: can the customer re-upload proof? What happens to the order? | Payment attempts | Default in Phase 2: customer can re-upload screenshot and UTR |

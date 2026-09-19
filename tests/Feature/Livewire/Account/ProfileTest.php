@@ -1,11 +1,13 @@
 <?php
 
 use App\Livewire\Account\Profile;
-use App\Support\Demo\DemoCustomer;
 use Livewire\Livewire;
 
 it('greets the customer with their Google details', function () {
-    signInDemoCustomer();
+    signInCustomer()->forceFill([
+        'name' => 'Priya Sharma',
+        'email' => 'priya.sharma@example.com',
+    ])->save();
 
     $this->get('/account')
         ->assertOk()
@@ -16,7 +18,7 @@ it('greets the customer with their Google details', function () {
 });
 
 it('asks for a mobile number when there is none', function () {
-    signInDemoCustomer(phone: null);
+    signInCustomer(phone: null);
 
     Livewire::test(Profile::class)
         ->assertSet('editingPhone', true)
@@ -24,7 +26,7 @@ it('asks for a mobile number when there is none', function () {
 });
 
 it('saves a valid mobile number', function () {
-    signInDemoCustomer(phone: null);
+    $customer = signInCustomer(phone: null);
 
     Livewire::test(Profile::class)
         ->set('phoneForm.phone', '070000 00000')
@@ -33,11 +35,11 @@ it('saves a valid mobile number', function () {
         ->assertSet('editingPhone', false)
         ->assertDispatched('toast', tone: 'success');
 
-    expect(app(DemoCustomer::class)->profile()['phone'])->toBe('7000000000');
+    expect($customer->fresh()->phone)->toBe('7000000000');
 });
 
 it('rejects an invalid mobile number and keeps the old one', function () {
-    signInDemoCustomer();
+    $customer = signInCustomer();
 
     Livewire::test(Profile::class)
         ->set('editingPhone', true)
@@ -45,23 +47,39 @@ it('rejects an invalid mobile number and keeps the old one', function () {
         ->call('savePhone')
         ->assertHasErrors(['phoneForm.phone']);
 
-    expect(app(DemoCustomer::class)->profile()['phone'])->toBe('9830012345');
+    expect($customer->fresh()->phone)->toBe('9830012345');
 });
 
 it('signs out and empties the bag', function () {
-    signInDemoCustomer();
+    signInCustomer();
     fillDemoCart(['MG-KK-1' => 1]);
 
     $this->post('/logout')->assertRedirect(route('shop.home'));
 
-    expect(app(DemoCustomer::class)->isSignedIn())->toBeFalse();
+    expect(auth()->check())->toBeFalse();
     $this->get('/account')->assertRedirect(route('auth.login'));
     $this->get('/cart')->assertSee('Your bag is empty');
 });
 
 it('only signs out with a POST request', function () {
-    signInDemoCustomer();
+    signInCustomer();
 
     $this->get('/logout')
         ->assertMethodNotAllowed();
+});
+
+it('turns a guest away from the account pages', function () {
+    $this->get('/account')->assertRedirect(route('auth.login'));
+    $this->get('/account/addresses')->assertRedirect(route('auth.login'));
+});
+
+it('signs out an account the shop has switched off', function () {
+    $customer = signInCustomer();
+
+    $this->get('/account')->assertOk();
+
+    $customer->forceFill(['is_active' => false])->save();
+
+    $this->get('/account')->assertRedirect(route('auth.login'));
+    expect(auth()->check())->toBeFalse();
 });

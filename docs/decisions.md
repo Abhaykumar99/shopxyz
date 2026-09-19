@@ -379,3 +379,36 @@ settings**, saved as `settings` rows that `App\Support\ShopSettings` reads befor
 reprinted on a label or shown to the customer on their order page, which both have to happen, so they are
 **encrypted at rest** (`pickup_code`, `otp`) and compared in constant time. They are still never shown in the
 delivery panel.
+
+## ADR-025: How sign-in is built, and what it is allowed to cost
+**Status:** Accepted, Phase 6 (auth)
+
+ADR-004 settled *who* signs in how. This records the four choices made while building it.
+
+- **Laravel Socialite, and the Guzzle downgrade it costs.** Socialite v5.31 depends on
+  `league/oauth1-client`, which caps Guzzle at `^7`, so installing it moved the app from Guzzle 8.2 to
+  7.15. Nothing here requires Guzzle 8 — Laravel 13 accepts `^7.8.2 || ^8.0` and Boost `^7.9 | ^8.0` — and
+  Guzzle 7 is the line most Laravel applications run. The alternative was writing the OAuth 2 exchange by
+  hand to keep Guzzle 8, which trades a supported dependency for security-sensitive code of our own.
+  **Why:** a well-tested sign-in matters more than the major version of an HTTP client we barely use.
+
+- **Admin 2FA is required in production only** (`isRequired: app()->isProduction()`). ADR-004 asks for
+  email + password + 2FA for the admin. Enforcing it everywhere would mean enrolling an authenticator app
+  before the demo admin account could be opened on a developer machine.
+  **Why:** the requirement exists to protect the real shop, and only production holds real data.
+
+- **A local-only way in.** `/dev/ui/as/{guest|customer|delivery}` signs in a seeded account. It is
+  registered only in `local` and `testing` and is guarded again by `LocalOnly`, so it cannot exist in
+  production. Without it the signed-in half of the site cannot be reviewed until the shop has a Google
+  OAuth client. The sign-in page shows it as a clearly separate developer shortcut, never as the Google
+  button.
+
+- **Two new Action areas.** `app/Actions/Auth` (`FindOrCreateGoogleCustomer`) and `app/Actions/Account`
+  (`SaveAddress`, `DeleteAddress`, `SetDefaultAddress`, `UpdatePhone`) join the areas listed in ADR-002,
+  because a customer's own identity is not Cart, Orders, Payments, Inventory or Delivery.
+
+**Policies are written when something can actually be reached the wrong way.** `AddressPolicy`,
+`OrderPolicy` and `PaymentPolicy` land now, because customer-facing screens read those models.
+`DeliveryAssignmentPolicy`, `CodSettlementPolicy` and `InvoicePolicy` wait: their only readers today are
+Filament screens already behind `canAccessPanel()`, so a policy would guard nothing and go untested.
+They arrive with the delivery panel in Phase 10.

@@ -10,6 +10,7 @@ use App\Models\Payment;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -21,6 +22,8 @@ final class PrintController extends Controller
 {
     public function label(Request $request, Order $order, ShopSettings $shop): View
     {
+        Gate::authorize('print', $order);
+
         $order->load(['packages.items.item', 'items']);
 
         $data = [
@@ -39,6 +42,8 @@ final class PrintController extends Controller
 
     public function invoice(Request $request, Order $order, ShopSettings $shop): View
     {
+        Gate::authorize('print', $order);
+
         $order->load(['items', 'invoice']);
 
         return view('pdf.invoice', [
@@ -54,6 +59,8 @@ final class PrintController extends Controller
      */
     public function proof(Payment $payment): StreamedResponse
     {
+        Gate::authorize('viewProof', $payment);
+
         abort_unless($payment->proof_path && Storage::disk('local')->exists($payment->proof_path), 404);
 
         $disk = Storage::disk('local');

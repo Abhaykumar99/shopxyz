@@ -40,7 +40,7 @@ it('builds the shop navigation from the categories the admin manages', function 
 });
 
 it('tells search engines to stay away from a customer private page', function () {
-    signInDemoCustomer();
+    signInCustomer();
 
     $this->get(route('cart.show'))->assertOk()->assertSee('noindex', escape: false);
     $this->get(route('account.profile'))->assertOk()->assertSee('noindex', escape: false);

@@ -1,10 +1,11 @@
 <?php
 
+use App\Models\Address;
+use App\Models\User;
 use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCustomer;
-use App\Support\Demo\DemoDeliveryBoy;
 use Database\Seeders\HomepageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /*
@@ -28,18 +29,55 @@ pest()->extend(TestCase::class)
 */
 
 /**
- * Signs in the sample customer. With `$phone` the profile already has a mobile number.
+ * Signs in a customer the way Google sign-in leaves them (ADR-004). Pass
+ * `phone: null` for someone who has not given a mobile number yet.
  */
-function signInDemoCustomer(?string $phone = '9830012345'): DemoCustomer
+function signInCustomer(?string $phone = '9830012345'): User
 {
-    $customer = app(DemoCustomer::class);
-    $customer->signIn();
+    $customer = User::factory()->googleCustomer()->create(['phone' => $phone]);
 
-    if ($phone !== null) {
-        $customer->updatePhone($phone);
-    }
+    test()->actingAs($customer);
 
     return $customer;
+}
+
+/**
+ * Signs in a delivery partner: a staff account the admin created, with a
+ * password and the `delivery` role.
+ */
+function signInDeliveryPartner(string $password = 'delivery-demo'): User
+{
+    $partner = User::factory()->deliveryPartner()->create([
+        'password' => Hash::make($password),
+    ]);
+
+    test()->actingAs($partner);
+
+    return $partner;
+}
+
+/**
+ * A signed-in customer who already has a default delivery address inside the
+ * served area, which is what most checkout tests need.
+ */
+function signInCustomerWithAddress(?string $phone = '9830012345'): User
+{
+    $customer = signInCustomer($phone);
+    $customer->forceFill(['name' => 'Priya Sharma', 'email' => 'priya.sharma@example.com'])->save();
+
+    Address::factory()->default()->for($customer)->create([
+        'label' => 'Home',
+        'recipient_name' => $customer->name,
+        'phone' => $phone ?? '9830012345',
+        'line1' => 'Flat 3B, Shanti Apartments',
+        'line2' => 'Boring Road',
+        'landmark' => 'Pani Tanki',
+        'city' => 'Patna',
+        'state' => 'Bihar',
+        'pincode' => '800001',
+    ]);
+
+    return $customer->refresh();
 }
 
 /**
@@ -56,17 +94,6 @@ function fillDemoCart(array $lines): DemoCart
     }
 
     return $cart;
-}
-
-/**
- * Signs in the sample delivery boy (Phase 3 demo account).
- */
-function signInDemoDeliveryBoy(): DemoDeliveryBoy
-{
-    $deliveryBoy = app(DemoDeliveryBoy::class);
-    $deliveryBoy->signIn();
-
-    return $deliveryBoy;
 }
 
 /**

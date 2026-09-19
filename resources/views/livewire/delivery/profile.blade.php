@@ -4,11 +4,11 @@
 <div class="flex flex-col gap-3">
     <x-ui.card padding="lg" class="flex items-center gap-4">
         <span class="flex size-14 shrink-0 items-center justify-center rounded-full bg-brand-tint font-display text-xl text-brand">
-            {{ \Illuminate\Support\Str::substr($profile['name'], 0, 1) }}
+            {{ \Illuminate\Support\Str::substr($partner->name, 0, 1) }}
         </span>
         <div class="min-w-0">
-            <h2 class="text-xl font-semibold">{{ $profile['name'] }}</h2>
-            <p class="figures text-ink-soft">{{ IndianPhone::format($profile['phone']) }}</p>
+            <h2 class="text-xl font-semibold">{{ $partner->name }}</h2>
+            <p class="figures text-ink-soft">{{ IndianPhone::format($partner->phone) }}</p>
         </div>
     </x-ui.card>
 
@@ -42,16 +42,12 @@
         </x-slot:header>
         <dl class="flex flex-col divide-y divide-line">
             <div class="flex items-baseline justify-between gap-3 py-2">
-                <dt class="text-ink-soft">Delivery area</dt>
-                <dd class="text-end font-medium">{{ $profile['area'] }}</dd>
-            </div>
-            <div class="flex items-baseline justify-between gap-3 py-2">
-                <dt class="text-ink-soft">Vehicle</dt>
-                <dd class="figures text-end font-medium">{{ $profile['vehicle'] }}</dd>
+                <dt class="text-ink-soft">Email</dt>
+                <dd class="min-w-0 text-end font-medium break-all">{{ $partner->email }}</dd>
             </div>
             <div class="flex items-baseline justify-between gap-3 py-2">
                 <dt class="text-ink-soft">With the shop since</dt>
-                <dd class="text-end font-medium">{{ $profile['since'] }}</dd>
+                <dd class="text-end font-medium">{{ $partner->created_at?->format('F Y') }}</dd>
             </div>
         </dl>
         <p class="mt-3 text-sm text-ink-soft">

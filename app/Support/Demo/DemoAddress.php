@@ -2,6 +2,7 @@
 
 namespace App\Support\Demo;
 
+use App\Models\Address;
 use App\Support\IndianPhone;
 
 /**
@@ -22,6 +23,28 @@ final readonly class DemoAddress
         public string $pincode,
         public bool $isDefault = false,
     ) {}
+
+    /**
+     * Snapshots a saved address onto a demo order. The customer's address book
+     * is real from Phase 6; the order it is copied onto is not until Phase 8,
+     * so the snapshot still travels as this value object.
+     */
+    public static function fromModel(Address $address): self
+    {
+        return new self(
+            id: (string) $address->id,
+            label: $address->label,
+            name: $address->recipient_name,
+            phone: $address->phone,
+            line1: $address->line1,
+            line2: $address->line2,
+            landmark: $address->landmark,
+            city: $address->city,
+            state: $address->state,
+            pincode: $address->pincode,
+            isDefault: $address->is_default,
+        );
+    }
 
     /**
      * @param  array<string, mixed>  $data
