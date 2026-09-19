@@ -1,14 +1,52 @@
 <?php
 
 use App\Livewire\Shop\Home;
+use App\Models\Banner;
+use App\Models\HomeSection;
 use Livewire\Livewire;
 
-it('renders the home page with categories, festive picks, offers and bestsellers', function () {
+beforeEach(function () {
+    seedHomepage();
+});
+
+it('renders the home page from the blocks the admin arranged', function () {
     $this->get('/')
         ->assertOk()
         ->assertSeeLivewire(Home::class)
-        ->assertSeeInOrder(['Sweets, beauty and gifts', 'Festive gifting', 'Shop by category', "Today's offers", 'Bestsellers', 'How ordering works'])
+        ->assertSeeInOrder(['Sweets, beauty and gifts', 'Festive gifting', 'Shop by category', 'offers', 'Bestsellers', 'How ordering works'])
         ->assertSee('Festive hamper with brass diya');
+});
+
+it('leaves out a block that is switched off', function () {
+    HomeSection::where('key', 'bestsellers')->update(['is_active' => false]);
+
+    $this->get('/')->assertOk()->assertDontSee('Bestsellers');
+});
+
+it('leaves out a block whose dates have not started', function () {
+    HomeSection::where('key', 'festive')->update(['starts_at' => now()->addWeek()]);
+
+    $this->get('/')->assertOk()->assertDontSee('Festive gifting');
+});
+
+it('shows a banner only while it is scheduled', function () {
+    $banner = Banner::where('placement', 'promo')->first();
+    $banner->update(['ends_at' => now()->subDay()]);
+
+    // The wording of the promotion card, which no hero slide repeats.
+    $promoOnly = 'ordered through the same bag and checkout';
+
+    $this->get('/')->assertOk()->assertDontSee($promoOnly);
+
+    $banner->update(['ends_at' => now()->addWeek()]);
+
+    $this->get('/')->assertOk()->assertSee($promoOnly);
+});
+
+it('puts the blocks in the order the admin set', function () {
+    HomeSection::where('key', 'bestsellers')->update(['sort_order' => 15]);
+
+    $this->get('/')->assertSeeInOrder(['Bestsellers', 'Festive gifting']);
 });
 
 it('adds a single-option product to the bag and updates the counters', function () {

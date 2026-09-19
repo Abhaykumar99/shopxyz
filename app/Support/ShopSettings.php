@@ -4,8 +4,10 @@ namespace App\Support;
 
 use App\Enums\PrintDocument;
 use App\Enums\PrintFormat;
+use App\Models\Setting;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * Single source of shop details for views, PDFs and notifications (ADR-013).
@@ -38,28 +40,53 @@ final readonly class ShopSettings
         public array $servedPincodes = [],
     ) {}
 
+    /**
+     * Admin-saved settings win; anything not set yet falls back to config/shop.php
+     * (ADR-013). Reading is wrapped so the site still boots before the table exists.
+     *
+     * @return array<string, mixed>
+     */
+    public static function saved(): array
+    {
+        try {
+            return Setting::map();
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
     public static function fromConfig(Repository $config): self
     {
+        $saved = self::saved();
+        $value = function (string $key, mixed $default = null) use ($saved, $config): mixed {
+            // Settings are keyed `shop.name`, `payment.upi_vpa`, `delivery.eta`,
+            // while the config nests everything under `shop.`.
+            $settingKey = str_contains($key, '.') ? $key : 'shop.'.$key;
+            $stored = $saved[$settingKey] ?? null;
+
+            return $stored === null || $stored === '' || $stored === [] ? $config->get('shop.'.$key, $default) : $stored;
+        };
+
         return new self(
-            name: (string) $config->get('shop.name'),
-            tagline: $config->get('shop.tagline'),
-            phone: $config->get('shop.phone'),
-            whatsapp: $config->get('shop.whatsapp'),
-            email: $config->get('shop.email'),
-            address: $config->get('shop.address'),
-            hours: $config->get('shop.hours'),
-            logoPath: $config->get('shop.logo_path'),
-            labelFormat: self::format($config->get('shop.print.label_format'), PrintDocument::Label),
-            invoiceFormat: self::format($config->get('shop.print.invoice_format'), PrintDocument::Invoice),
-            upiVpa: $config->get('shop.payment.upi_vpa'),
-            upiPayeeName: $config->get('shop.payment.upi_payee_name'),
-            codMaxPaise: (int) $config->get('shop.payment.cod_max_paise', 0),
-            deliveryChargePaise: (int) $config->get('shop.delivery.charge_paise', 0),
-            freeDeliveryAbovePaise: (int) $config->get('shop.delivery.free_above_paise', 0),
-            minOrderPaise: (int) $config->get('shop.delivery.min_order_paise', 0),
-            deliveryEta: $config->get('shop.delivery.eta'),
-            deliveryArea: $config->get('shop.delivery.area'),
-            servedPincodes: array_values(array_map('strval', (array) $config->get('shop.delivery.pincodes', []))),
+            name: (string) $value('name'),
+            tagline: $value('tagline'),
+            phone: $value('phone'),
+            whatsapp: $value('whatsapp'),
+            email: $value('email'),
+            address: $value('address'),
+            hours: $value('hours'),
+            logoPath: $value('logo_path'),
+            labelFormat: self::format($value('print.label_format'), PrintDocument::Label),
+            invoiceFormat: self::format($value('print.invoice_format'), PrintDocument::Invoice),
+            upiVpa: $value('payment.upi_vpa'),
+            upiPayeeName: $value('payment.upi_payee_name'),
+            codMaxPaise: (int) $value('payment.cod_max_paise', 0),
+            deliveryChargePaise: (int) $value('delivery.charge_paise', 0),
+            freeDeliveryAbovePaise: (int) $value('delivery.free_above_paise', 0),
+            minOrderPaise: (int) $value('delivery.min_order_paise', 0),
+            deliveryEta: $value('delivery.eta'),
+            deliveryArea: $value('delivery.area'),
+            servedPincodes: array_values(array_map('strval', (array) $value('delivery.pincodes', []))),
         );
     }
 

@@ -102,7 +102,8 @@ Shop: `resources/views/components/shop/`
 | `x-shop.catalog-filters` / `x-shop.catalog-results` | Filters, sort, chips, grid, pagination and filter sheet for pages using the `FiltersCatalog` trait |
 | `x-shop.address-fields` | Address form fields bound to an `AddressForm` (`model`, `labels`, `states`) |
 | `x-shop.info-page` | Information page wrapper with side menu and placeholder notice |
-| `x-shop.hero-carousel` | Desktop banner carousel: `labels`, `interval`, slots `slide1`… (ADR-018) |
+| `x-shop.hero-carousel` | Desktop banner carousel over the admin's banner rows: `banners`, `interval` (ADR-018, ADR-024) |
+| `x-shop.banner-panel` | One admin-managed banner: `banner`, `layout` (hero/promo), `heading`, `showcase` slot (ADR-024) |
 | `x-shop.hero-showcase` | Three products arranged as a shop window inside a banner (`products`) |
 | `x-shop.wholesale-slabs` | A wholesale product's price slabs as a card (`item`), for banners |
 | `x-shop.slab-table` | Quantity price slabs (`item`, `layout` grid/rows, `quantity` to highlight) (ADR-019) |
@@ -148,6 +149,8 @@ at 148×210 mm, A4 = 1 page at 210×297 mm; invoice on A4 and A5 = 1 page each. 
 ## Customer pages (Phase 2)
 
 Delivery panel (sign-in, round, delivery, cash, history, profile) on the `delivery` layout (ADR-020).
+Admin panel at `/admin` on Filament, themed to Rose Atelier in `resources/css/filament/admin/theme.css`
+(ADR-023): the colour ramp, greys dark enough for AA, DM Serif headings and tabular figures.
 Home (desktop banner carousel), all categories, category, search, product, **wholesale**, **wholesale quote**, bag, sign-in, checkout,
 UPI payment, order placed, profile, orders, order detail, addresses, six information pages and error pages. Each is a class-based Livewire component in
 `app/Livewire/{Shop,Cart,Checkout,Account,Wholesale}` on the `shop` or `account` layout (see `routes/web.php`).

@@ -14,13 +14,10 @@
 
 @use('App\Http\Controllers\InfoPageController')
 @use('App\Support\Money')
+@use('App\Support\Shop\Navigation')
 
 @php
-    $categories = [
-        'Cosmetics' => route('shop.category', 'cosmetics'),
-        'Confectionery' => route('shop.category', 'confectionery'),
-        'Gifts' => route('shop.category', 'gifts'),
-    ];
+    $categories = Navigation::categories();
     $navItems = [
         'home' => ['Home', 'house', route('shop.home')],
         'categories' => ['Shop', 'layout-grid', route('shop.categories')],

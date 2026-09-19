@@ -3,6 +3,7 @@
 use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoCustomer;
 use App\Support\Demo\DemoDeliveryBoy;
+use Database\Seeders\HomepageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -66,4 +67,12 @@ function signInDemoDeliveryBoy(): DemoDeliveryBoy
     $deliveryBoy->signIn();
 
     return $deliveryBoy;
+}
+
+/**
+ * The homepage banners and blocks the shop starts with (ADR-024).
+ */
+function seedHomepage(): void
+{
+    app(HomepageSeeder::class)->run();
 }

@@ -68,6 +68,37 @@ enum OrderStatus: string
         return in_array($next, $this->allowedTransitions(), true);
     }
 
+    /**
+     * The order's place in the fulfilment journey, for sorting boards and
+     * deciding what has already happened. Cancelled and failed sit at the end.
+     *
+     * @return list<self>
+     */
+    public static function fulfilmentJourney(): array
+    {
+        return [
+            self::Placed, self::Confirmed, self::Packing, self::Packed,
+            self::Assigned, self::OutForDelivery, self::Delivered,
+        ];
+    }
+
+    public function position(): int
+    {
+        $index = array_search($this, self::fulfilmentJourney(), true);
+
+        return is_int($index) ? $index : count(self::fulfilmentJourney());
+    }
+
+    /**
+     * Orders the shop still has work to do on.
+     *
+     * @return list<self>
+     */
+    public static function openStatuses(): array
+    {
+        return [self::Placed, self::Confirmed, self::Packing, self::Packed, self::Assigned, self::OutForDelivery];
+    }
+
     public function isFinal(): bool
     {
         return $this->allowedTransitions() === [];

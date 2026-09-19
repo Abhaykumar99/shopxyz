@@ -1,2 +1,12 @@
+# The shop is public; staff areas and previews are not.
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /delivery
+Disallow: /dev
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /orders
+
+Sitemap: /sitemap.xml

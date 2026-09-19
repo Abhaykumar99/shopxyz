@@ -178,3 +178,19 @@ it('builds a maps link and a phone link for the address', function () {
     expect($job->mapsUrl())->toContain('Boring%20Road')
         ->and($job->callUrl())->toBe('tel:+919830012345');
 });
+
+it('keeps the whole round inside today whatever the hour', function (string $time) {
+    $this->travelTo(Illuminate\Support\Carbon::parse($time));
+
+    $steps = collect(app(DemoDeliveries::class)->today())
+        ->map(fn (DemoDeliveryJob $job): DeliveryStep => $job->step);
+
+    expect($steps)->toContain(DeliveryStep::Delivered, DeliveryStep::OutForDelivery)
+        ->and(app(DemoDeliveries::class)->grouped())
+        ->toHaveKey('Delivered');
+})->with([
+    'just after midnight' => '2026-09-19 00:05:00',
+    'small hours' => '2026-09-19 02:11:00',
+    'mid-morning' => '2026-09-19 10:30:00',
+    'late evening' => '2026-09-19 23:50:00',
+]);

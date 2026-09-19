@@ -12,6 +12,7 @@
 @endphp
 
 <x-layouts::print :title="'Invoice '.$order['invoice_number']" :document="\App\Enums\PrintDocument::Invoice" :format="$format">
+    <div class="print-sheet mx-auto shrink-0 bg-white text-black shadow-overlay print:shadow-none">
     <div class="flex flex-col gap-[1.6em] font-sans leading-snug" style="font-size: {{ $scale }}">
         <header class="flex items-start justify-between gap-[2em] border-b-2 border-black pb-[1em]">
             <div class="min-w-0">
@@ -95,5 +96,6 @@
                 @endif
             </p>
         </footer>
+    </div>
     </div>
 </x-layouts::print>

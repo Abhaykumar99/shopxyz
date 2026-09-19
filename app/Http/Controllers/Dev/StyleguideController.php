@@ -56,11 +56,13 @@ final class StyleguideController extends Controller
         $order = DemoData::order($payment);
         $boxes = count($order['packages'] ?? []);
 
-        return view("pdf.{$document->value}", [
-            'format' => $format,
-            'order' => $order,
-            // Labels print one per box; ?box=2 previews the second one.
-            'box' => max(0, min($boxes - 1, (int) $request->query('box', '1') - 1)),
-        ]);
+        $data = ['format' => $format, 'order' => $order];
+
+        // Labels print one per box; ?box=2 previews just the second one.
+        if ($request->filled('box')) {
+            $data['box'] = max(0, min($boxes - 1, (int) $request->query('box') - 1));
+        }
+
+        return view("pdf.{$document->value}", $data);
     }
 }

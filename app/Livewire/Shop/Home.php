@@ -4,28 +4,32 @@ namespace App\Livewire\Shop;
 
 use App\Livewire\Concerns\AddsToCart;
 use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoWholesale;
+use App\Support\Home\HomeContent;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
+/**
+ * The homepage is whatever the admin arranged: banners and blocks come from the
+ * database, in their order and within their dates (ADR-024).
+ */
 class Home extends Component
 {
     use AddsToCart;
 
-    public function render(ShopSettings $shop): View
+    public function render(HomeContent $content, ShopSettings $shop): View
     {
         $categories = DemoCatalog::categories();
 
         return view('livewire.shop.home', [
+            'heroSlides' => $content->desktopHero(),
+            'mobileHero' => $content->mobileHero(),
+            'promos' => $content->promos(),
+            'blocks' => $content->sections(),
             'categories' => $categories,
-            'counts' => collect($categories)->mapWithKeys(fn ($category): array => [$category->slug => DemoCatalog::productCount($category)])->all(),
-            'festive' => DemoCatalog::tagged('festive'),
-            'offers' => DemoCatalog::offers(),
-            'bestsellers' => DemoCatalog::tagged('bestseller'),
-            'slideHampers' => DemoCatalog::query(category: 'gifts', inStockOnly: true, sort: 'popular')->take(3)->values(),
-            'slideBeauty' => DemoCatalog::query(category: 'cosmetics', inStockOnly: true, sort: 'discount')->take(3)->values(),
-            'slideWholesale' => DemoWholesale::item('MG-KK-3'),
+            'counts' => collect($categories)
+                ->mapWithKeys(fn ($category): array => [$category->slug => DemoCatalog::productCount($category)])
+                ->all(),
         ])->layout('layouts::shop', [
             'title' => null,
             'description' => $shop->tagline,

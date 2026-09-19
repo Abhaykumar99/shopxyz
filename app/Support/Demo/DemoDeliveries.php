@@ -310,7 +310,12 @@ final class DemoDeliveries
     private function samples(): array
     {
         $now = CarbonImmutable::now();
-        $at = fn (int $minutesAgo): string => $now->subMinutes($minutesAgo)->toIso8601String();
+
+        // The round is "today's" round, so an offset never crosses midnight: in the small hours
+        // it clamps to the start of the day instead of sliding the finished jobs into yesterday.
+        $at = fn (int $minutesAgo): string => $now->subMinutes($minutesAgo)
+            ->max($now->startOfDay())
+            ->toIso8601String();
         $yesterday = fn (int $hour, int $minute): string => $now->subDay()->setTime($hour, $minute)->toIso8601String();
         $item = fn (string $name, string $variant, int $quantity): array => ['name' => $name, 'variant' => $variant, 'quantity' => $quantity];
         $box = fn (string $id, string $code, array $items, ?string $pickedUpAt = null): array => [

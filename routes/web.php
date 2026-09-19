@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\PrintController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\InfoPageController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Middleware\RequireDemoCustomer;
 use App\Http\Middleware\RequireDemoDeliveryBoy;
 use App\Livewire\Account\AddressBook;
@@ -77,6 +79,24 @@ Route::prefix('delivery')->name('delivery.')->group(function () {
         Route::livewire('/{order}', DeliveryShow::class)->name('order');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Admin printing (labels and invoices, ADR-014)
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'admin'])->prefix('admin/print')->name('admin.print.')->group(function () {
+    Route::get('/orders/{order}/label', [PrintController::class, 'label'])->name('label');
+    Route::get('/orders/{order}/invoice', [PrintController::class, 'invoice'])->name('invoice');
+});
+
+// Payment screenshots live on the private disk and are streamed, never served directly.
+Route::middleware(['auth', 'admin'])
+    ->get('/admin/payments/{payment}/proof', [PrintController::class, 'proof'])
+    ->name('admin.payment-proof');
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('/pages/{page}', InfoPageController::class)
     ->whereIn('page', array_keys(InfoPageController::PAGES))
