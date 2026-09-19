@@ -4,6 +4,10 @@ use App\Livewire\Shop\ProductShow;
 use App\Support\Demo\DemoCart;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('shows the product with its price, MRP and highlights', function () {
     $this->get('/p/velvet-matte-lipstick')
         ->assertOk()

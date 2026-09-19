@@ -5,6 +5,10 @@ use App\Livewire\Cart\CartPage;
 use App\Support\Demo\DemoCart;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('shows an empty bag with a way back to the shop', function () {
     $this->get('/cart')
         ->assertOk()

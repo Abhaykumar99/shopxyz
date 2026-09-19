@@ -80,6 +80,8 @@ class CatalogSeeder extends Seeder
                 'name' => $demo->name,
                 'slug' => $demo->slug,
                 'brand' => $demo->brand,
+                'variant_label' => $demo->variantLabel,
+                'highlights' => $demo->highlights,
                 'short_description' => $demo->summary,
                 'description' => $demo->description,
                 'is_active' => true,
@@ -125,6 +127,9 @@ class CatalogSeeder extends Seeder
             if ($variant === null) {
                 continue;
             }
+
+            // What the wholesale bands are counted in: "box", "kg", "piece".
+            $variant->forceFill(['unit' => $item->unit])->save();
 
             foreach ($item->slabs as $slab) {
                 PriceSlab::create([

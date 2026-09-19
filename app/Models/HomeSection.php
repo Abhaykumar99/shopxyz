@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\HomeSectionType;
 use App\Enums\ProductRailSource;
+use App\Support\Home\HomeContent;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -104,5 +105,20 @@ class HomeSection extends Model
             $this->ends_at !== null && $this->ends_at->isPast() => 'Finished',
             default => 'Live',
         };
+    }
+
+    protected static function booted(): void
+    {
+        // HomeContent is resolved once per request and memoises what it
+        // reads, so editing the homepage has to drop that instance — in a
+        // test, under Octane, or anywhere else the container outlives one
+        // request.
+        static::saved(static function (): void {
+            app()->forgetInstance(HomeContent::class);
+        });
+
+        static::deleted(static function (): void {
+            app()->forgetInstance(HomeContent::class);
+        });
     }
 }

@@ -146,7 +146,7 @@
                     <li wire:key="wholesale-{{ $sku }}" class="flex">
                         <article class="flex w-full flex-col gap-4 rounded-card border border-line bg-surface p-5 shadow-[var(--card-shadow)]">
                             <div class="flex items-start gap-3 sm:min-h-24">
-                                <x-shop.product-image :category="$item->product->category" alt="" class="size-16 shrink-0 rounded-field" />
+                                <x-shop.product-image :category="$item->product->rootCategorySlug()" alt="" class="size-16 shrink-0 rounded-field" />
                                 <div class="min-w-0">
                                     <p class="text-sm text-ink-soft">{{ $item->product->brand }}</p>
                                     <h3 class="text-xl leading-tight">
@@ -160,7 +160,7 @@
 
                             <div class="flex flex-wrap items-center gap-2 text-sm">
                                 <x-ui.badge tone="brand">Minimum {{ $item->moq() }}</x-ui.badge>
-                                <span class="figures text-ink-soft">Retail {{ Money::format($item->variant->paise) }}</span>
+                                <span class="figures text-ink-soft">Retail {{ Money::format($item->variant->price_paise) }}</span>
                                 @if ($item->bestSavingPercent() > 0)
                                     <x-ui.badge tone="offer">Save up to {{ $item->bestSavingPercent() }}%</x-ui.badge>
                                 @endif

@@ -7,6 +7,10 @@ use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoOrders;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('sends guests to sign in and back to checkout afterwards', function () {
     // The developer shortcut signs in whichever customer the seeders made.
     User::factory()->googleCustomer()->create();

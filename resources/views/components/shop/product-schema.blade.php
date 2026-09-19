@@ -9,14 +9,14 @@
         '@context' => 'https://schema.org',
         '@type' => 'Product',
         'name' => $product->name,
-        'description' => $product->summary,
+        'description' => $product->short_description,
         'sku' => $variant->sku,
         'brand' => ['@type' => 'Brand', 'name' => $product->brand],
-        'category' => $product->category,
+        'category' => $product->rootCategorySlug(),
         'offers' => [
             '@type' => 'Offer',
             'url' => route('shop.product', $product->slug),
-            'price' => number_format($variant->paise / 100, 2, '.', ''),
+            'price' => number_format($variant->price_paise / 100, 2, '.', ''),
             'priceCurrency' => 'INR',
             'availability' => $variant->inStock()
                 ? 'https://schema.org/InStock'

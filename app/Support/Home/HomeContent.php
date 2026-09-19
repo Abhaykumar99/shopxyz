@@ -5,11 +5,12 @@ namespace App\Support\Home;
 use App\Enums\BannerPlacement;
 use App\Enums\HomeSectionType;
 use App\Enums\ProductRailSource;
+use App\Enums\ProductSort;
 use App\Models\Banner;
+use App\Models\Category;
 use App\Models\HomeSection;
 use App\Models\HomeSectionItem;
-use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoProduct;
+use App\Models\Product;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,8 +18,7 @@ use Illuminate\Support\Collection;
  *
  * Banners and sections are rows in the database; nothing on the page is
  * hardcoded. Which products a row shows is stored here too, while the product
- * details themselves still come from the sample catalogue until the shop reads
- * from the database (Phase 5) — at that point only `products()` below changes.
+ * products themselves are read from the catalogue by `products()` below.
  */
 final class HomeContent
 {
@@ -51,13 +51,25 @@ final class HomeContent
     /**
      * Every block of the homepage, in order, with its products resolved.
      *
-     * @return Collection<int, array{section: HomeSection, products: Collection<int, DemoProduct>}>
+     * @return Collection<int, array{section: HomeSection, products: Collection<int, Product>}>
      */
     public function sections(): Collection
     {
+        return once(fn (): Collection => $this->buildSections());
+    }
+
+    /**
+     * @return Collection<int, array{section: HomeSection, products: Collection<int, Product>}>
+     */
+    private function buildSections(): Collection
+    {
         $blocks = [];
 
-        foreach (HomeSection::query()->live()->with('items.product', 'items.category')->orderBy('sort_order')->get() as $section) {
+        foreach (HomeSection::query()->live()->with([
+            'items.product.category.parent',
+            'items.product.variants' => fn ($variants) => $variants->where('is_active', true)->orderBy('sort_order')->orderBy('id'),
+            'items.category',
+        ])->orderBy('sort_order')->get() as $section) {
             $products = $this->products($section);
 
             if ($section->type === HomeSectionType::ProductRail && $products->isEmpty()) {
@@ -75,9 +87,17 @@ final class HomeContent
      * from wherever its button points, so the slide stays rich without anyone
      * writing products into the template (ADR-024).
      *
-     * @return Collection<int, DemoProduct>
+     * @return Collection<int, Product>
      */
     public function showcase(Banner $banner, int $limit = 3): Collection
+    {
+        return once(fn (): Collection => $this->buildShowcase($banner, $limit));
+    }
+
+    /**
+     * @return Collection<int, Product>
+     */
+    private function buildShowcase(Banner $banner, int $limit): Collection
     {
         if ($banner->image_path) {
             return new Collection;
@@ -86,9 +106,18 @@ final class HomeContent
         $target = (string) ($banner->cta_url ?? '');
         $category = str_starts_with($target, '/c/') ? substr($target, 3) : null;
 
-        $products = $category !== null
-            ? DemoCatalog::query(category: $category, inStockOnly: true)
-            : DemoCatalog::tagged('featured', 12);
+        $products = Product::query()
+            ->active()
+            ->forListing()
+            ->inStock()
+            ->when(
+                $category !== null,
+                fn ($query) => $query->inCategory($this->category($category)),
+                fn ($query) => $query->where('is_featured', true),
+            )
+            ->sorted(ProductSort::Popular)
+            ->limit(12)
+            ->get();
 
         return $products->take($limit)->values();
     }
@@ -118,7 +147,7 @@ final class HomeContent
     /**
      * The products a row shows.
      *
-     * @return Collection<int, DemoProduct>
+     * @return Collection<int, Product>
      */
     private function products(HomeSection $section): Collection
     {
@@ -128,27 +157,43 @@ final class HomeContent
 
         $limit = $section->limit();
 
+        if ($section->source() === ProductRailSource::Manual) {
+            return $this->pickedProducts($section, $limit);
+        }
+
+        $query = Product::query()->active()->forListing()->inStock();
+
         return match ($section->source()) {
-            ProductRailSource::Bestsellers => DemoCatalog::tagged('bestseller', $limit),
-            ProductRailSource::NewArrivals => DemoCatalog::query(sort: 'newest', inStockOnly: true)->take($limit)->values(),
-            ProductRailSource::Offers => DemoCatalog::offers($limit),
-            ProductRailSource::Featured => DemoCatalog::tagged('featured', $limit),
-            ProductRailSource::Category => DemoCatalog::query(category: $section->categorySlug(), inStockOnly: true)->take($limit)->values(),
-            ProductRailSource::Manual => $this->pickedProducts($section, $limit),
+            // Bestsellers is a real measurement now: what the shop has actually
+            // sold recently, rather than a tag someone set by hand.
+            ProductRailSource::Bestsellers => $query->sorted(ProductSort::Popular)->limit($limit)->get(),
+            ProductRailSource::NewArrivals => $query->sorted(ProductSort::Newest)->limit($limit)->get(),
+            ProductRailSource::Offers => $query->sorted(ProductSort::Discount)->limit($limit)->get(),
+            ProductRailSource::Featured => $query->where('is_featured', true)->sorted(ProductSort::Popular)->limit($limit)->get(),
+            ProductRailSource::Category => $query
+                ->inCategory($this->category($section->categorySlug()))
+                ->sorted(ProductSort::Popular)
+                ->limit($limit)
+                ->get(),
             default => new Collection,
         };
+    }
+
+    private function category(?string $slug): ?Category
+    {
+        return $slug === null ? null : Category::query()->active()->where('slug', $slug)->first();
     }
 
     /**
      * Products the admin chose by hand, in their order.
      *
-     * @return Collection<int, DemoProduct>
+     * @return Collection<int, Product>
      */
     private function pickedProducts(HomeSection $section, int $limit): Collection
     {
         return $section->items
-            ->map(fn (HomeSectionItem $item): ?DemoProduct => $item->product ? DemoCatalog::product($item->product->slug) : null)
-            ->filter()
+            ->map(fn (HomeSectionItem $item): ?Product => $item->product)
+            ->filter(fn (?Product $product): bool => $product !== null && $product->is_active)
             ->take($limit)
             ->values();
     }

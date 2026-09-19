@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Shop;
 
+use App\Enums\ProductSort;
 use App\Livewire\Concerns\AddsToCart;
 use App\Livewire\Concerns\FiltersCatalog;
-use App\Support\Demo\DemoCatalog;
+use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -19,23 +20,30 @@ class CategoryShow extends Component
 
     public function mount(string $category): void
     {
-        abort_if(DemoCatalog::category($category) === null, 404);
+        abort_if(! Category::query()->active()->where('slug', $category)->exists(), 404);
 
         $this->slug = $category;
     }
 
     public function render(): View
     {
-        $category = DemoCatalog::category($this->slug);
-        abort_if($category === null, 404);
+        $category = Category::query()
+            ->active()
+            ->with(['parent.children' => fn ($children) => $children->where('is_active', true)->orderBy('sort_order')])
+            ->where('slug', $this->slug)
+            ->firstOr(fn () => abort(404));
 
-        $root = DemoCatalog::category($category->rootSlug());
-        $siblings = $root->children ?? [];
+        $root = $category->parent ?? $category;
+        $siblings = $root->relationLoaded('children')
+            ? $root->children
+            : $root->children()->where('is_active', true)->orderBy('sort_order')->get();
 
         $breadcrumb = ['Home' => route('shop.home')];
-        if ($category->parentSlug && $root) {
+
+        if ($category->parent_id !== null) {
             $breadcrumb[$root->name] = route('shop.category', $root->slug);
         }
+
         $breadcrumb[$category->name] = null;
 
         return view('livewire.shop.category-show', [
@@ -43,10 +51,10 @@ class CategoryShow extends Component
             'root' => $root,
             'sections' => $siblings,
             'breadcrumb' => $breadcrumb,
-            'products' => $this->filteredProducts($category->slug, null),
-            'brandOptions' => DemoCatalog::brands($category->slug),
+            'products' => $this->filteredProducts($category, null),
+            'brandOptions' => $this->brandOptions($category, null),
             'priceRanges' => self::PRICE_RANGES,
-            'sorts' => DemoCatalog::SORTS,
+            'sorts' => ProductSort::options(),
             'filterCount' => $this->activeFilterCount(),
         ])->layout('layouts::shop', [
             'title' => $category->name,

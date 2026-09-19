@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Home\HomeContent;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\View\View;
@@ -19,6 +20,10 @@ class AppServiceProvider extends ServiceProvider
             ShopSettings::class,
             fn ($app): ShopSettings => ShopSettings::fromConfig($app->make(Repository::class)),
         );
+
+        // One per request, so the homepage reads its banners, blocks and rails
+        // once however many times a render asks for them.
+        $this->app->scoped(HomeContent::class);
     }
 
     /**

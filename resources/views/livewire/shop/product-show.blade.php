@@ -1,7 +1,7 @@
 @use('App\Support\Money')
 
 @php
-    $choiceWord = \Illuminate\Support\Str::lower($product->variantLabel);
+    $choiceWord = \Illuminate\Support\Str::lower($product->variant_label);
 @endphp
 
 <div class="flex flex-col gap-10 pb-20 lg:pb-0">
@@ -13,8 +13,8 @@
         {{-- Gallery --}}
         <div class="flex flex-col gap-3 lg:sticky lg:top-32 lg:self-start">
             <div class="relative overflow-hidden rounded-sheet border border-line">
-                <x-shop.product-image :category="$product->category" :alt="$product->name.', '.$variant->name" class="aspect-square w-full" />
-                <x-shop.price-tag offer :paise="$variant->paise" :mrp="$variant->mrp" class="absolute top-4 left-0" />
+                <x-shop.product-image :category="$product->rootCategorySlug()" :alt="$product->name.', '.$variant->name" class="aspect-square w-full" />
+                <x-shop.price-tag offer :paise="$variant->price_paise" :mrp="$variant->mrp_paise" class="absolute top-4 left-0" />
             </div>
             @unless (app()->isProduction())
                 <p class="text-center text-sm text-ink-soft">Product photos arrive when the shop adds them.</p>
@@ -26,13 +26,13 @@
             <div class="flex flex-col gap-2">
                 <a href="{{ route('shop.search', ['q' => $product->brand]) }}" class="self-start text-sm font-semibold tracking-wide text-brand hover:underline">{{ $product->brand }}</a>
                 <h1 class="text-3xl font-bold sm:text-4xl">{{ $product->name }}</h1>
-                <p class="text-lg text-ink-soft">{{ $product->summary }}</p>
+                <p class="text-lg text-ink-soft">{{ $product->short_description }}</p>
             </div>
 
             <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <x-shop.price-tag :paise="$variant->paise" :mrp="$variant->mrp" size="lg" />
-                @if ($variant->discountPercent() > 0)
-                    <span class="text-sm font-semibold text-pistachio">You save {{ Money::format($variant->mrp - $variant->paise) }}</span>
+                <x-shop.price-tag :paise="$variant->price_paise" :mrp="$variant->mrp_paise" size="lg" />
+                @if ($variant->mrp_paise && $variant->discountPercent() > 0)
+                    <span class="text-sm font-semibold text-pistachio">You save {{ Money::format($variant->mrp_paise - $variant->price_paise) }}</span>
                 @endif
                 <span class="w-full text-sm text-ink-soft">Price includes all taxes.</span>
             </div>
@@ -40,9 +40,9 @@
             @if ($product->hasChoices())
                 <fieldset class="flex flex-col gap-3">
                     <legend class="mb-3 font-semibold">
-                        {{ $product->variantLabel }}: <span class="font-normal">{{ $variant->name }}</span>
+                        {{ $product->variant_label }}: <span class="font-normal">{{ $variant->name }}</span>
                     </legend>
-                    <div role="radiogroup" aria-label="{{ $product->variantLabel }}" @class(['flex flex-wrap gap-3' => $product->hasSwatches(), 'grid grid-cols-2 gap-2 sm:grid-cols-3' => ! $product->hasSwatches()])>
+                    <div role="radiogroup" aria-label="{{ $product->variant_label }}" @class(['flex flex-wrap gap-3' => $product->hasSwatches(), 'grid grid-cols-2 gap-2 sm:grid-cols-3' => ! $product->hasSwatches()])>
                         @foreach ($product->variants as $option)
                             @php $selected = $option->sku === $variant->sku; @endphp
                             @if ($product->hasSwatches())
@@ -80,7 +80,7 @@
                                 >
                                     <span class="font-semibold">{{ $option->name }}</span>
                                     <span class="figures text-sm {{ $option->inStock() ? 'text-ink-soft' : 'text-danger' }}">
-                                        {{ $option->inStock() ? Money::format($option->paise) : 'Out of stock' }}
+                                        {{ $option->inStock() ? Money::format($option->price_paise) : 'Out of stock' }}
                                     </span>
                                 </button>
                             @endif
@@ -96,7 +96,7 @@
                         <span class="text-danger">Out of stock{{ $product->hasChoices() ? ' in this '.$choiceWord : '' }}</span>
                     @elseif ($variant->isLowStock())
                         <x-ui.icon name="clock" class="text-accent-ink" />
-                        <span class="text-accent-ink">Only {{ $variant->stock }} left</span>
+                        <span class="text-accent-ink">Only {{ $variant->stock_quantity }} left</span>
                     @else
                         <x-ui.icon name="circle-check" class="text-pistachio" />
                         <span class="text-pistachio">In stock</span>
@@ -193,7 +193,7 @@
 
     @if ($similar->isNotEmpty())
         <section aria-labelledby="similar-title" class="flex flex-col gap-4">
-            <x-shop.section-heading id="similar-title" title="You may also like" :href="route('shop.category', $product->subcategory)" link-text="See more" />
+            <x-shop.section-heading id="similar-title" title="You may also like" :href="route('shop.category', $product->category->slug)" link-text="See more" />
             <x-shop.product-grid :products="$similar" rail />
         </section>
     @endif
@@ -204,7 +204,7 @@
             <div class="mx-auto flex max-w-6xl items-center gap-3">
                 <div class="min-w-0 grow">
                     <p class="truncate text-sm text-ink-soft">{{ $product->hasChoices() ? $variant->name : $product->name }}</p>
-                    <x-shop.price :paise="$variant->paise" size="sm" />
+                    <x-shop.price :paise="$variant->price_paise" size="sm" />
                 </div>
                 <x-ui.button icon="shopping-bag" wire:click="add" loading="add">Add to bag</x-ui.button>
             </div>

@@ -3,6 +3,10 @@
 use App\Livewire\Shop\Search;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('finds products by name, brand or category', function (string $query, string $expected) {
     Livewire::withQueryParams(['q' => $query])
         ->test(Search::class)

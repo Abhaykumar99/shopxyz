@@ -7,6 +7,7 @@ use App\Support\Demo\DemoOrders;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    seedCatalog();
     signInCustomer();
 });
 

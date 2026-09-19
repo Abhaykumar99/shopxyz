@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Livewire\Livewire;
 
 beforeEach(function () {
+    seedCatalog();
     signInCustomer();
 });
 

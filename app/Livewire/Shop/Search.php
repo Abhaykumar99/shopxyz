@@ -2,9 +2,10 @@
 
 namespace App\Livewire\Shop;
 
+use App\Enums\ProductSort;
 use App\Livewire\Concerns\AddsToCart;
 use App\Livewire\Concerns\FiltersCatalog;
-use App\Support\Demo\DemoCatalog;
+use App\Models\Category;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Url;
@@ -31,12 +32,12 @@ class Search extends Component
         return view('livewire.shop.search', [
             'query' => $query,
             'products' => $this->filteredProducts(null, $query),
-            'brandOptions' => DemoCatalog::brands(null, $query),
+            'brandOptions' => $this->brandOptions(null, $query),
             'priceRanges' => self::PRICE_RANGES,
-            'sorts' => DemoCatalog::SORTS,
+            'sorts' => ProductSort::options(),
             'filterCount' => $this->activeFilterCount(),
             'suggestions' => ['Kaju katli', 'Lipstick', 'Hamper', 'Chocolate', 'Kajal', 'Candle'],
-            'categories' => DemoCatalog::categories(),
+            'categories' => Category::query()->active()->roots()->orderBy('sort_order')->get(),
         ])->layout('layouts::shop', [
             'title' => $query !== '' ? "Search: {$query}" : 'Search',
             'description' => 'Search sweets, beauty products and gifts.',

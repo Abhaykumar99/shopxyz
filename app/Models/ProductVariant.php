@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $product_id
  * @property string $sku
  * @property string $name
+ * @property string|null $unit
  * @property int|null $mrp_paise
  * @property int $price_paise
  * @property int $stock_quantity
@@ -37,6 +38,7 @@ class ProductVariant extends Model
         'product_id',
         'sku',
         'name',
+        'unit',
         'mrp_paise',
         'price_paise',
         'stock_quantity',

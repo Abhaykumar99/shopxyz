@@ -3,6 +3,7 @@
 use App\Models\Address;
 use App\Models\User;
 use App\Support\Demo\DemoCart;
+use Database\Seeders\CatalogSeeder;
 use Database\Seeders\HomepageSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -97,9 +98,21 @@ function fillDemoCart(array $lines): DemoCart
 }
 
 /**
- * The homepage banners and blocks the shop starts with (ADR-024).
+ * The shop's catalogue: categories, products, variants and wholesale bands.
+ * The storefront reads the database from Phase 7, so any test that renders a
+ * product needs this where it used to get the sample catalogue for free.
+ */
+function seedCatalog(): void
+{
+    app(CatalogSeeder::class)->run();
+}
+
+/**
+ * The homepage banners and blocks the shop starts with (ADR-024). The blocks
+ * point at products, so the catalogue comes first.
  */
 function seedHomepage(): void
 {
+    seedCatalog();
     app(HomepageSeeder::class)->run();
 }

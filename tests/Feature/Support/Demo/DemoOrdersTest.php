@@ -6,6 +6,10 @@ use App\Enums\PaymentStatus;
 use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoOrders;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('places an order from the bag and empties the bag', function () {
     $customer = signInCustomerWithAddress();
     $cart = fillDemoCart(['MG-KK-2' => 2]);

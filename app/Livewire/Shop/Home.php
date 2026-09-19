@@ -3,7 +3,8 @@
 namespace App\Livewire\Shop;
 
 use App\Livewire\Concerns\AddsToCart;
-use App\Support\Demo\DemoCatalog;
+use App\Models\Category;
+use App\Models\Product;
 use App\Support\Home\HomeContent;
 use App\Support\ShopSettings;
 use Illuminate\Contracts\View\View;
@@ -19,7 +20,19 @@ class Home extends Component
 
     public function render(HomeContent $content, ShopSettings $shop): View
     {
-        $categories = DemoCatalog::categories();
+        $categories = Category::query()
+            ->active()
+            ->roots()
+            ->with(['children' => fn ($children) => $children->where('is_active', true)])
+            ->orderBy('sort_order')
+            ->get();
+
+        // One query for every tile's count, rather than one per tile.
+        $perCategory = Product::query()
+            ->active()
+            ->selectRaw('category_id, count(*) as total')
+            ->groupBy('category_id')
+            ->pluck('total', 'category_id');
 
         return view('livewire.shop.home', [
             'heroSlides' => $content->desktopHero(),
@@ -27,8 +40,11 @@ class Home extends Component
             'promos' => $content->promos(),
             'blocks' => $content->sections(),
             'categories' => $categories,
-            'counts' => collect($categories)
-                ->mapWithKeys(fn ($category): array => [$category->slug => DemoCatalog::productCount($category)])
+            'counts' => $categories
+                ->mapWithKeys(fn (Category $category): array => [
+                    $category->slug => (int) ($perCategory[$category->id] ?? 0)
+                        + (int) $category->children->sum(fn (Category $child): int => (int) ($perCategory[$child->id] ?? 0)),
+                ])
                 ->all(),
         ])->layout('layouts::shop', [
             'title' => null,

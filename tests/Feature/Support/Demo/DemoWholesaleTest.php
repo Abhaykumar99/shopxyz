@@ -2,6 +2,10 @@
 
 use App\Support\Demo\DemoWholesale;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('prices each quantity at its slab', function (int $quantity, int $expected) {
     expect(DemoWholesale::item('MG-KK-3')->unitPriceFor($quantity))->toBe($expected);
 })->with([

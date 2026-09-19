@@ -1,22 +1,33 @@
 <?php
 
 use App\Livewire\Wholesale\WholesalePage;
+use App\Support\Catalog\WholesaleCatalog;
 use App\Support\Demo\DemoCart;
 use App\Support\Demo\DemoWholesale;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('shows the wholesale page with price slabs and the navigation tab marked current', function () {
+    // The page leads with the biggest saving on offer rather than a product
+    // named in the code, so the assertion follows that rule.
+    $featured = WholesaleCatalog::featured();
+
     $response = $this->get('/wholesale');
 
     expect($response->getContent())->toMatch('#<a href="'.preg_quote(route('wholesale.index'), '#').'"\s+aria-current="page"#');
     $response
         ->assertOk()
         ->assertSee('Bulk sweets, gifts and beauty for your business.')
+        ->assertSee($featured->product->name)
         ->assertSee('Kaju katli with silver leaf')
-        ->assertSee('5 to 19')
-        ->assertSee('50 or more')
-        ->assertSee('₹840 each')
-        ->assertSee('Minimum 5');
+        ->assertSee($featured->slabRange(0))
+        ->assertSee('Minimum '.$featured->moq());
+
+    expect($featured->bestSavingPercent())
+        ->toBe(WholesaleCatalog::query()->max(fn ($item) => $item->bestSavingPercent()));
 });
 
 it('sells wholesale through the ordinary bag and checkout', function () {

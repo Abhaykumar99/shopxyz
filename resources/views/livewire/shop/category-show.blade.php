@@ -6,7 +6,7 @@
             <p class="text-ink-soft">{{ $category->description }}</p>
         </div>
 
-        @if ($sections !== [])
+        @if ($sections->isNotEmpty())
             <nav aria-label="{{ $root->name }} sections" class="-mx-4 overflow-x-auto px-4 [scrollbar-width:none]">
                 <ul class="flex min-w-max gap-2">
                     <li>

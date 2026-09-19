@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 function validQuote(): array
 {
     return [

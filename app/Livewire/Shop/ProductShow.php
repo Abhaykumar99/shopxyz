@@ -3,13 +3,14 @@
 namespace App\Livewire\Shop;
 
 use App\Livewire\Concerns\AddsToCart;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Support\Catalog\WholesaleCatalog;
+use App\Support\Catalog\WholesaleItem;
 use App\Support\Demo\DemoCart;
-use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoCategory;
-use App\Support\Demo\DemoProduct;
-use App\Support\Demo\DemoVariant;
-use App\Support\Demo\DemoWholesale;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
@@ -29,19 +30,19 @@ class ProductShow extends Component
 
     public function mount(string $product): void
     {
-        $found = DemoCatalog::product($product);
-        abort_if($found === null, 404);
-
         $this->slug = $product;
 
-        if ($found->variant($this->sku) === null) {
-            $this->sku = $found->hasChoices() ? $found->defaultVariant()->sku : '';
+        $found = $this->product();
+
+        if ($found->variants->firstWhere('sku', $this->sku) === null) {
+            $this->sku = $found->hasChoices() ? (string) $found->firstVariant()?->sku : '';
         }
     }
 
     public function selectVariant(string $sku): void
     {
-        if ($this->product()->variant($sku) !== null) {
+        // Only a SKU belonging to this product; anything else is ignored.
+        if ($this->product()->variants->firstWhere('sku', $sku) !== null) {
             $this->sku = $sku;
             $this->quantity = 1;
         }
@@ -57,7 +58,7 @@ class ProductShow extends Component
      */
     public function addWholesaleMinimum(): void
     {
-        $item = DemoWholesale::item($this->selectedVariant()->sku);
+        $item = WholesaleItem::for($this->selectedVariant());
 
         if ($item === null) {
             return;
@@ -87,59 +88,126 @@ class ProductShow extends Component
     {
         $product = $this->product();
         $variant = $this->selectedVariant();
-        $root = DemoCatalog::category($product->category);
-        $section = DemoCatalog::category($product->subcategory);
 
         return view('livewire.shop.product-show', [
             'product' => $product,
             'variant' => $variant,
-            'maxQuantity' => app(DemoCart::class)->ceilingFor($variant->sku, $variant),
+            'maxQuantity' => $this->ceiling($variant),
             'inBag' => app(DemoCart::class)->quantityOf($variant->sku),
-            'wholesale' => DemoWholesale::item($variant->sku),
-            'similar' => DemoCatalog::similar($product),
-            'breadcrumb' => $this->breadcrumb($product, $root, $section),
+            'wholesale' => WholesaleItem::for($variant),
+            'similar' => $this->similar($product),
+            'breadcrumb' => $this->breadcrumb($product),
         ])->layout('layouts::shop', [
             'title' => "{$product->name} by {$product->brand}",
-            'description' => Str::limit($product->summary, 155),
+            'description' => Str::limit((string) $product->short_description, 155),
             'active' => 'categories',
             'ogType' => 'product',
         ]);
     }
 
     /**
+     * Home, the top category, the subcategory it sits in, then the product.
+     *
      * @return array<string, string|null>
      */
-    private function breadcrumb(DemoProduct $product, ?DemoCategory $root, ?DemoCategory $section): array
+    private function breadcrumb(Product $product): array
     {
         $items = ['Home' => route('shop.home')];
+        $category = $product->category;
+        $root = $category?->parent;
 
-        if ($root) {
+        if ($root !== null) {
             $items[$root->name] = route('shop.category', $root->slug);
         }
-        if ($section) {
-            $items[$section->name] = route('shop.category', $section->slug);
+
+        if ($category !== null) {
+            $items[$category->name] = route('shop.category', $category->slug);
         }
+
         $items[$product->name] = null;
 
         return $items;
     }
 
-    private function product(): DemoProduct
+    /**
+     * Other products from the same corner of the shop: its own subcategory
+     * first, then the wider category.
+     *
+     * @return Collection<int, Product>
+     */
+    private function similar(Product $product, int $limit = 4): Collection
     {
-        return DemoCatalog::product($this->slug) ?? abort(404);
+        $category = $product->category;
+
+        if ($category === null) {
+            return new Collection;
+        }
+
+        $near = Product::query()
+            ->active()
+            ->forListing()
+            ->inCategory($category)
+            ->whereKeyNot($product->getKey())
+            ->limit($limit)
+            ->get();
+
+        if ($near->count() >= $limit && $category->parent_id === null) {
+            return $near;
+        }
+
+        $wider = Product::query()
+            ->active()
+            ->forListing()
+            ->inCategory($category->parent ?? $category)
+            ->whereKeyNot($product->getKey())
+            ->whereNotIn('id', $near->modelKeys())
+            ->limit($limit - $near->count())
+            ->get();
+
+        return $near->concat($wider)->take($limit)->values();
     }
 
-    private function selectedVariant(): DemoVariant
+    private ?Product $loaded = null;
+
+    private function product(): Product
+    {
+        // Called from mount, render, the breadcrumb and every quantity check,
+        // so it is resolved once per request rather than re-queried each time.
+        return $this->loaded ??= Product::query()
+            ->active()
+            ->with([
+                'category.parent',
+                'variants' => fn ($variants) => $variants->where('is_active', true)->orderBy('sort_order')->orderBy('id'),
+                'variants.priceSlabs',
+            ])
+            ->where('slug', $this->slug)
+            ->firstOr(fn () => abort(404));
+    }
+
+    private function selectedVariant(): ProductVariant
     {
         $product = $this->product();
 
-        return $product->variant($this->sku) ?? $product->defaultVariant();
+        return $product->variants->firstWhere('sku', $this->sku)
+            ?? $product->firstVariant()
+            ?? abort(404);
+    }
+
+    /**
+     * The most of this variant a customer may put in the bag: the retail
+     * per-line cap, or the wholesale ceiling for a variant with price bands.
+     * Mirrors DemoCart::ceilingFor(), which still speaks the sample catalogue's
+     * types until the bag moves onto the database in the next stage.
+     */
+    private function ceiling(ProductVariant $variant): int
+    {
+        return WholesaleItem::for($variant) !== null
+            ? WholesaleCatalog::MAX_QUANTITY
+            : max(1, min(DemoCart::MAX_PER_LINE, $variant->stock_quantity));
     }
 
     private function clampedQuantity(): int
     {
-        $variant = $this->selectedVariant();
-
-        return max(1, min($this->quantity, app(DemoCart::class)->ceilingFor($variant->sku, $variant)));
+        return max(1, min($this->quantity, $this->ceiling($this->selectedVariant())));
     }
 }

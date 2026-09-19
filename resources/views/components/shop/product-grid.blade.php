@@ -17,20 +17,23 @@
 ]) }}>
     @foreach ($products as $product)
         @php
-            $variant = $product->defaultVariant();
-            $choices = count($product->variants);
-            $choiceLabel = $product->hasChoices() ? $choices.' '.\Illuminate\Support\Str::plural(\Illuminate\Support\Str::lower($product->variantLabel), $choices) : $variant->name;
+            $variant = $product->firstVariant();
+            $choices = $product->variantCount();
+            $choiceLabel = $product->hasChoices()
+                ? $choices.' '.\Illuminate\Support\Str::plural(\Illuminate\Support\Str::lower($product->variant_label), $choices)
+                : $variant?->name;
         @endphp
+        @continue ($variant === null)
         <li wire:key="product-{{ $product->slug }}" @class(['flex', 'snap-start' => $rail])>
             <x-shop.product-card
                 class="w-full"
                 :name="$product->name"
                 :url="route('shop.product', $product->slug)"
-                :category="$product->category"
+                :category="$product->rootCategorySlug()"
                 :brand="$product->brand"
                 :variant="$choiceLabel"
-                :paise="$variant->paise"
-                :mrp="$variant->mrp"
+                :paise="$variant->price_paise"
+                :mrp="$variant->mrp_paise"
                 :in-stock="$product->inStock()"
             >
                 <x-slot:action>
@@ -38,7 +41,7 @@
                         <x-ui.button size="sm" variant="secondary" block disabled>Out of stock</x-ui.button>
                     @elseif ($product->hasChoices())
                         <x-ui.button size="sm" variant="secondary" block :href="route('shop.product', $product->slug)">
-                            Choose {{ \Illuminate\Support\Str::lower($product->variantLabel) }}
+                            Choose {{ \Illuminate\Support\Str::lower($product->variant_label) }}
                         </x-ui.button>
                     @else
                         <x-ui.button

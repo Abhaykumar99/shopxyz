@@ -3,7 +3,7 @@
 
 <div {{ $attributes->class('rounded-sheet bg-white p-6 text-ink') }} aria-hidden="true">
     <div class="flex items-center gap-3">
-        <x-shop.product-image :category="$item->product->category" alt="" class="size-16 rounded-card" />
+        <x-shop.product-image :category="$item->product->rootCategorySlug()" alt="" class="size-16 rounded-card" />
         <div>
             <p class="text-sm text-ink-soft">{{ $item->product->brand }}</p>
             <p class="font-display text-xl">{{ $item->product->name }}, {{ $item->unit }}</p>
@@ -18,5 +18,5 @@
             </li>
         @endforeach
     </ul>
-    <p class="mt-3 text-sm text-ink-soft">Retail price {{ \App\Support\Money::format($item->variant->paise) }}</p>
+    <p class="mt-3 text-sm text-ink-soft">Retail price {{ \App\Support\Money::format($item->variant->price_paise) }}</p>
 </div>

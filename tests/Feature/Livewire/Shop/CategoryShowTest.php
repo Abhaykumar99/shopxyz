@@ -3,6 +3,10 @@
 use App\Livewire\Shop\CategoryShow;
 use Livewire\Livewire;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 it('lists the products of a category and its subcategories', function () {
     $this->get('/c/cosmetics')
         ->assertOk()

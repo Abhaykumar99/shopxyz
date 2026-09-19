@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Home\HomeContent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -55,5 +56,20 @@ class HomeSectionItem extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    protected static function booted(): void
+    {
+        // HomeContent is resolved once per request and memoises what it
+        // reads, so editing the homepage has to drop that instance — in a
+        // test, under Octane, or anywhere else the container outlives one
+        // request.
+        static::saved(static function (): void {
+            app()->forgetInstance(HomeContent::class);
+        });
+
+        static::deleted(static function (): void {
+            app()->forgetInstance(HomeContent::class);
+        });
     }
 }

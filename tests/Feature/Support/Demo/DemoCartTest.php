@@ -5,6 +5,7 @@ use App\Support\Demo\DemoWholesale;
 use App\Support\ShopSettings;
 
 beforeEach(function () {
+    seedCatalog();
     config([
         'shop.delivery.charge_paise' => 4000,
         'shop.delivery.free_above_paise' => 49900,

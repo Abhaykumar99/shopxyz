@@ -2,8 +2,9 @@
 
 namespace App\Livewire\Concerns;
 
-use App\Support\Demo\DemoCatalog;
-use App\Support\Demo\DemoProduct;
+use App\Enums\ProductSort;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Url;
 use Livewire\WithPagination;
@@ -63,31 +64,48 @@ trait FiltersCatalog
     }
 
     /**
-     * @return LengthAwarePaginator<int, DemoProduct>
+     * @return LengthAwarePaginator<int, Product>
      */
-    protected function filteredProducts(?string $category, ?string $search): LengthAwarePaginator
+    protected function filteredProducts(?Category $category, ?string $search): LengthAwarePaginator
     {
-        $sort = array_key_exists($this->sort, DemoCatalog::SORTS) ? $this->sort : 'popular';
+        return $this->catalogQuery($category, $search)
+            ->forListing()
+            ->sorted(ProductSort::fromRequest($this->sort))
+            ->paginate(self::PER_PAGE);
+    }
+
+    /**
+     * The brands a customer can still filter by, given everything else they
+     * have chosen. Built from the same query so an option never returns nothing.
+     *
+     * @return list<string>
+     */
+    protected function brandOptions(?Category $category, ?string $search): array
+    {
+        return Product::query()
+            ->active()
+            ->inCategory($category)
+            ->search($search)
+            ->whereNotNull('brand')
+            ->distinct()
+            ->orderBy('brand')
+            ->pluck('brand')
+            ->all();
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder<Product>
+     */
+    private function catalogQuery(?Category $category, ?string $search): \Illuminate\Database\Eloquent\Builder
+    {
         [, $min, $max] = self::PRICE_RANGES[$this->price] ?? [null, null, null];
-        $brands = array_values(array_filter($this->brands, 'is_string'));
 
-        $results = DemoCatalog::query(
-            category: $category,
-            search: $search,
-            brands: $brands,
-            minPaise: $min,
-            maxPaise: $max,
-            inStockOnly: $this->inStock,
-            sort: $sort,
-        );
-
-        $page = max(1, $this->getPage());
-
-        return new LengthAwarePaginator(
-            $results->forPage($page, self::PER_PAGE)->values(),
-            $results->count(),
-            self::PER_PAGE,
-            $page,
-        );
+        return Product::query()
+            ->active()
+            ->inCategory($category)
+            ->search($search)
+            ->ofBrands(array_values(array_filter($this->brands, 'is_string')))
+            ->pricedBetween($min, $max)
+            ->when($this->inStock, fn ($query) => $query->inStock());
     }
 }

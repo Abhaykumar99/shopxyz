@@ -3,6 +3,10 @@
 use App\Models\Category;
 use App\Support\Demo\DemoCatalog;
 
+beforeEach(function () {
+    seedCatalog();
+});
+
 /**
  * What a search engine and a shared link see. The header navigation comes from
  * the categories the admin manages (ADR-024), never from a hardcoded list.
