@@ -20,7 +20,7 @@ if [ $# -eq 0 ]; then
     # but for safety in multi-instance setups, it's better to run them manually
     # or via a dedicated release phase in Render.
     # Uncomment the next line if you want auto-migrations on start:
-    php artisan migrate --force
+    php artisan migrate --force || true
 
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 else
