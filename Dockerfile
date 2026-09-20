@@ -1,8 +1,8 @@
 # Stage 1: Build Node.js assets
 FROM node:24-alpine AS node_builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
+COPY package*.json .npmrc ./
+RUN npm install
 COPY . .
 RUN npm run build
 
