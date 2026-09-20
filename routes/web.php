@@ -119,3 +119,16 @@ Route::get('/pages/{page}', InfoPageController::class)
 if (app()->environment(['local', 'testing'])) {
     require __DIR__.'/dev.php';
 }
+
+Route::get('/debug-clear-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+    \Illuminate\Support\Facades\Artisan::call('view:clear');
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    
+    return [
+        'status' => 'Cache cleared on Render!',
+        'categories' => \App\Models\Category::count(),
+        'products' => \App\Models\Product::count(),
+        'home_sections' => \App\Models\HomeSection::count()
+    ];
+});
