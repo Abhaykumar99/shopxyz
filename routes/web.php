@@ -133,5 +133,6 @@ Route::get('/debug-clear-cache', function () {
         'live_banners' => \App\Models\Banner::live()->count(),
         'mobile_hero' => \App\Models\Banner::live()->placement(\App\Enums\BannerPlacement::MobileHero)->count(),
         'desktop_hero' => \App\Models\Banner::live()->placement(\App\Enums\BannerPlacement::DesktopHero)->count(),
+        'log' => file_exists(storage_path('logs/laravel.log')) ? substr(file_get_contents(storage_path('logs/laravel.log')), -5000) : 'No log file',
     ]);
 });
