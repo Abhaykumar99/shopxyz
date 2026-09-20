@@ -121,13 +121,17 @@ if (app()->environment(['local', 'testing'])) {
 }
 
 Route::get('/debug-clear-cache', function () {
-    return [
+    return response()->json([
         'status' => 'Cache cleared on Render!',
         'default_connection' => config('database.default'),
         'database_url' => env('DATABASE_URL'),
         'db_host' => env('DB_HOST'),
         'categories' => \App\Models\Category::count(),
         'products' => \App\Models\Product::count(),
-        'home_sections' => \App\Models\HomeSection::count()
-    ];
+        'home_sections' => \App\Models\HomeSection::count(),
+        'live_sections' => \App\Models\HomeSection::live()->count(),
+        'live_banners' => \App\Models\Banner::live()->count(),
+        'mobile_hero' => \App\Models\Banner::live()->placement(\App\Enums\BannerPlacement::MobileHero)->count(),
+        'desktop_hero' => \App\Models\Banner::live()->placement(\App\Enums\BannerPlacement::DesktopHero)->count(),
+    ]);
 });
