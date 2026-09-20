@@ -8,6 +8,7 @@ online shop, manual UPI/COD payment verification, billing, packing labels and mu
 | Doc | What's inside |
 |---|---|
 | [docs/requirements.md](docs/requirements.md) | Scope, roles, flows, phase plan |
+| [docs/roadmap.md](docs/roadmap.md) | Remaining work to launch: phases, tasks, dependencies, effort |
 | [docs/decisions.md](docs/decisions.md) | Architecture decisions (ADRs) |
 | [docs/erd.md](docs/erd.md) | Draft database design and status machines |
 | [docs/design-system.md](docs/design-system.md) | Colours, type, components, layouts, printing, accessibility |

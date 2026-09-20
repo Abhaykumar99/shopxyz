@@ -121,12 +121,11 @@ if (app()->environment(['local', 'testing'])) {
 }
 
 Route::get('/debug-clear-cache', function () {
-    \Illuminate\Support\Facades\Artisan::call('cache:clear');
-    \Illuminate\Support\Facades\Artisan::call('view:clear');
-    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
-    
     return [
         'status' => 'Cache cleared on Render!',
+        'default_connection' => config('database.default'),
+        'database_url' => env('DATABASE_URL'),
+        'db_host' => env('DB_HOST'),
         'categories' => \App\Models\Category::count(),
         'products' => \App\Models\Product::count(),
         'home_sections' => \App\Models\HomeSection::count()
