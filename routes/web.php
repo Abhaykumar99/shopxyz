@@ -129,6 +129,8 @@ Route::get('/debug-clear-cache', function () {
         'categories' => \App\Models\Category::count(),
         'products' => \App\Models\Product::count(),
         'home_sections' => \App\Models\HomeSection::count(),
+        'session_driver' => config('session.driver'),
+        'db_persistent' => config('database.connections.mysql.options.' . PDO::ATTR_PERSISTENT),
         'live_sections' => \App\Models\HomeSection::live()->count(),
         'live_banners' => \App\Models\Banner::live()->count(),
         'mobile_hero' => \App\Models\Banner::live()->placement(\App\Enums\BannerPlacement::MobileHero)->count(),
