@@ -1,18 +1,20 @@
-# Stage 1: Build Node.js assets
-FROM node:24-alpine AS node_builder
-WORKDIR /app
-COPY package*.json .npmrc ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-# Stage 2: Install PHP dependencies
+# Stage 1: Install PHP dependencies (Needed first because Tailwind/Vite CSS depends on vendor files)
 FROM composer:2 AS composer_builder
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --ignore-platform-reqs
 COPY . .
 RUN composer dump-autoload --optimize --no-dev --ignore-platform-reqs
+
+# Stage 2: Build Node.js assets
+FROM node:24-alpine AS node_builder
+WORKDIR /app
+COPY package*.json .npmrc ./
+RUN npm install
+COPY . .
+# Copy vendor from composer_builder so Tailwind can find Filament's core CSS
+COPY --from=composer_builder /app/vendor/ ./vendor/
+RUN npm run build
 
 # Stage 3: Production Image
 FROM php:8.4-fpm-alpine
@@ -27,7 +29,7 @@ RUN apk add --no-cache \
     zip \
     unzip
 
-# Install PHP extensions using mlocati/docker-php-extension-installer (reliable for gd, zip, etc.)
+# Install PHP extensions using mlocati/docker-php-extension-installer
 ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 RUN chmod +x /usr/local/bin/install-php-extensions && \
     install-php-extensions bcmath exif gd intl mbstring pdo_mysql zip
