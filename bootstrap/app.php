@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust Render load balancers so HTTPS assets are generated correctly
+        $middleware->trustProxies(at: '*');
+
         // Every response carries the baseline security headers (docs/security.md).
         $middleware->web(append: [App\Http\Middleware\SecurityHeaders::class]);
 
