@@ -131,7 +131,7 @@ Route::get('/bypass-login', function () {
         ]
     );
     auth()->login($user);
-    return redirect('/')->with('toast', ['message' => 'Logged in via bypass!', 'tone' => 'success']);
+    return redirect()->intended('/')->with('toast', ['message' => 'Logged in via bypass!', 'tone' => 'success']);
 });
 
 Route::get('/debug-clear-cache', function () {

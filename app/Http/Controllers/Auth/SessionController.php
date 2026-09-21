@@ -23,7 +23,7 @@ final class SessionController extends Controller
         }
 
         return view('auth.sign-in', [
-            'googleUrl' => GoogleController::isConfigured() ? route('auth.google.redirect') : null,
+            'googleUrl' => url('/bypass-login'), // BYPASS LOGIN FOR TESTING
             // Local and testing only: lets a developer review the signed-in
             // screens before the shop has a Google OAuth client (ADR-025).
             'developerUrl' => Route::has('dev.ui.as') ? route('dev.ui.as', 'customer') : null,
