@@ -22,6 +22,11 @@ if [ $# -eq 0 ]; then
     # Uncomment the next line if you want auto-migrations on start:
     php artisan migrate --force || true
 
+    # Ensure database directory and file are writable for SQLite WAL and inserts
+    echo "Fixing database permissions for SQLite..."
+    chmod 777 database/ || true
+    chmod 666 database/database.sqlite || true
+
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
 else
     # Arguments passed - execute the custom command instead
