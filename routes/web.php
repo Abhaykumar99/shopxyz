@@ -126,6 +126,10 @@ Route::get('/debug-db', function () {
     return response()->json(['journal_mode' => $mode, 'busy_timeout' => $timeout]);
 });
 
+Route::get('/debug-log', function () {
+    return response()->file(storage_path('logs/laravel.log'));
+});
+
 Route::get('/bypass-login', function () {
     $user = \App\Models\User::firstOrCreate(
         ['email' => 'tester@example.com'],
