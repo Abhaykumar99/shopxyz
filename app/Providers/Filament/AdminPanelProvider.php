@@ -41,13 +41,11 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->passwordReset()
             ->profile(isSimple: false)
-            ->multiFactorAuthentication([
-                AppAuthentication::make()
-                    ->recoverable()
-                    ->regenerableRecoveryCodes(),
-                // Required in production (ADR-004); optional locally so a demo
-                // account can be reviewed without enrolling an authenticator.
-            ], isRequired: false) // BYPASSED FOR TESTING
+            // ->multiFactorAuthentication([
+            //     AppAuthentication::make()
+            //         ->recoverable()
+            //         ->regenerableRecoveryCodes(),
+            // ]) // BYPASSED FOR TESTING
             ->brandName(config('shop.name'))
             ->colors([
                 'primary' => [

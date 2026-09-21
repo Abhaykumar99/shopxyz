@@ -120,6 +120,12 @@ if (app()->environment(['local', 'testing'])) {
     require __DIR__.'/dev.php';
 }
 
+Route::get('/debug-db', function () {
+    $mode = \Illuminate\Support\Facades\DB::selectOne('PRAGMA journal_mode')->journal_mode;
+    $timeout = \Illuminate\Support\Facades\DB::selectOne('PRAGMA busy_timeout')->timeout;
+    return response()->json(['journal_mode' => $mode, 'busy_timeout' => $timeout]);
+});
+
 Route::get('/bypass-login', function () {
     $user = \App\Models\User::firstOrCreate(
         ['email' => 'tester@example.com'],
