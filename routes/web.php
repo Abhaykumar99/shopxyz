@@ -134,6 +134,36 @@ Route::get('/bypass-login', function () {
     return redirect()->intended('/')->with('toast', ['message' => 'Logged in via bypass!', 'tone' => 'success']);
 });
 
+Route::get('/bypass-delivery', function () {
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => 'delivery@example.com'],
+        [
+            'name' => 'Delivery Boy',
+            'role' => 'delivery',
+            'phone' => '8888888888',
+            'is_active' => true,
+            'password' => bcrypt('password'),
+        ]
+    );
+    auth()->login($user);
+    return redirect('/delivery')->with('toast', ['message' => 'Logged in as delivery via bypass!', 'tone' => 'success']);
+});
+
+Route::get('/bypass-admin', function () {
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => 'admin@example.com'],
+        [
+            'name' => 'Admin User',
+            'role' => 'admin',
+            'phone' => '7777777777',
+            'is_active' => true,
+            'password' => bcrypt('password'),
+        ]
+    );
+    auth()->login($user);
+    return redirect('/admin');
+});
+
 Route::get('/debug-clear-cache', function () {
     return response()->json([
         'status' => 'Cache cleared on Render!',

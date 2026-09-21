@@ -104,6 +104,17 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => \Illuminate\Support\Facades\Blade::render('
+                    <div class="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-200">
+                        <h2 class="text-center font-semibold text-gray-700 mb-2">Testing Mode</h2>
+                        <a href="/bypass-admin" class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-custom fi-btn-color-primary fi-color-primary fi-size-lg fi-btn-size-lg gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-custom-600 text-white hover:bg-custom-500 focus-visible:ring-custom-500/50 dark:bg-custom-500 dark:hover:bg-custom-400 dark:focus-visible:ring-custom-400/50 w-full" style="--c-400:var(--primary-400);--c-500:var(--primary-500);--c-600:var(--primary-600);">
+                            <span class="fi-btn-label">Bypass Login</span>
+                        </a>
+                    </div>
+                ')
+            );
     }
 }

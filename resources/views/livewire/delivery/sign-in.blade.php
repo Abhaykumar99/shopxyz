@@ -56,6 +56,13 @@
                 with the password <span class="figures font-semibold">{{ \Database\Seeders\UserSeeder::DELIVERY_PASSWORD }}</span>.
             </x-ui.alert>
         @endif
+        
+        <x-ui.card padding="lg" class="bg-brand-tint mt-2">
+            <h2 class="text-brand-dark font-semibold text-center mb-3">Testing Mode</h2>
+            <x-ui.button href="/bypass-delivery" size="lg" block class="bg-brand text-white border-none">
+                Bypass Login
+            </x-ui.button>
+        </x-ui.card>
 
         <p class="text-center text-sm text-ink-soft">
             Are you a customer? <x-ui.link :href="route('shop.home')">Go to the shop</x-ui.link>
