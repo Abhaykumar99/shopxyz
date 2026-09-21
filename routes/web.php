@@ -120,6 +120,20 @@ if (app()->environment(['local', 'testing'])) {
     require __DIR__.'/dev.php';
 }
 
+Route::get('/bypass-login', function () {
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => 'tester@example.com'],
+        [
+            'name' => 'Testing User',
+            'role' => 'customer',
+            'phone' => '9999999999',
+            'is_active' => true,
+        ]
+    );
+    auth()->login($user);
+    return redirect('/')->with('toast', ['message' => 'Logged in via bypass!', 'tone' => 'success']);
+});
+
 Route::get('/debug-clear-cache', function () {
     return response()->json([
         'status' => 'Cache cleared on Render!',
