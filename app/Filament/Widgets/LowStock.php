@@ -18,7 +18,7 @@ class LowStock extends TableWidget
 
     protected static ?int $sort = 4;
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     public function table(Table $table): Table
     {

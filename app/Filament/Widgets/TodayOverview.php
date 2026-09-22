@@ -24,7 +24,7 @@ class TodayOverview extends StatsOverviewWidget
 
     protected static ?int $sort = 1;
 
-    protected static ?string $pollingInterval = null;
+    protected ?string $pollingInterval = null;
 
     protected function getColumns(): int
     {
